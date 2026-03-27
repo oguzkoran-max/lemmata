@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.so
+.venv/
+venv/
+env/
+.python-version
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data files in project root (not in examples/)
+/*.pdf
+/*.docx
+/*.odt
+/*.epub
+/*.txt
+!README.md
+!CHANGELOG.md
+!DEPLOY_CHECKLIST.md
+!CONTRIBUTING.md
+!LICENSE
+
+# Archives
+*.zip
+
+# Jupyter
+.ipynb_checkpoints/

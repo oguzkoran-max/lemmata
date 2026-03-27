@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+title: "Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities"
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+authors:
+  - given-names: Oğuz
+    family-names: Koran
+    email: oguz.koran@ankara.edu.tr
+    affiliation: "Ankara University, School of Foreign Languages, Italian Language and Literature"
+    orcid: "https://orcid.org/0000-0001-7954-9597"
+  - given-names: Hakan
+    family-names: Cangır
+    email: hcangir@ankara.edu.tr
+    affiliation: "Ankara University, School of Foreign Languages, Applied Linguistics"
+    orcid: "https://orcid.org/0000-0003-2589-2466"
+  - given-names: Barış
+    family-names: Yücesan
+    email: byucesan@ankara.edu.tr
+    affiliation: "Ankara University, Faculty of Languages, History and Geography (DTCF), Italian Language and Literature"
+    orcid: "https://orcid.org/0000-0002-1776-9815"
+repository-code: "https://github.com/oguzkoran-max/lemmata"
+url: "https://lemmata.app"
+abstract: >-
+  Lemmata is a browser-based, multilingual LDA topic modeling platform
+  designed for humanities researchers with no programming expertise.
+  It supports Italian, English, German, French, and Spanish through
+  spaCy NLP pipelines, and produces fully deterministic, reproducible
+  results (random_state=42, batch learning). The platform was developed
+  entirely through vibe coding — LLM-assisted software development
+  using natural language prompts — and serves as both a practical
+  research tool and a methodological case study for AI-assisted
+  Digital Humanities workflows.
+keywords:
+  - topic modeling
+  - LDA
+  - digital humanities
+  - multilingual NLP
+  - computational literary studies
+  - vibe coding
+  - LLM-assisted development
+license: MIT
+version: 0.1.0
+date-released: "2026-04-15"
