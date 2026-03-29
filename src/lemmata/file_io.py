@@ -699,10 +699,12 @@ def _to_json(obj: Any) -> str:
     def _default(o: Any) -> Any:
         import numpy as np
 
-        if isinstance(o, (np.integer,)):
+        if isinstance(o, np.integer):
             return int(o)
-        if isinstance(o, (np.floating,)):
+        if isinstance(o, np.floating):
             return float(o)
+        if isinstance(o, np.bool_):
+            return bool(o)
         if isinstance(o, np.ndarray):
             return o.tolist()
         # Last resort: convert to string rather than crash.
@@ -800,21 +802,94 @@ def _is_altair(fig: Any) -> bool:
 
 
 def _altair_to_png(chart: Any, dpi: int) -> Optional[bytes]:
-    """Render Altair chart to PNG bytes. Returns *None* if vl-convert is unavailable."""
+    """Render Altair chart to PNG bytes.
+
+    Tries vl-convert first (``chart.save``), then falls back to a
+    matplotlib re-render of the heatmap data extracted from the Altair spec.
+    Returns *None* if both approaches fail.
+    """
+    # Fast path: vl-convert available.
     try:
         buf = io.BytesIO()
         chart.save(buf, format="png", scale_factor=dpi / 72)
         buf.seek(0)
         return buf.getvalue()
     except Exception:
-        return None
+        pass
+    # Fallback: re-render with matplotlib from the Altair spec data.
+    return _altair_to_mpl_bytes(chart, fmt="png", dpi=dpi)
 
 
 def _altair_to_svg(chart: Any) -> Optional[bytes]:
-    """Render Altair chart to SVG bytes. Returns *None* if vl-convert is unavailable."""
+    """Render Altair chart to SVG bytes.
+
+    Tries vl-convert first, then matplotlib fallback.
+    Returns *None* if both approaches fail.
+    """
     try:
         buf = io.BytesIO()
         chart.save(buf, format="svg")
+        buf.seek(0)
+        return buf.getvalue()
+    except Exception:
+        pass
+    return _altair_to_mpl_bytes(chart, fmt="svg", dpi=150)
+
+
+def _altair_to_mpl_bytes(chart: Any, *, fmt: str, dpi: int) -> Optional[bytes]:
+    """Best-effort matplotlib render from Altair chart spec data.
+
+    Extracts the ``data.values`` from the Altair spec and produces a
+    simple heatmap/bar chart with matplotlib.  Returns *None* on failure.
+    """
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pandas as pd
+
+        spec = chart.to_dict()
+        values = spec.get("data", {}).get("values", [])
+        if not values:
+            datasets = spec.get("datasets", {})
+            if datasets:
+                values = list(datasets.values())[0]
+        if not values:
+            return None
+
+        df = pd.DataFrame(values)
+
+        # Detect heatmap: x + y + color/weight columns.
+        if {"x", "y"}.issubset(df.columns) or {"Topic", "Document"}.issubset(df.columns):
+            x_col = "Topic" if "Topic" in df.columns else "x"
+            y_col = "Document" if "Document" in df.columns else "y"
+            v_col = "Weight" if "Weight" in df.columns else (
+                "weight" if "weight" in df.columns else "color"
+            )
+            if v_col not in df.columns:
+                v_col = [c for c in df.columns if c not in (x_col, y_col)][0]
+
+            pivot = df.pivot_table(index=y_col, columns=x_col, values=v_col, aggfunc="first")
+            fig, ax = plt.subplots(figsize=(max(4, len(pivot.columns) * 0.8),
+                                            max(3, len(pivot) * 0.35)))
+            ax.imshow(pivot.values.astype(float), aspect="auto", cmap="viridis")
+            ax.set_xticks(range(len(pivot.columns)))
+            ax.set_xticklabels(pivot.columns, fontsize=7, rotation=45, ha="right")
+            ax.set_yticks(range(len(pivot.index)))
+            ax.set_yticklabels(pivot.index, fontsize=6)
+            plt.tight_layout()
+        else:
+            # Generic bar chart fallback.
+            col = df.columns[0]
+            val = df.columns[1] if len(df.columns) > 1 else df.columns[0]
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax.barh(df[col].astype(str), df[val].astype(float))
+            plt.tight_layout()
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight")
+        plt.close(fig)
         buf.seek(0)
         return buf.getvalue()
     except Exception:

@@ -803,8 +803,24 @@ def _tab_distribution(results: dict[str, Any], topic_labels: list[str]) -> None:
     matrix = np.asarray(results["doc_topic_matrix"])
     labels = results["doc_labels"]
 
+    _MAX_DIST_DOCS = 50
+
     st.markdown("**Document-Topic Distribution**")
-    chart = create_distribution_chart(matrix, labels, topic_labels)
+
+    if len(labels) > _MAX_DIST_DOCS:
+        # Show top-50 documents by dominant topic weight for performance.
+        dominant_weights = matrix.max(axis=1)
+        top_idx = np.argsort(dominant_weights)[::-1][:_MAX_DIST_DOCS]
+        top_idx = np.sort(top_idx)  # Preserve document order.
+        matrix_sub = matrix[top_idx]
+        labels_sub = [labels[i] for i in top_idx]
+        st.info(
+            f"Showing top {_MAX_DIST_DOCS} of {len(labels)} documents "
+            f"(by dominant topic weight) for performance."
+        )
+        chart = create_distribution_chart(matrix_sub, labels_sub, topic_labels)
+    else:
+        chart = create_distribution_chart(matrix, labels, topic_labels)
     st.altair_chart(chart, use_container_width=True)
 
     st.divider()
