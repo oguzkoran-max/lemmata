@@ -768,8 +768,11 @@ def _tab_heatmap(results: dict[str, Any], topic_labels: list[str]) -> None:
     st.altair_chart(chart, use_container_width=False)
 
     # Download buttons (gracefully skip if vl-convert is unavailable).
-    png = export_figure_png(chart)
-    svg = export_figure_svg(chart)
+    try:
+        png = export_figure_png(chart)
+        svg = export_figure_svg(chart)
+    except Exception:
+        png, svg = None, None
     if png or svg:
         col1, col2 = st.columns(2)
         if png:

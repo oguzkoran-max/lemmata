@@ -705,7 +705,8 @@ def _to_json(obj: Any) -> str:
             return float(o)
         if isinstance(o, np.ndarray):
             return o.tolist()
-        raise TypeError(f"Object of type {type(o)} is not JSON serializable")
+        # Last resort: convert to string rather than crash.
+        return str(o)
 
     return json.dumps(obj, indent=2, ensure_ascii=False, default=_default)
 
