@@ -14,7 +14,7 @@ import platform
 import sys
 import zipfile
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from lemmata.config import (
     ALLOWED_EXTENSIONS,
@@ -490,46 +490,24 @@ def get_zip_filename(language: str, n_topics: int) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def export_figure_png(fig: Any, dpi: int = CHART_DPI) -> bytes:
+def export_figure_png(fig: Any, dpi: int = CHART_DPI) -> Optional[bytes]:
     """Export a matplotlib or Altair figure to PNG bytes.
 
-    Parameters
-    ----------
-    fig:
-        A ``matplotlib.figure.Figure`` or an ``altair.Chart``.
-    dpi:
-        Resolution (default 300, from config).
-
-    Returns
-    -------
-    bytes
-        PNG image bytes.
+    Returns *None* for Altair charts when vl-convert-python is not installed.
     """
-    # Altair chart → render via vl-convert or save method.
     if _is_altair(fig):
         return _altair_to_png(fig, dpi)
 
-    # Matplotlib figure.
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")
     buf.seek(0)
     return buf.getvalue()
 
 
-def export_figure_svg(fig: Any) -> bytes:
+def export_figure_svg(fig: Any) -> Optional[bytes]:
     """Export a matplotlib or Altair figure to SVG bytes.
 
-    Wordclouds (matplotlib) should use :func:`export_figure_png` instead.
-
-    Parameters
-    ----------
-    fig:
-        A ``matplotlib.figure.Figure`` or an ``altair.Chart``.
-
-    Returns
-    -------
-    bytes
-        SVG image bytes.
+    Returns *None* for Altair charts when vl-convert-python is not installed.
     """
     if _is_altair(fig):
         return _altair_to_svg(fig)
@@ -820,25 +798,23 @@ def _is_altair(fig: Any) -> bool:
         return False
 
 
-def _altair_to_png(chart: Any, dpi: int) -> bytes:
-    """Render Altair chart to PNG bytes via vlc or selenium fallback."""
+def _altair_to_png(chart: Any, dpi: int) -> Optional[bytes]:
+    """Render Altair chart to PNG bytes. Returns *None* if vl-convert is unavailable."""
     try:
-        import vlc  # vl-convert-python
-
-        return chart.to_image(format="png", scale_factor=dpi / 72)  # type: ignore[return-value]
+        buf = io.BytesIO()
+        chart.save(buf, format="png", scale_factor=dpi / 72)
+        buf.seek(0)
+        return buf.getvalue()
     except Exception:
-        pass
-
-    # Fallback: save via chart method.
-    buf = io.BytesIO()
-    chart.save(buf, format="png", scale_factor=dpi / 72)
-    buf.seek(0)
-    return buf.getvalue()
+        return None
 
 
-def _altair_to_svg(chart: Any) -> bytes:
-    """Render Altair chart to SVG bytes."""
-    buf = io.BytesIO()
-    chart.save(buf, format="svg")
-    buf.seek(0)
-    return buf.getvalue()
+def _altair_to_svg(chart: Any) -> Optional[bytes]:
+    """Render Altair chart to SVG bytes. Returns *None* if vl-convert is unavailable."""
+    try:
+        buf = io.BytesIO()
+        chart.save(buf, format="svg")
+        buf.seek(0)
+        return buf.getvalue()
+    except Exception:
+        return None

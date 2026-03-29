@@ -767,26 +767,29 @@ def _tab_heatmap(results: dict[str, Any], topic_labels: list[str]) -> None:
     )
     st.altair_chart(chart, use_container_width=False)
 
-    # Download buttons.
-    col1, col2 = st.columns(2)
-    with col1:
-        png = export_figure_png(chart)
-        st.download_button(
-            "Download PNG",
-            data=png,
-            file_name="heatmap.png",
-            mime="image/png",
-            key="heatmap_png",
-        )
-    with col2:
-        svg = export_figure_svg(chart)
-        st.download_button(
-            "Download SVG",
-            data=svg,
-            file_name="heatmap.svg",
-            mime="image/svg+xml",
-            key="heatmap_svg",
-        )
+    # Download buttons (gracefully skip if vl-convert is unavailable).
+    png = export_figure_png(chart)
+    svg = export_figure_svg(chart)
+    if png or svg:
+        col1, col2 = st.columns(2)
+        if png:
+            with col1:
+                st.download_button(
+                    "Download PNG",
+                    data=png,
+                    file_name="heatmap.png",
+                    mime="image/png",
+                    key="heatmap_png",
+                )
+        if svg:
+            with col2:
+                st.download_button(
+                    "Download SVG",
+                    data=svg,
+                    file_name="heatmap.svg",
+                    mime="image/svg+xml",
+                    key="heatmap_svg",
+                )
 
 
 # ── Distribution Tab ─────────────────────────────────────────────────────────
