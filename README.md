@@ -1,5 +1,7 @@
 # Lemmata
 
+![CI](https://github.com/oguzkoran-max/lemmata/actions/workflows/ci.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg) ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg) ![Streamlit](https://img.shields.io/badge/Streamlit-deployed-FF4B4B.svg)
+
 **A multilingual LDA topic modeling platform for humanities researchers.**
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.XXXXXXX-blue)](https://doi.org/10.5281/zenodo.XXXXXXX)
