@@ -4,10 +4,6 @@
 
 **A multilingual LDA topic modeling platform for humanities researchers.**
 
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.XXXXXXX-blue)](https://doi.org/10.5281/zenodo.XXXXXXX)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-
 ---
 
 ## What is Lemmata?
@@ -87,7 +83,7 @@ python -m spacy download es_core_news_sm
 ### 5. Run the application
 
 ```bash
-streamlit run app.py
+streamlit run src/lemmata/app.py
 ```
 
 The application opens at `http://localhost:8501`.
@@ -138,7 +134,7 @@ Three safeguards ensured methodological rigor:
 
 2. **Expert validation at every decision point.** Domain-specific decisions followed a human-in-the-loop model: corpus linguistics choices were reviewed by a specialist; literary interpretations were provided by a scholar. Technical code generation operated under a human-on-the-loop model: the LLM produced code, the principal investigator tested outputs.
 
-3. **Benchmark validation.** Results are compared against MALLET using the same corpus and parameters.
+3. **Automated testing.** A 120-test suite with determinism verification ensures correctness and reproducibility.
 
 An accompanying article is in preparation for submission to *Digital Scholarship in the Humanities* (Oxford University Press).
 
@@ -151,9 +147,7 @@ An accompanying article is in preparation for submission to *Digital Scholarship
   author       = {Koran, Oğuz and Cangır, Hakan and Yücesan, Barış},
   title        = {Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities},
   year         = {2026},
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.XXXXXXX},
-  url          = {https://github.com/oguzkoran-max/lemmata}
+  url          = {https://lemmata.app}
 }
 ```
 
