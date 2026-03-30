@@ -474,6 +474,27 @@ def _run_analysis(
     texts: list[dict[str, str]], params: dict[str, Any]
 ) -> dict[str, Any]:
     """Execute the full pipeline with st.status progress (decision 35)."""
+    try:
+        return _run_analysis_inner(texts, params)
+    except Exception as exc:
+        st.error(
+            "Analysis failed. This usually happens when the text is too "
+            "short, the wrong language is selected, or too few words "
+            "remain after preprocessing. Try uploading a larger text or "
+            "checking your language setting."
+        )
+        with st.expander("Technical details"):
+            st.code(traceback.format_exc())
+        # Clean up session state so the app remains usable.
+        for key in ("results", "analysis_done"):
+            st.session_state.pop(key, None)
+        return {}
+
+
+def _run_analysis_inner(
+    texts: list[dict[str, str]], params: dict[str, Any]
+) -> dict[str, Any]:
+    """Inner pipeline — may raise on bad input."""
     with st.status("Running analysis...", expanded=True) as status:
         # Step 1: Load spaCy model.
         st.write("Loading language model...")
@@ -498,6 +519,10 @@ def _run_analysis(
                 "that your files match the selected language."
             )
             return {}
+
+        # Language mismatch warning (decision 58).
+        if trace.get("language_warning"):
+            st.warning(trace["language_warning"])
 
         # Step 3: Build DTM.
         st.write("Building document-term matrix...")

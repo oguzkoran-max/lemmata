@@ -443,6 +443,18 @@ def process_documents(
             "Results may not be meaningful."
         )
 
+    # Language mismatch warning for UI (decision 58).
+    language_warning: str | None = None
+    if total_original > 0:
+        ratio = total_final / total_original
+        if ratio < LOW_TOKEN_RATIO_THRESHOLD:
+            pct = f"{ratio:.0%}"
+            language_warning = (
+                f"Low token recognition rate ({pct}). This may indicate a "
+                "language mismatch. Check that the selected language "
+                "matches your text."
+            )
+
     # ── Trace ─────────────────────────────────────────────────────────────
     trace: dict[str, Any] = {
         "original_tokens": total_original,
@@ -458,6 +470,7 @@ def process_documents(
         "pos_tags": pos_tags,
         "custom_stopwords": sorted(custom_stopwords),
         "warnings": warnings,
+        "language_warning": language_warning,
         "per_document": per_doc_traces,
     }
 

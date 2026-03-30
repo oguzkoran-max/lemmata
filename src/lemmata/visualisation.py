@@ -356,16 +356,11 @@ def create_distribution_chart(
 
     chart = (
         alt.Chart(df)
-        .mark_bar()
+        .mark_bar(opacity=0.85)
         .encode(
             x=alt.X("Weight:Q", stack="normalize", title="Topic proportion"),
             y=alt.Y("Document:N", sort=doc_labels, title=None),
             color=alt.Color("Topic:N", scale=color_scale, legend=alt.Legend(title="Topic")),
-            opacity=alt.condition(
-                alt.datum.Dominant,
-                alt.value(1.0),
-                alt.value(0.5),
-            ),
             tooltip=[
                 alt.Tooltip("Document:N"),
                 alt.Tooltip("Topic:N"),
@@ -429,11 +424,12 @@ def create_diachronic_chart(
 
     lines = (
         alt.Chart(df)
-        .mark_line(point=True)
+        .mark_line(strokeWidth=2)
         .encode(
-            x=alt.X("Order:Q", title="Document order"),
+            x=alt.X("Order:Q", title="Document order", scale=alt.Scale(nice=False)),
             y=alt.Y("Weight:Q", title="Topic weight"),
             color=alt.Color("Topic:N", scale=color_scale),
+            detail="Topic:N",
             tooltip=[
                 alt.Tooltip("Document:N"),
                 alt.Tooltip("Topic:N"),
