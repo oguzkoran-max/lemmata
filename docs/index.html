@@ -444,16 +444,49 @@
     }
 
     .m-coherence {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       background: var(--amber-50);
       border: 1px solid #e8d5a0;
       border-radius: 5px;
-      padding: 5px 10px;
+      padding: 6px 10px;
       font-size: 0.68rem;
       font-weight: 500;
       color: var(--amber);
+    }
+    .m-coherence .coh-title { font-weight: 600; }
+    .m-coherence .coh-sub { font-size: 0.6rem; color: var(--text-tertiary); margin-top: 2px; }
+    .m-dtm-box {
+      background: var(--bg-alt);
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+    .m-dtm-box .dtm-title {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .m-dtm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px 12px;
+      font-size: 0.65rem;
+    }
+    .m-dtm-grid .dtm-label { color: var(--text-tertiary); }
+    .m-dtm-grid .dtm-val { font-weight: 600; color: var(--text); }
+    .m-dtm-footer {
+      font-size: 0.6rem;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+      border-top: 1px solid var(--border-light);
+      padding-top: 4px;
+    }
+    .m-chart-title {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-secondary);
     }
     .m-metrics {
       display: flex;
@@ -855,11 +888,11 @@
             <div class="m-select">Italian (it)</div>
             <div>
               <div class="m-slider-row"><span>Number of Topics</span><span class="val">5</span></div>
-              <div class="m-slider-track"><div class="m-slider-fill" style="width:23%"></div><div class="m-slider-thumb" style="left:23%"></div></div>
+              <div class="m-slider-track"><div class="m-slider-fill" style="width:25%"></div><div class="m-slider-thumb" style="left:25%"></div></div>
             </div>
             <div>
               <div class="m-slider-row"><span>Chunk Size</span><span class="val">1000</span></div>
-              <div class="m-slider-track"><div class="m-slider-fill" style="width:26%"></div><div class="m-slider-thumb" style="left:26%"></div></div>
+              <div class="m-slider-track"><div class="m-slider-fill" style="width:50%"></div><div class="m-slider-thumb" style="left:50%"></div></div>
             </div>
             <div class="m-success">Analysis complete</div>
             <div class="m-stats">5 topics &middot; C_v: 0.48</div>
@@ -875,13 +908,26 @@
               <div class="m-tab">Preprocessing</div>
               <div class="m-tab">Export</div>
             </div>
-            <div class="m-coherence">Coherence: 0.48 &mdash; Moderate</div>
+            <div class="m-coherence">
+              <div class="coh-title">Coherence (C_v): 0.4785 &mdash; Moderate</div>
+              <div class="coh-sub">Try adjusting topic count or POS filters to improve coherence.</div>
+            </div>
             <div class="m-metrics">
               <div class="m-metric"><div class="lab">Topics</div><div class="num">5</div></div>
               <div class="m-metric"><div class="lab">Perplexity</div><div class="num">667.6</div></div>
               <div class="m-metric"><div class="lab">Log-likelihood</div><div class="num">-144k</div></div>
               <div class="m-metric"><div class="lab">Documents</div><div class="num">144</div></div>
             </div>
+            <div class="m-dtm-box">
+              <div class="dtm-title">Document-Term Matrix</div>
+              <div class="m-dtm-grid">
+                <div><span class="dtm-label">Vocabulary (total):</span> <span class="dtm-val">5,904</span></div>
+                <div><span class="dtm-label">Vocabulary (kept):</span> <span class="dtm-val">1,097</span></div>
+                <div><span class="dtm-label">Terms removed:</span> <span class="dtm-val">4,807</span></div>
+              </div>
+              <div class="m-dtm-footer">DTM shape: 144 documents &times; 1,097 terms &nbsp;|&nbsp; min_df=5, max_df=0.8</div>
+            </div>
+            <div class="m-chart-title">Top Lemmas (pre-LDA)</div>
             <div class="m-chart">
               <div class="m-bar-row"><span class="m-bar-label">guido</span><div class="m-bar-track"><div class="m-bar-fill" style="width:100%"></div></div><span class="m-bar-val">634</span></div>
               <div class="m-bar-row"><span class="m-bar-label">ada</span><div class="m-bar-track"><div class="m-bar-fill" style="width:81%"></div></div><span class="m-bar-val">512</span></div>
