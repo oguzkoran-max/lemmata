@@ -5,11 +5,37 @@ from __future__ import annotations
 import pytest
 
 from lemmata.preprocessing import (
+    check_language_match,
     chunk_text,
     clean_text,
     detect_encoding,
     process_documents,
 )
+
+
+# ── check_language_match ──────────────────────────────────────────────────────
+
+
+class TestCheckLanguageMatch:
+    """Verify early language mismatch detection (P022)."""
+
+    def test_returns_none_for_matching_language(self, mock_nlp):
+        texts = [{"filename": "a.txt", "content": "This is a normal English sentence with words."}]
+        result = check_language_match(texts, mock_nlp)
+        # mock_nlp recognises tokens, so should be None.
+        assert result is None
+
+    def test_returns_none_for_empty_input(self, mock_nlp):
+        texts = [{"filename": "a.txt", "content": ""}]
+        result = check_language_match(texts, mock_nlp)
+        assert result is None
+
+    def test_samples_limited_chars(self, mock_nlp):
+        long_text = "word " * 10000
+        texts = [{"filename": "a.txt", "content": long_text}]
+        # Should not crash on huge input — samples only first 500 chars.
+        result = check_language_match(texts, mock_nlp, sample_chars=500)
+        assert result is None or isinstance(result, str)
 
 
 # ── detect_encoding ───────────────────────────────────────────────────────────

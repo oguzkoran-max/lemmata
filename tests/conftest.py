@@ -139,6 +139,7 @@ class _MockToken:
         self, text: str, lemma: str, pos: str,
         is_stop: bool = False, is_alpha: bool = True,
         is_space: bool = False, is_punct: bool = False,
+        is_oov: bool = False,
     ):
         self.text = text
         self.lemma_ = lemma
@@ -147,6 +148,7 @@ class _MockToken:
         self.is_alpha = is_alpha
         self.is_space = is_space
         self.is_punct = is_punct
+        self.is_oov = is_oov
 
 
 class _MockSent:

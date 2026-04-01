@@ -53,7 +53,7 @@ from lemmata.file_io import (
     text_from_paste,
 )
 from lemmata.modelling import build_dtm, compute_coherence, run_lda
-from lemmata.preprocessing import load_spacy_model, process_documents
+from lemmata.preprocessing import check_language_match, load_spacy_model, process_documents
 from lemmata.visualisation import (
     configure_altair_theme,
     create_diachronic_chart,
@@ -473,9 +473,22 @@ def _run_analysis(
     texts: list[dict[str, str]], params: dict[str, Any]
 ) -> dict[str, Any]:
     """Execute the full pipeline with st.status progress (decision 35)."""
+    # Run early language check so we can show a warning even if the
+    # pipeline crashes (decision 58 / P022).
+    early_lang_warning: str | None = None
+    try:
+        nlp = _load_spacy(params["language"])
+        early_lang_warning = check_language_match(texts, nlp)
+    except Exception:
+        pass  # If the check itself fails, just skip it.
+
     try:
         return _run_analysis_inner(texts, params)
     except Exception as exc:
+        # Show early language warning *before* the error so the user
+        # sees the likely root cause first.
+        if early_lang_warning:
+            st.warning(early_lang_warning)
         st.error(
             "Analysis failed. This usually happens when the text is too "
             "short, the wrong language is selected, or too few words "

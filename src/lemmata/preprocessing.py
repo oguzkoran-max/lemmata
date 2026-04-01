@@ -192,6 +192,52 @@ def chunk_text(
 # ── spaCy Model Loading ──────────────────────────────────────────────────────
 
 
+def check_language_match(
+    texts: list[dict[str, str]],
+    nlp: Language,
+    sample_chars: int = 500,
+) -> str | None:
+    """Quick OOV check on a text sample to detect language mismatch early.
+
+    Runs spaCy on the first *sample_chars* characters of the combined input.
+    If the proportion of recognised (non-OOV) alpha tokens is below
+    ``LOW_TOKEN_RATIO_THRESHOLD``, returns a warning string; otherwise *None*.
+
+    This is intentionally cheap so it can run **before** the full pipeline.
+    """
+    # Build a short sample from the first text(s).
+    sample_parts: list[str] = []
+    total = 0
+    for entry in texts:
+        remaining = sample_chars - total
+        if remaining <= 0:
+            break
+        snippet = entry["content"][:remaining]
+        sample_parts.append(snippet)
+        total += len(snippet)
+
+    sample = " ".join(sample_parts).strip()
+    if not sample:
+        return None
+
+    doc = nlp(sample)
+    alpha_tokens = [t for t in doc if t.is_alpha and not t.is_space]
+    if not alpha_tokens:
+        return None
+
+    recognised = sum(1 for t in alpha_tokens if not t.is_oov)
+    ratio = recognised / len(alpha_tokens)
+
+    if ratio < LOW_TOKEN_RATIO_THRESHOLD:
+        pct = f"{ratio:.0%}"
+        return (
+            f"Low token recognition rate ({pct}). This may indicate a "
+            "language mismatch. Check that the selected language "
+            "matches your text."
+        )
+    return None
+
+
 def load_spacy_model(language: str) -> Language:
     """Load the spaCy model for *language*.
 
@@ -426,24 +472,8 @@ def process_documents(
     # ── Warnings ──────────────────────────────────────────────────────────
     warnings: list[str] = []
 
-    # Language mismatch (decision 58).
-    if total_original > 0:
-        ratio = total_final / total_original
-        if ratio < LOW_TOKEN_RATIO_THRESHOLD:
-            warnings.append(
-                f"Low token ratio ({ratio:.1%}). "
-                "The selected language may not match the corpus."
-            )
-
-    # Minimum corpus (decision 106).
-    unique_lemmas = len(set(all_lemmas_flat))
-    if unique_lemmas < MIN_UNIQUE_LEMMAS_WARNING:
-        warnings.append(
-            f"Only {unique_lemmas} unique lemmas found. "
-            "Results may not be meaningful."
-        )
-
-    # Language mismatch warning for UI (decision 58).
+    # Language mismatch (decision 58) — single computation for both
+    # the warnings list and the UI-facing language_warning key.
     language_warning: str | None = None
     if total_original > 0:
         ratio = total_final / total_original
@@ -454,6 +484,15 @@ def process_documents(
                 "language mismatch. Check that the selected language "
                 "matches your text."
             )
+            warnings.append(language_warning)
+
+    # Minimum corpus (decision 106).
+    unique_lemmas = len(set(all_lemmas_flat))
+    if unique_lemmas < MIN_UNIQUE_LEMMAS_WARNING:
+        warnings.append(
+            f"Only {unique_lemmas} unique lemmas found. "
+            "Results may not be meaningful."
+        )
 
     # ── Trace ─────────────────────────────────────────────────────────────
     trace: dict[str, Any] = {
