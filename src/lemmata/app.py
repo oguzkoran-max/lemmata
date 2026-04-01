@@ -845,7 +845,7 @@ def _tab_distribution(results: dict[str, Any], topic_labels: list[str]) -> None:
         chart = create_distribution_chart(matrix_sub, labels_sub, topic_labels)
     else:
         chart = create_distribution_chart(matrix, labels, topic_labels)
-    st.altair_chart(chart, use_container_width=True)
+    st.pyplot(chart)
 
     st.divider()
 
@@ -855,7 +855,7 @@ def _tab_distribution(results: dict[str, Any], topic_labels: list[str]) -> None:
         matrix, labels, topic_labels,
         file_boundaries=results.get("file_boundaries"),
     )
-    st.altair_chart(diachr, use_container_width=True)
+    st.pyplot(diachr)
 
 
 # ── Preprocessing Tab ────────────────────────────────────────────────────────

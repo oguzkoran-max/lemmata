@@ -127,13 +127,14 @@ class TestCreateHeatmap:
 class TestCreateDistributionChart:
     """Verify distribution chart creation."""
 
-    def test_returns_altair_chart(self, sample_doc_topic_matrix):
+    def test_returns_matplotlib_figure(self, sample_doc_topic_matrix):
         chart = create_distribution_chart(
             sample_doc_topic_matrix,
             ["doc1", "doc2", "doc3"],
             ["Topic 1", "Topic 2"],
         )
-        assert isinstance(chart, alt.Chart)
+        from matplotlib.figure import Figure
+        assert isinstance(chart, Figure)
 
 
 # ── create_diachronic_chart ───────────────────────────────────────────────────
@@ -142,22 +143,24 @@ class TestCreateDistributionChart:
 class TestCreateDiachronicChart:
     """Verify diachronic chart creation."""
 
-    def test_returns_chart_without_boundaries(self, sample_doc_topic_matrix):
+    def test_returns_figure_without_boundaries(self, sample_doc_topic_matrix):
+        from matplotlib.figure import Figure
         chart = create_diachronic_chart(
             sample_doc_topic_matrix,
             ["doc1", "doc2", "doc3"],
             ["Topic 1", "Topic 2"],
         )
-        assert isinstance(chart, (alt.Chart, alt.LayerChart))
+        assert isinstance(chart, Figure)
 
-    def test_returns_chart_with_boundaries(self, sample_doc_topic_matrix):
+    def test_returns_figure_with_boundaries(self, sample_doc_topic_matrix):
+        from matplotlib.figure import Figure
         chart = create_diachronic_chart(
             sample_doc_topic_matrix,
             ["doc1", "doc2", "doc3"],
             ["Topic 1", "Topic 2"],
             file_boundaries=[1],
         )
-        assert isinstance(chart, (alt.Chart, alt.LayerChart))
+        assert isinstance(chart, Figure)
 
 
 # ── create_top_lemmas_chart ───────────────────────────────────────────────────

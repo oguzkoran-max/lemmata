@@ -316,11 +316,11 @@ def create_distribution_chart(
     doc_topic_matrix: np.ndarray,
     doc_labels: list[str],
     topic_labels: list[str],
-) -> alt.Chart:
-    """Create a stacked bar chart of topic distribution per document.
+) -> Figure:
+    """Create a horizontal stacked bar chart of topic distribution per document.
 
-    Dominant topic is visually distinguished by full opacity; other topics
-    are at reduced opacity via layering (decision 114).
+    Implements decision 114.  Uses matplotlib for reliable rendering on
+    Streamlit Cloud (Altair/Vega-Lite renderer is unreliable there).
 
     Parameters
     ----------
@@ -333,44 +333,39 @@ def create_distribution_chart(
 
     Returns
     -------
-    alt.Chart
-        Altair stacked bar chart.
+    Figure
+        Matplotlib figure with horizontal stacked bars.
     """
-    n_topics = len(topic_labels)
+    import matplotlib.pyplot as plt
 
-    rows: list[dict[str, Any]] = []
-    for i, doc in enumerate(doc_labels):
-        dominant = int(np.argmax(doc_topic_matrix[i]))
-        for j, topic in enumerate(topic_labels):
-            rows.append(
-                {
-                    "Document": doc,
-                    "Topic": topic,
-                    "Weight": float(doc_topic_matrix[i, j]),
-                    "Dominant": j == dominant,
-                }
-            )
+    n_docs, n_topics = doc_topic_matrix.shape
+    # Normalize rows to sum to 1.
+    row_sums = doc_topic_matrix.sum(axis=1, keepdims=True)
+    row_sums[row_sums == 0] = 1.0
+    normed = doc_topic_matrix / row_sums
 
-    df = pd.DataFrame(rows)
-    color_scale = get_topic_color_scale(n_topics)
+    fig_height = max(3, n_docs * 0.28)
+    fig, ax = plt.subplots(figsize=(8, fig_height))
 
-    chart = (
-        alt.Chart(df)
-        .mark_bar()
-        .encode(
-            x=alt.X("Weight:Q", stack="normalize", title="Topic proportion"),
-            y=alt.Y("Document:N", sort=doc_labels, title=None),
-            color=alt.Color("Topic:N", scale=color_scale, legend=alt.Legend(title="Topic")),
-            tooltip=[
-                alt.Tooltip("Document:N"),
-                alt.Tooltip("Topic:N"),
-                alt.Tooltip("Weight:Q", format=".4f"),
-            ],
-        )
-        .properties(width=600)
-    )
+    y_pos = np.arange(n_docs)
+    left = np.zeros(n_docs)
 
-    return chart
+    for j in range(n_topics):
+        color = _TABLEAU10[j % len(_TABLEAU10)]
+        label = topic_labels[j] if j < len(topic_labels) else f"Topic {j + 1}"
+        ax.barh(y_pos, normed[:, j], left=left, height=0.7, color=color, label=label)
+        left += normed[:, j]
+
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(doc_labels, fontsize=7)
+    ax.set_xlabel("Topic proportion")
+    ax.set_xlim(0, 1)
+    ax.invert_yaxis()
+    ax.legend(fontsize=7, loc="lower right", framealpha=0.9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    fig.tight_layout()
+    return fig
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -383,10 +378,11 @@ def create_diachronic_chart(
     doc_labels: list[str],
     topic_labels: list[str],
     file_boundaries: list[int] | None = None,
-) -> alt.Chart:
+) -> Figure:
     """Create a topic-weight trend line chart over document order.
 
-    Implements decision 115.
+    Implements decision 115.  Uses matplotlib for reliable rendering on
+    Streamlit Cloud.
 
     Parameters
     ----------
@@ -402,52 +398,33 @@ def create_diachronic_chart(
 
     Returns
     -------
-    alt.Chart
-        Altair line chart with optional vertical boundary rules.
+    Figure
+        Matplotlib line chart with optional vertical boundary rules.
     """
-    n_topics = len(topic_labels)
+    import matplotlib.pyplot as plt
 
-    rows: list[dict[str, Any]] = []
-    for i, doc in enumerate(doc_labels):
-        for j, topic in enumerate(topic_labels):
-            rows.append(
-                {
-                    "Order": i,
-                    "Document": doc,
-                    "Topic": topic,
-                    "Weight": float(doc_topic_matrix[i, j]),
-                }
-            )
+    n_docs, n_topics = doc_topic_matrix.shape
+    x = np.arange(n_docs)
 
-    df = pd.DataFrame(rows)
-    color_scale = get_topic_color_scale(n_topics)
+    fig, ax = plt.subplots(figsize=(10, 4))
 
-    lines = (
-        alt.Chart(df)
-        .mark_line(strokeWidth=2)
-        .encode(
-            x=alt.X("Order:Q", title="Document order", scale=alt.Scale(nice=False)),
-            y=alt.Y("Weight:Q", title="Topic weight"),
-            color=alt.Color("Topic:N", scale=color_scale, legend=alt.Legend(title="Topic")),
-            tooltip=[
-                alt.Tooltip("Document:N"),
-                alt.Tooltip("Topic:N"),
-                alt.Tooltip("Weight:Q", format=".4f"),
-            ],
-        )
-        .properties(width=700, height=350)
-    )
+    for j in range(n_topics):
+        color = _TABLEAU10[j % len(_TABLEAU10)]
+        label = topic_labels[j] if j < len(topic_labels) else f"Topic {j + 1}"
+        ax.plot(x, doc_topic_matrix[:, j], linewidth=1.5, color=color, label=label)
 
     if file_boundaries:
-        rule_df = pd.DataFrame({"Order": file_boundaries})
-        rules = (
-            alt.Chart(rule_df)
-            .mark_rule(color="#999999", strokeDash=[4, 4])
-            .encode(x="Order:Q")
-        )
-        return lines + rules
+        for boundary in file_boundaries:
+            ax.axvline(x=boundary, color="#999999", linestyle="--", linewidth=1)
 
-    return lines
+    ax.set_xlabel("Document order")
+    ax.set_ylabel("Topic weight")
+    ax.set_xlim(0, n_docs - 1)
+    ax.legend(fontsize=7, loc="upper right", framealpha=0.9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    fig.tight_layout()
+    return fig
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
