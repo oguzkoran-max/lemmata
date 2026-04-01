@@ -487,7 +487,6 @@ def _run_analysis(
     except Exception as exc:
         # Show early language warning *before* the error so the user
         # sees the likely root cause first.
-        st.info(f"DEBUG: early_lang_warning = {early_lang_warning}")
         if early_lang_warning:
             st.warning(early_lang_warning)
         st.error(
