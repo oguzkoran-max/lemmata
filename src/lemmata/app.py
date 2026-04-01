@@ -487,6 +487,7 @@ def _run_analysis(
     except Exception as exc:
         # Show early language warning *before* the error so the user
         # sees the likely root cause first.
+        st.info(f"DEBUG: early_lang_warning = {early_lang_warning}")
         if early_lang_warning:
             st.warning(early_lang_warning)
         st.error(
@@ -618,6 +619,12 @@ def _run_analysis_inner(
 
 def _render_results(results: dict[str, Any]) -> None:
     """Render the seven result tabs (decision 5)."""
+    # Language mismatch warning — must be shown here (not in _run_analysis_inner)
+    # because st.rerun() wipes any st.warning() called during the pipeline.
+    lang_warn = results.get("preprocessing_trace", {}).get("language_warning")
+    if lang_warn:
+        st.warning(lang_warn)
+
     tab_names = [
         "Overview", "Topics", "Topic Map",
         "Heatmap", "Distribution", "Preprocessing", "Export",
