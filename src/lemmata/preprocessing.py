@@ -197,11 +197,18 @@ def check_language_match(
     nlp: Language,
     sample_chars: int = 500,
 ) -> str | None:
-    """Quick OOV check on a text sample to detect language mismatch early.
+    """Quick stop-word check on a text sample to detect language mismatch.
 
     Runs spaCy on the first *sample_chars* characters of the combined input.
-    If the proportion of recognised (non-OOV) alpha tokens is below
-    ``LOW_TOKEN_RATIO_THRESHOLD``, returns a warning string; otherwise *None*.
+    Natural-language text typically contains 30-60 % stop words (function
+    words like articles, prepositions, conjunctions).  When the wrong
+    language model is loaded, almost none of the tokens are recognised as
+    stop words.  If the stop-word ratio falls below
+    ``LOW_TOKEN_RATIO_THRESHOLD`` the function returns a warning string;
+    otherwise *None*.
+
+    Uses ``token.is_stop`` rather than ``token.is_oov`` because spaCy *sm*
+    models ship without word vectors, making ``is_oov`` always *True*.
 
     This is intentionally cheap so it can run **before** the full pipeline.
     """
@@ -221,17 +228,17 @@ def check_language_match(
         return None
 
     doc = nlp(sample)
-    alpha_tokens = [t for t in doc if t.is_alpha and not t.is_space]
+    alpha_tokens = [t for t in doc if t.is_alpha]
     if not alpha_tokens:
         return None
 
-    recognised = sum(1 for t in alpha_tokens if not t.is_oov)
-    ratio = recognised / len(alpha_tokens)
+    stop_count = sum(1 for t in alpha_tokens if t.is_stop)
+    ratio = stop_count / len(alpha_tokens)
 
     if ratio < LOW_TOKEN_RATIO_THRESHOLD:
         pct = f"{ratio:.0%}"
         return (
-            f"Low token recognition rate ({pct}). This may indicate a "
+            f"Low stop-word recognition rate ({pct}). This may indicate a "
             "language mismatch. Check that the selected language "
             "matches your text."
         )
