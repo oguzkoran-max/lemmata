@@ -83,7 +83,6 @@ st.markdown(
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
     .stDeployButton {display: none;}
     div[data-testid="stDecoration"] {display: none;}
     .block-container {padding-top: 1rem;}
