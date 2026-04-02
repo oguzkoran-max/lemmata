@@ -1,14 +1,24 @@
 # Prompt Log
 
-This folder documents every development prompt used to build Lemmata.
+This directory contains reconstructed prompt summaries for each Claude Code
+interaction during Lemmata's development. These logs document the
+human-LLM dialogue that built the platform from scratch.
 
-Lemmata is developed entirely through vibe coding — structured, logged
-prompt-driven development with Claude Code. Each prompt is recorded with
-its date, category, exact text, response summary, methodological decisions,
-validation steps, and files changed.
+## Format
 
-**Structure:**
-- `PXXX.md` — individual prompt logs
-- `PROMPT_LOG_INDEX.md` — master index linking all prompts
+Each file (P001.md - P038.md) contains:
+- **Prompt number and title** matching the git commit
+- **Date** of the interaction
+- **Summary** of what was asked
+- **Result** including test counts and outcomes
 
-See ARCHITECTURE.md decision 85 for the rationale behind public prompt logging.
+## Note on reconstruction
+
+These summaries were reconstructed from detailed session logs and chat
+transcripts maintained during development. The original Claude Code
+interactions were conducted in English; planning and discussion in Turkish
+were done in claude.ai chat sessions (transcripts archived separately).
+
+## Files
+
+P001.md - P038.md (38 prompt logs)
