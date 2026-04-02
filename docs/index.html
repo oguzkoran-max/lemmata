@@ -873,6 +873,16 @@
       nav a { font-size: 0.8rem; }
       section { padding: 56px 16px; }
     }
+    /* Scroll fade-in */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -993,7 +1003,7 @@
       <div class="features-layout">
         <!-- Hero card -->
         <div class="features-row hero-row">
-          <div class="feature-card hero-card has-accent accent-teal">
+          <div class="feature-card hero-card has-accent accent-teal fade-in">
             <div class="fc-icon bg-teal">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
             </div>
@@ -1003,14 +1013,14 @@
         </div>
         <!-- Medium cards -->
         <div class="features-row mid-row">
-          <div class="feature-card has-accent accent-coral">
+          <div class="feature-card has-accent accent-coral fade-in">
             <div class="fc-icon bg-coral">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             </div>
             <h3>Transparent preprocessing</h3>
             <p>Full preprocessing trace: see exactly which tokens were kept, removed, or lemmatized. Nothing is a black box.</p>
           </div>
-          <div class="feature-card has-accent accent-blue">
+          <div class="feature-card has-accent accent-blue fade-in">
             <div class="fc-icon bg-blue">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
             </div>
@@ -1020,7 +1030,7 @@
         </div>
         <!-- Compact cards -->
         <div class="features-row compact-row">
-          <div class="feature-card compact">
+          <div class="feature-card compact fade-in">
             <div class="fc-icon bg-amber">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
@@ -1029,7 +1039,7 @@
               <p>Fixed random seed ensures identical results every time. Fully reproducible.</p>
             </div>
           </div>
-          <div class="feature-card compact">
+          <div class="feature-card compact fade-in">
             <div class="fc-icon bg-purple">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </div>
@@ -1049,7 +1059,7 @@
       <div class="section-label">How It Works</div>
       <h2 class="section-title">Three steps from corpus to insight</h2>
       <div class="steps-row">
-        <div class="step">
+        <div class="step fade-in">
           <div class="step-num">1</div>
           <h3>Upload</h3>
           <p>Drag and drop your text files (TXT, PDF, DOCX, ODT, EPUB) or paste text directly.</p>
@@ -1060,7 +1070,7 @@
             <polygon points="38,6 48,12 38,18" fill="#5DCAA5"/>
           </svg>
         </div>
-        <div class="step">
+        <div class="step fade-in">
           <div class="step-num">2</div>
           <h3>Configure</h3>
           <p>Choose your language, number of topics, POS filters, and stopwords. Smart defaults get you started fast.</p>
@@ -1071,7 +1081,7 @@
             <polygon points="38,6 48,12 38,18" fill="#5DCAA5"/>
           </svg>
         </div>
-        <div class="step">
+        <div class="step fade-in">
           <div class="step-num">3</div>
           <h3>Analyse</h3>
           <p>Explore interactive topic charts, heatmaps, distributions, and word clouds. Export results in one click.</p>
@@ -1084,7 +1094,7 @@
   <section class="powered-section">
     <div class="section-label">Powered By</div>
     <h2>Built on trusted open-source tools</h2>
-    <div class="powered-grid">
+    <div class="powered-grid fade-in">
       <div class="powered-item">
         <div class="pw-name">spaCy</div>
         <div class="pw-sub">NLP &amp; lemmatization</div>
@@ -1105,7 +1115,7 @@
   </section>
 
   <!-- Citation -->
-  <section id="cite" class="cite-section">
+  <section id="cite" class="cite-section fade-in">
     <div class="section-inner">
       <div class="section-label">Cite</div>
       <h2 class="section-title" style="max-width:100%">Using Lemmata in your research?</h2>
@@ -1124,7 +1134,7 @@
   </section>
 
   <!-- Final CTA -->
-  <section class="cta-section">
+  <section class="cta-section fade-in">
     <div class="section-inner" style="max-width:600px">
       <h2>Ready to explore your corpus?</h2>
       <p class="cta-sub">Free, open-source, no account required.</p>
@@ -1166,6 +1176,19 @@
         setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
       });
     }
+  </script>
+
+  <script>
+    // Scroll fade-in via Intersection Observer
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
   </script>
 
 </body>
