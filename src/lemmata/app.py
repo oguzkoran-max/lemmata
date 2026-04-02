@@ -87,16 +87,26 @@ st.markdown(
     .stDeployButton {display: none;}
     div[data-testid="stDecoration"] {display: none;}
     .block-container {padding-top: 1rem;}
-    /* Tab bar styling (P036) */
-    div[data-baseweb="tab-list"] {
-        border-bottom: 1px solid #ddd;
+    /* Tab bar styling (P036/P037) */
+    .stTabs [data-baseweb="tab-list"] {
+        border-bottom: 1px solid #ddd !important;
+        gap: 0 !important;
     }
-    div[data-baseweb="tab-list"] button {
-        font-size: 1.05rem;
-        color: #555;
+    .stTabs [data-baseweb="tab-list"] button {
+        font-size: 1.1rem !important;
     }
-    div[data-baseweb="tab-list"] button[aria-selected="true"] {
-        border-bottom-width: 3px;
+    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 1.1rem !important;
+        font-weight: 500 !important;
+        color: #555 !important;
+    }
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] [data-testid="stMarkdownContainer"] p {
+        color: #0F6E56 !important;
+        font-weight: 600 !important;
+    }
+    .stTabs [data-baseweb="tab-highlight"] {
+        height: 3px !important;
+        background-color: #0F6E56 !important;
     }
     </style>
     """,
