@@ -170,7 +170,10 @@ def _render_sidebar() -> dict[str, Any]:
             value=CHUNK_SIZE_DEFAULT,
             step=100,
             help="Target word count per chunk when processing a single file. "
-                 "Sentence boundaries are respected.",
+                 "Sentence boundaries are respected. "
+                 "Smaller (300-500): more documents, finer analysis, noisier topics. "
+                 "Larger (1500-3000): fewer documents, more stable topics, less detail. "
+                 "Default (1000) works well for most texts.",
         )
 
         n_topics = st.slider(
@@ -302,6 +305,11 @@ def _render_sidebar() -> dict[str, Any]:
                 "Built with spaCy, scikit-learn, Gensim, and Streamlit.\n\n"
                 "**Authors:** Oğuz Koran, Hakan Cangır, Barış Yücesan\n\n"
                 "[Source code](https://github.com/oguzkoran/lemmata)"
+            )
+            st.caption(
+                "Privacy: Texts are processed in memory during your session. "
+                "No data is stored permanently. No data is shared with "
+                "third parties."
             )
 
         # ── How to cite (decision 24) ────────────────────────────────────
@@ -749,6 +757,10 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
         unsafe_allow_html=True,
     )
 
+    # Convergence warning (decision 124) — shown here so it survives st.rerun().
+    if model_info.get("convergence_warning"):
+        st.warning(model_info["convergence_warning"])
+
     # Metrics row.
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Topics", model_info["n_topics"])
@@ -839,15 +851,21 @@ def _tab_topics(results: dict[str, Any]) -> None:
     # Topic interpretation guide (decision 39).
     with st.expander("How to interpret topics"):
         st.markdown(
-            "Each topic is a cluster of words that tend to co-occur in "
-            "your corpus. The **weight** indicates how strongly a word "
-            "is associated with the topic.\n\n"
-            "- Look for **thematic coherence** — do the top words suggest "
-            "a recognisable theme?\n"
-            "- Check the **representative excerpt** to see how the topic "
+            "**Topics are statistical word clusters, not themes.** LDA groups "
+            "words that frequently co-occur across your documents. The "
+            "**weight** indicates how strongly a word is associated with the "
+            "topic.\n\n"
+            "Your role as a scholar is to interpret *why* these words appear "
+            "together. Ask: What context connects these words? Which parts of "
+            "the text drive this topic? Does this cluster reflect a theme, a "
+            "character, a setting, or a stylistic pattern?\n\n"
+            "**Tips:**\n"
+            "- Use the **Representative Excerpt** below to see how a topic "
             "appears in context.\n"
-            "- If a topic seems noisy, try adding stopwords or adjusting "
-            "POS filters."
+            "- Check the **Distribution** tab to see *where* each topic "
+            "appears across your corpus.\n"
+            "- If a topic seems noisy, try adding custom stopwords or "
+            "adjusting POS filters in the sidebar."
         )
 
     # Topic selector (decision 149).
