@@ -1153,6 +1153,57 @@ def _tab_export(results: dict[str, Any]) -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# CORPUS SAFEGUARDS (decisions 128, 164)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def estimate_n_documents(
+    texts: list[dict[str, str]], chunk_size: int,
+) -> int:
+    """Estimate how many documents/chunks the pipeline will produce.
+
+    For multiple files: one document per file.
+    For a single file: approximate chunks = total words / chunk_size.
+    """
+    if len(texts) > 1:
+        return len(texts)
+    if not texts:
+        return 0
+    word_count = len(texts[0]["content"].split())
+    return max(1, round(word_count / chunk_size))
+
+
+def calc_topic_max(n_docs: int) -> int:
+    """Max sensible topic count for *n_docs* documents (decision 164)."""
+    return max(NUM_TOPICS_MIN, n_docs // 2)
+
+
+def check_imbalanced_corpus(
+    texts: list[dict[str, str]], threshold: float = 10.0,
+) -> str | None:
+    """Return a warning string if corpus file sizes are highly imbalanced.
+
+    Only applies to multi-file uploads (decision 128).
+    """
+    if len(texts) < 2:
+        return None
+    word_counts = [len(t["content"].split()) for t in texts]
+    smallest = min(word_counts)
+    largest = max(word_counts)
+    if smallest == 0:
+        return None
+    ratio = largest / smallest
+    if ratio >= threshold:
+        return (
+            f"Large size difference detected between files "
+            f"(largest is {ratio:.0f}x bigger than smallest). "
+            "This may cause topics to be dominated by the larger file. "
+            "Consider using similar-length texts or adjusting chunk size."
+        )
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1163,6 +1214,22 @@ def main() -> None:
     texts = _render_upload()
 
     has_files = len(texts) > 0
+
+    # Corpus safeguards (decisions 128, 164).
+    if has_files:
+        est_docs = estimate_n_documents(texts, params["chunk_size"])
+        topic_max = calc_topic_max(est_docs)
+
+        if params["n_topics"] > topic_max:
+            st.warning(
+                f"You have ~{est_docs} documents. Using more than "
+                f"{topic_max} topics may produce unreliable results. "
+                "Consider reducing the topic count."
+            )
+
+        imbalance_msg = check_imbalanced_corpus(texts)
+        if imbalance_msg:
+            st.info(imbalance_msg)
 
     # Run Analysis button in sidebar (decision 55).
     with st.sidebar:
