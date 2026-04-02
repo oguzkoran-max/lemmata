@@ -2,6 +2,14 @@
 
 ![CI](https://github.com/oguzkoran-max/lemmata/actions/workflows/ci.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg) ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg) ![Streamlit](https://img.shields.io/badge/Streamlit-deployed-FF4B4B.svg)
 
+## Screenshot
+
+<p align="center">
+  <img src="docs/screenshot-overview.png" alt="Lemmata Overview — Svevo analysis with 5 topics" width="800">
+</p>
+
+<p align="center"><em>Analysis of Italo Svevo's <i>La coscienza di Zeno</i> — 5 topics, C_v coherence 0.5220</em></p>
+
 **A multilingual LDA topic modeling platform for humanities researchers.**
 
 ---
