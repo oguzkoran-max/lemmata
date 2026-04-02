@@ -391,19 +391,37 @@ def _render_upload() -> list[dict[str, str]]:
     if uploaded:
         texts, warnings = read_files(uploaded)
 
+        # Content-duplicate check (decision 163): same content, different names.
+        dup_content = find_content_duplicates(texts)
+        for msg in dup_content:
+            warnings.append(msg)
+
         # File previews (decision 65).
         if texts:
-            with st.expander(f"File preview ({len(texts)} files)"):
+            total_words = sum(len(t["content"].split()) for t in texts)
+            with st.expander(
+                f"File preview — {len(texts)} files, ~{total_words:,} words total"
+            ):
                 for t in texts:
-                    preview_words = t["content"].split()
-                    wc = len(preview_words)
-                    preview = " ".join(preview_words[:200])
-                    st.markdown(f"**{t['filename']}** — {wc:,} words")
-                    st.text(preview + ("..." if wc > 200 else ""))
+                    wc = len(t["content"].split())
+                    size_kb = len(t["content"].encode("utf-8")) / 1024
+                    if size_kb >= 1024:
+                        size_str = f"{size_kb / 1024:.1f} MB"
+                    else:
+                        size_str = f"{size_kb:.1f} KB"
+                    preview = t["content"][:200]
+                    st.markdown(
+                        f"**{t['filename']}** — {size_str}, {wc:,} words"
+                    )
+                    st.text(preview + ("..." if len(t["content"]) > 200 else ""))
                     st.divider()
 
     elif pasted and pasted.strip():
         texts = [text_from_paste(pasted)]
+        # Pasted text preview.
+        chars = len(pasted)
+        wc = len(pasted.split())
+        st.caption(f"Pasted text: {chars:,} characters, ~{wc:,} words")
 
     for w in warnings:
         st.warning(w)
@@ -1178,6 +1196,39 @@ def calc_topic_max(n_docs: int) -> int:
     return max(NUM_TOPICS_MIN, n_docs // 2)
 
 
+def find_content_duplicates(texts: list[dict[str, str]]) -> list[str]:
+    """Detect files with identical content even if filenames differ (decision 163).
+
+    Compares first 500 characters + word count as a fast fingerprint.
+    """
+    warnings: list[str] = []
+    fingerprints: dict[tuple[str, int], str] = {}
+    for t in texts:
+        content = t["content"]
+        fp = (content[:500], len(content.split()))
+        if fp in fingerprints:
+            warnings.append(
+                f"'{t['filename']}' appears to have the same content as "
+                f"'{fingerprints[fp]}'. Remove one if this was unintentional."
+            )
+        else:
+            fingerprints[fp] = t["filename"]
+    return warnings
+
+
+def estimate_analysis_time(
+    n_documents: int, n_topics: int, total_words: int,
+) -> int:
+    """Estimate analysis time in seconds (decision 161).
+
+    Formula: base (2s) + docs * topics * 0.05s + words / 10000 * 0.5s,
+    rounded to the nearest 5 seconds.
+    """
+    raw = 2.0 + (n_documents * n_topics * 0.05) + (total_words / 10000 * 0.5)
+    # Round to nearest 5.
+    return max(5, int(round(raw / 5) * 5))
+
+
 def check_imbalanced_corpus(
     texts: list[dict[str, str]], threshold: float = 10.0,
 ) -> str | None:
@@ -1230,6 +1281,18 @@ def main() -> None:
         imbalance_msg = check_imbalanced_corpus(texts)
         if imbalance_msg:
             st.info(imbalance_msg)
+
+        # Estimated analysis time (decision 161).
+        total_words = sum(len(t["content"].split()) for t in texts)
+        est_secs = estimate_analysis_time(est_docs, params["n_topics"], total_words)
+        time_msg = f"Estimated analysis time: ~{est_secs}s"
+        if est_secs > 60:
+            time_msg += (
+                ". This is a large corpus. Consider reducing chunk size "
+                "or topic count for faster results."
+            )
+        with st.sidebar:
+            st.caption(time_msg)
 
     # Run Analysis button in sidebar (decision 55).
     with st.sidebar:

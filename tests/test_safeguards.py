@@ -1,4 +1,4 @@
-"""Tests for corpus safeguards (decisions 128, 164)."""
+"""Tests for corpus safeguards (decisions 128, 161, 163, 164)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,9 @@ import pytest
 from lemmata.app import (
     calc_topic_max,
     check_imbalanced_corpus,
+    estimate_analysis_time,
     estimate_n_documents,
+    find_content_duplicates,
 )
 
 
@@ -99,3 +101,62 @@ class TestCheckImbalancedCorpus:
         ]
         assert check_imbalanced_corpus(texts, threshold=5.0) is not None
         assert check_imbalanced_corpus(texts, threshold=10.0) is None
+
+
+class TestFindContentDuplicates:
+    """Verify content-based duplicate detection (decision 163)."""
+
+    def test_detects_identical_content(self):
+        texts = [
+            {"filename": "a.txt", "content": "Hello world this is a test."},
+            {"filename": "b.txt", "content": "Hello world this is a test."},
+        ]
+        result = find_content_duplicates(texts)
+        assert len(result) == 1
+        assert "b.txt" in result[0]
+        assert "a.txt" in result[0]
+
+    def test_no_false_positive_different_content(self):
+        texts = [
+            {"filename": "a.txt", "content": "Hello world."},
+            {"filename": "b.txt", "content": "Goodbye world."},
+        ]
+        result = find_content_duplicates(texts)
+        assert result == []
+
+    def test_no_warning_single_file(self):
+        texts = [{"filename": "a.txt", "content": "Hello world."}]
+        assert find_content_duplicates(texts) == []
+
+    def test_empty_list(self):
+        assert find_content_duplicates([]) == []
+
+    def test_same_prefix_different_length(self):
+        texts = [
+            {"filename": "a.txt", "content": "word " * 100},
+            {"filename": "b.txt", "content": "word " * 200},
+        ]
+        result = find_content_duplicates(texts)
+        assert result == []
+
+
+class TestEstimateAnalysisTime:
+    """Verify analysis time estimation (decision 161)."""
+
+    def test_small_corpus(self):
+        result = estimate_analysis_time(n_documents=5, n_topics=3, total_words=5000)
+        assert isinstance(result, int)
+        assert result >= 5
+
+    def test_rounds_to_nearest_5(self):
+        result = estimate_analysis_time(n_documents=1, n_topics=2, total_words=1000)
+        assert result % 5 == 0
+
+    def test_large_corpus_higher_estimate(self):
+        small = estimate_analysis_time(5, 3, 5000)
+        large = estimate_analysis_time(100, 10, 500000)
+        assert large > small
+
+    def test_minimum_is_5(self):
+        result = estimate_analysis_time(1, 2, 100)
+        assert result >= 5
