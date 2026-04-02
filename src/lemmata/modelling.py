@@ -277,10 +277,12 @@ def sweep_coherence(
     topic_range: tuple[int, int] = (2, 15),
     random_seed: int = RANDOM_SEED,
     max_iter: int = LDA_MAX_ITER,
-) -> list[dict[str, Any]]:
+    n_words: int = WORDS_PER_TOPIC_DEFAULT,
+    progress_callback: Any | None = None,
+) -> dict[str, Any]:
     """Run LDA across a range of topic counts and return coherence scores.
 
-    Stub for future auto-topic-suggestion feature (decision 6).
+    Implements decision 6 — optimal topic finder.
 
     Parameters
     ----------
@@ -296,16 +298,72 @@ def sweep_coherence(
         Deterministic seed.
     max_iter:
         Maximum EM iterations per fit.
+    n_words:
+        Words per topic for coherence computation.
+    progress_callback:
+        Optional callable ``(current_step, total_steps) -> None``
+        for UI progress updates.
 
     Returns
     -------
-    list[dict]
-        One dict per k: ``{"k": int, "c_v": float, "perplexity": float}``.
+    dict
+        ``{"k_values": list[int], "coherence_scores": list[float],
+        "best_k": int}``
     """
-    raise NotImplementedError(
-        "sweep_coherence() is planned for a future version. "
-        "See ARCHITECTURE.md decision 6."
-    )
+    k_min, k_max = topic_range
+    k_values: list[int] = list(range(k_min, k_max + 1))
+    coherence_scores: list[float] = []
+    total = len(k_values)
+
+    feature_names = vectorizer.get_feature_names_out()
+
+    # Pre-tokenize texts once for Gensim coherence.
+    tokenized = [text.split() for text in processed_texts]
+    dictionary = GensimDictionary(tokenized)
+
+    for i, k in enumerate(k_values):
+        if progress_callback is not None:
+            progress_callback(i, total)
+
+        # Fit LDA with same parameters as run_lda().
+        model = LatentDirichletAllocation(
+            n_components=k,
+            random_state=random_seed,
+            learning_method=LDA_LEARNING_METHOD,
+            max_iter=max_iter,
+        )
+        model.fit(dtm)
+
+        # Extract topic word lists.
+        topic_word_lists: list[list[str]] = []
+        for component in model.components_:
+            top_indices = component.argsort()[::-1][:n_words]
+            words = [str(feature_names[idx]) for idx in top_indices]
+            topic_word_lists.append(words)
+
+        # Compute C_v coherence.
+        cm = CoherenceModel(
+            topics=topic_word_lists,
+            texts=tokenized,
+            dictionary=dictionary,
+            coherence="c_v",
+        )
+        coherence_scores.append(float(cm.get_coherence()))
+
+        logger.info("Sweep k=%d: C_v=%.4f", k, coherence_scores[-1])
+
+    # Final progress tick.
+    if progress_callback is not None:
+        progress_callback(total, total)
+
+    best_idx = int(np.argmax(coherence_scores))
+    best_k = k_values[best_idx]
+
+    return {
+        "k_values": k_values,
+        "coherence_scores": coherence_scores,
+        "best_k": best_k,
+    }
 
 
 # ── Internal Helpers ──────────────────────────────────────────────────────────

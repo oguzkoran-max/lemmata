@@ -612,3 +612,82 @@ def get_coherence_display(c_v: float) -> dict[str, str]:
             "language selection."
         ),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COHERENCE SWEEP CHART
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def create_coherence_sweep_chart(
+    k_values: list[int],
+    coherence_scores: list[float],
+    current_k: int | None = None,
+) -> Figure:
+    """Line chart of coherence scores across topic counts (decision 6).
+
+    Parameters
+    ----------
+    k_values:
+        Topic counts tested.
+    coherence_scores:
+        C_v coherence for each k.
+    current_k:
+        The user's current topic count (highlighted if provided).
+
+    Returns
+    -------
+    Figure
+        Matplotlib figure.
+    """
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+
+    # Main line.
+    ax.plot(
+        k_values, coherence_scores,
+        color=COLOR_PRIMARY, linewidth=2, marker="o", markersize=5,
+        zorder=2,
+    )
+
+    # Best k.
+    best_idx = int(np.argmax(coherence_scores))
+    best_k = k_values[best_idx]
+    best_score = coherence_scores[best_idx]
+    ax.plot(best_k, best_score, "o", color=COLOR_PRIMARY, markersize=12, zorder=3)
+    ax.annotate(
+        f"Best: k={best_k}",
+        xy=(best_k, best_score),
+        xytext=(8, 12),
+        textcoords="offset points",
+        fontsize=9,
+        fontweight="bold",
+        color=COLOR_PRIMARY,
+        arrowprops=dict(arrowstyle="-", color=COLOR_PRIMARY, lw=0.8),
+    )
+
+    # Current k marker.
+    if current_k is not None and current_k in k_values:
+        cur_idx = k_values.index(current_k)
+        cur_score = coherence_scores[cur_idx]
+        ax.plot(current_k, cur_score, "s", color="#E07A5F", markersize=10, zorder=3)
+        ax.annotate(
+            f"Current: k={current_k}",
+            xy=(current_k, cur_score),
+            xytext=(8, -16),
+            textcoords="offset points",
+            fontsize=9,
+            fontweight="bold",
+            color="#E07A5F",
+            arrowprops=dict(arrowstyle="-", color="#E07A5F", lw=0.8),
+        )
+
+    ax.set_xlabel("Number of topics")
+    ax.set_ylabel("Coherence (C_v)")
+    ax.set_xticks(k_values)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    return fig

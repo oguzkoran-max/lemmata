@@ -52,7 +52,7 @@ from lemmata.file_io import (
     read_files,
     text_from_paste,
 )
-from lemmata.modelling import build_dtm, compute_coherence, run_lda
+from lemmata.modelling import build_dtm, compute_coherence, run_lda, sweep_coherence
 from lemmata.preprocessing import check_language_match, load_spacy_model, process_documents
 from lemmata.visualisation import (
     configure_altair_theme,
@@ -61,6 +61,7 @@ from lemmata.visualisation import (
     create_heatmap,
     create_top_lemmas_chart,
     create_topic_bars,
+    create_coherence_sweep_chart,
     create_topic_map,
     create_wordcloud,
     get_coherence_display,
@@ -693,6 +694,54 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
         with st.expander("Per-topic coherence"):
             for label, val in zip(topic_labels, coherence["per_topic"]):
                 st.text(f"{label}: {val:.4f}")
+
+    # Coherence sweep (decision 6).
+    with st.expander("Find optimal number of topics"):
+        st.markdown(
+            "Run LDA with different topic counts (2\u201315) to find the "
+            "optimal number. Higher coherence generally indicates more "
+            "interpretable topics."
+        )
+        if st.button("Run Coherence Sweep", type="primary"):
+            progress_bar = st.progress(0, text="Starting sweep...")
+
+            def _sweep_progress(current: int, total: int) -> None:
+                frac = current / total if total else 1.0
+                progress_bar.progress(
+                    frac,
+                    text=f"Testing k={current + topic_range[0]}... ({current}/{total})",
+                )
+
+            topic_range = (2, 15)
+            sweep_results = sweep_coherence(
+                processed_texts=results["processed_texts"],
+                dtm=results["dtm"],
+                vectorizer=results["vectorizer"],
+                topic_range=topic_range,
+                random_seed=results["params"]["seed"],
+                max_iter=results["params"]["max_iter"],
+                progress_callback=_sweep_progress,
+            )
+            st.session_state["sweep_results"] = sweep_results
+            progress_bar.empty()
+
+        if st.session_state.get("sweep_results"):
+            sr = st.session_state["sweep_results"]
+            fig = create_coherence_sweep_chart(
+                sr["k_values"],
+                sr["coherence_scores"],
+                current_k=model_info["n_topics"],
+            )
+            st.pyplot(fig)
+
+            best_k = sr["best_k"]
+            best_score = sr["coherence_scores"][sr["k_values"].index(best_k)]
+            st.success(
+                f"Optimal number of topics: **{best_k}** "
+                f"(C_v: {best_score:.4f}). "
+                "You can change the topic count in the sidebar and "
+                "re-run analysis."
+            )
 
     # Top lemmas (decision 92).
     st.markdown("**Top Lemmas (pre-LDA)**")

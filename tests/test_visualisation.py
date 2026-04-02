@@ -12,6 +12,7 @@ from matplotlib.figure import Figure
 
 from lemmata.visualisation import (
     configure_altair_theme,
+    create_coherence_sweep_chart,
     create_diachronic_chart,
     create_distribution_chart,
     create_heatmap,
@@ -217,3 +218,28 @@ class TestGetCoherenceDisplay:
     def test_zero(self):
         result = get_coherence_display(0.0)
         assert result["label"] == "Low"
+
+
+# ── create_coherence_sweep_chart ─────────────────────────────────────────────
+
+
+class TestCreateCoherenceSweepChart:
+    """Verify coherence sweep chart creation."""
+
+    def test_returns_matplotlib_figure(self):
+        fig = create_coherence_sweep_chart(
+            [2, 3, 4, 5], [0.3, 0.45, 0.5, 0.42],
+        )
+        assert isinstance(fig, Figure)
+
+    def test_with_current_k(self):
+        fig = create_coherence_sweep_chart(
+            [2, 3, 4, 5], [0.3, 0.45, 0.5, 0.42], current_k=3,
+        )
+        assert isinstance(fig, Figure)
+
+    def test_without_current_k(self):
+        fig = create_coherence_sweep_chart(
+            [2, 3, 4], [0.4, 0.5, 0.35],
+        )
+        assert isinstance(fig, Figure)

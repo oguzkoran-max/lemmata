@@ -185,9 +185,51 @@ class TestComputeCoherence:
 
 
 class TestSweepCoherence:
-    """Verify sweep stub raises NotImplementedError."""
+    """Verify coherence sweep (decision 6)."""
 
-    def test_raises_not_implemented(self, processed_texts):
+    def test_returns_required_keys(self, processed_texts):
         dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
-        with pytest.raises(NotImplementedError):
-            sweep_coherence(processed_texts, dtm, vec)
+        result = sweep_coherence(
+            processed_texts, dtm, vec, topic_range=(2, 3),
+        )
+        assert "k_values" in result
+        assert "coherence_scores" in result
+        assert "best_k" in result
+
+    def test_best_k_matches_max_coherence(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        result = sweep_coherence(
+            processed_texts, dtm, vec, topic_range=(2, 3),
+        )
+        scores = result["coherence_scores"]
+        k_vals = result["k_values"]
+        expected_best = k_vals[scores.index(max(scores))]
+        assert result["best_k"] == expected_best
+
+    def test_k_values_match_range(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        result = sweep_coherence(
+            processed_texts, dtm, vec, topic_range=(2, 3),
+        )
+        assert result["k_values"] == [2, 3]
+        assert len(result["coherence_scores"]) == 2
+
+    def test_progress_callback_called(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        calls = []
+        result = sweep_coherence(
+            processed_texts, dtm, vec, topic_range=(2, 3),
+            progress_callback=lambda c, t: calls.append((c, t)),
+        )
+        # Should be called for each k plus final tick.
+        assert len(calls) >= 2
+
+    @pytest.mark.slow
+    def test_full_range(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        result = sweep_coherence(
+            processed_texts, dtm, vec, topic_range=(2, 5),
+        )
+        assert result["k_values"] == [2, 3, 4, 5]
+        assert len(result["coherence_scores"]) == 4
+        assert result["best_k"] in [2, 3, 4, 5]
