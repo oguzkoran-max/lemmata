@@ -6,7 +6,9 @@ import pytest
 
 from lemmata.app import (
     calc_topic_max,
+    check_chunk_imbalance,
     check_imbalanced_corpus,
+    compute_per_file_chunks,
     estimate_analysis_time,
     estimate_n_documents,
     find_content_duplicates,
@@ -160,3 +162,60 @@ class TestEstimateAnalysisTime:
     def test_minimum_is_5(self):
         result = estimate_analysis_time(1, 2, 100)
         assert result >= 5
+
+
+class TestComputePerFileChunks:
+    """Verify per-file chunk grouping (decision 104)."""
+
+    def test_multi_file_no_chunks(self):
+        labels = ["doc1", "doc2", "doc3"]
+        per_doc = [
+            {"label": "doc1", "original_tokens": 100},
+            {"label": "doc2", "original_tokens": 200},
+            {"label": "doc3", "original_tokens": 150},
+        ]
+        result = compute_per_file_chunks(labels, per_doc)
+        assert len(result) == 3
+        assert result[0] == {"file": "doc1", "chunks": 1, "total_tokens": 100, "avg_tokens": 100}
+
+    def test_single_file_multiple_chunks(self):
+        labels = ["myfile_001", "myfile_002", "myfile_003"]
+        per_doc = [
+            {"label": "myfile_001", "original_tokens": 300},
+            {"label": "myfile_002", "original_tokens": 280},
+            {"label": "myfile_003", "original_tokens": 320},
+        ]
+        result = compute_per_file_chunks(labels, per_doc)
+        assert len(result) == 1
+        assert result[0]["file"] == "myfile"
+        assert result[0]["chunks"] == 3
+        assert result[0]["total_tokens"] == 900
+        assert result[0]["avg_tokens"] == 300
+
+    def test_empty_input(self):
+        assert compute_per_file_chunks([], []) == []
+
+
+class TestCheckChunkImbalance:
+    """Verify chunk imbalance warning."""
+
+    def test_triggers_at_3x(self):
+        per_file = [
+            {"file": "big", "chunks": 30, "total_tokens": 0, "avg_tokens": 0},
+            {"file": "small", "chunks": 10, "total_tokens": 0, "avg_tokens": 0},
+        ]
+        result = check_chunk_imbalance(per_file)
+        assert result is not None
+        assert "big" in result
+        assert "small" in result
+
+    def test_no_trigger_below_3x(self):
+        per_file = [
+            {"file": "a", "chunks": 10, "total_tokens": 0, "avg_tokens": 0},
+            {"file": "b", "chunks": 8, "total_tokens": 0, "avg_tokens": 0},
+        ]
+        assert check_chunk_imbalance(per_file) is None
+
+    def test_single_file_no_warning(self):
+        per_file = [{"file": "a", "chunks": 50, "total_tokens": 0, "avg_tokens": 0}]
+        assert check_chunk_imbalance(per_file) is None

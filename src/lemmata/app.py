@@ -1025,6 +1025,28 @@ def _tab_preprocessing(results: dict[str, Any]) -> None:
         c1.metric("Unique lemmas", f"{trace['unique_lemmas']:,}")
         c2.metric("Documents/chunks", f"{trace['chunks_created']:,}")
 
+    # Per-file chunk summary (decision 104).
+    per_file = compute_per_file_chunks(
+        results["doc_labels"],
+        trace.get("per_document", []),
+    )
+    if len(per_file) > 1 or (per_file and per_file[0]["chunks"] > 1):
+        import pandas as pd
+
+        with st.container(border=True):
+            st.markdown("**Per-File Chunk Distribution**")
+            df = pd.DataFrame(per_file).rename(columns={
+                "file": "Source File",
+                "total_tokens": "Tokens",
+                "chunks": "Chunks",
+                "avg_tokens": "Avg Chunk Size",
+            })
+            st.dataframe(df, hide_index=True)
+
+            imbalance = check_chunk_imbalance(per_file)
+            if imbalance:
+                st.info(imbalance)
+
     # Stopword transparency (decision 59).
     with st.container(border=True):
         st.markdown("**Stopword Removal**")
@@ -1214,6 +1236,66 @@ def find_content_duplicates(texts: list[dict[str, str]]) -> list[str]:
         else:
             fingerprints[fp] = t["filename"]
     return warnings
+
+
+def compute_per_file_chunks(
+    doc_labels: list[str],
+    per_document: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Group chunks by source file and compute summary stats (decision 104).
+
+    Returns a list of dicts with keys: file, chunks, total_tokens, avg_tokens.
+    """
+    from collections import OrderedDict
+
+    file_data: OrderedDict[str, dict[str, Any]] = OrderedDict()
+    token_lookup = {d["label"]: d.get("original_tokens", 0) for d in per_document}
+
+    for label in doc_labels:
+        # Chunk labels are "filename_001"; non-chunked are just "filename".
+        parts = label.rsplit("_", 1)
+        if len(parts) == 2 and parts[1].isdigit():
+            file_prefix = parts[0]
+        else:
+            file_prefix = label
+
+        if file_prefix not in file_data:
+            file_data[file_prefix] = {"chunks": 0, "total_tokens": 0}
+        file_data[file_prefix]["chunks"] += 1
+        file_data[file_prefix]["total_tokens"] += token_lookup.get(label, 0)
+
+    rows: list[dict[str, Any]] = []
+    for name, data in file_data.items():
+        avg = data["total_tokens"] // data["chunks"] if data["chunks"] else 0
+        rows.append({
+            "file": name,
+            "chunks": data["chunks"],
+            "total_tokens": data["total_tokens"],
+            "avg_tokens": avg,
+        })
+    return rows
+
+
+def check_chunk_imbalance(
+    per_file: list[dict[str, Any]], threshold: float = 3.0,
+) -> str | None:
+    """Warn if largest file produced many more chunks than smallest."""
+    if len(per_file) < 2:
+        return None
+    counts = [f["chunks"] for f in per_file]
+    smallest = min(counts)
+    largest = max(counts)
+    if smallest == 0:
+        return None
+    ratio = largest / smallest
+    if ratio >= threshold:
+        big = next(f["file"] for f in per_file if f["chunks"] == largest)
+        small = next(f["file"] for f in per_file if f["chunks"] == smallest)
+        return (
+            f"{big} produced {ratio:.0f}x more chunks than {small}. "
+            "Topics may be more influenced by longer texts."
+        )
+    return None
 
 
 def estimate_analysis_time(
