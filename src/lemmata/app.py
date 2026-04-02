@@ -87,6 +87,17 @@ st.markdown(
     .stDeployButton {display: none;}
     div[data-testid="stDecoration"] {display: none;}
     .block-container {padding-top: 1rem;}
+    /* Tab bar styling (P036) */
+    div[data-baseweb="tab-list"] {
+        border-bottom: 1px solid #ddd;
+    }
+    div[data-baseweb="tab-list"] button {
+        font-size: 1.05rem;
+        color: #555;
+    }
+    div[data-baseweb="tab-list"] button[aria-selected="true"] {
+        border-bottom-width: 3px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -294,7 +305,13 @@ def _render_sidebar() -> dict[str, Any]:
             summary_parts.append(
                 f"{trace.get('unique_lemmas', '?')} lemmas"
             )
-            st.caption(" · ".join(summary_parts))
+            with st.container(border=True):
+                st.markdown(
+                    f"<div style='text-align:center;font-size:0.85rem;'>"
+                    f"{'  ·  '.join(summary_parts)}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
             st.divider()
 
         # ── About (decision 94) ──────────────────────────────────────────
@@ -839,6 +856,19 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
     st.markdown("**Top Lemmas (pre-LDA)**")
     chart = create_top_lemmas_chart(results["lemma_counts"])
     st.altair_chart(chart, use_container_width=False)
+
+    # What's next guide.
+    with st.expander("What to do next?"):
+        st.markdown(
+            "- **Review Topics:** Go to the **Topics** tab to examine each "
+            "topic's words and representative text excerpts.\n"
+            "- **Check Distribution:** See which topics dominate which parts "
+            "of your corpus in the **Distribution** tab.\n"
+            "- **Explore the Map:** The **Topic Map** shows how topics "
+            "relate to each other.\n"
+            "- **Export:** Download your results as CSV, PDF, or a complete "
+            "ZIP archive from the **Export** tab."
+        )
 
 
 # ── Topics Tab ────────────────────────────────────────────────────────────────
@@ -1391,11 +1421,11 @@ def main() -> None:
                 ". This is a large corpus. Consider reducing chunk size "
                 "or topic count for faster results."
             )
-        with st.sidebar:
-            st.caption(time_msg)
 
     # Run Analysis button in sidebar (decision 55).
     with st.sidebar:
+        if has_files:
+            st.caption(time_msg)
         run_clicked = st.button(
             "\u25b6\ufe0f Run Analysis",
             type="primary",

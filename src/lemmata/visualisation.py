@@ -556,7 +556,7 @@ def create_top_lemmas_chart(
                 alt.Tooltip("Frequency:Q"),
             ],
         )
-        .properties(width=600, title="Top Lemmas (pre-LDA)")
+        .properties(width=600)
     )
 
     return chart
