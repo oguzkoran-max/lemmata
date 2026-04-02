@@ -617,6 +617,66 @@ def _run_analysis_inner(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def resolve_topic_labels(
+    topics: list[dict[str, Any]],
+    custom_labels: list[str] | None = None,
+) -> list[str]:
+    """Return topic labels, preferring *custom_labels* if valid.
+
+    Implements decision 33 — user-editable topic labels.
+
+    Parameters
+    ----------
+    topics:
+        Topic summaries from the pipeline.
+    custom_labels:
+        User-supplied labels.  Used only if they have the correct length.
+    """
+    default = [t["label"] for t in topics]
+    if custom_labels and isinstance(custom_labels, list) and len(custom_labels) == len(default):
+        return custom_labels
+    return default
+
+
+def get_topic_labels(results: dict[str, Any]) -> list[str]:
+    """Convenience wrapper that reads custom labels from session_state."""
+    custom = st.session_state.get("custom_topic_labels")
+    return resolve_topic_labels(results["topics"], custom)
+
+
+def _apply_custom_labels(results: dict[str, Any], labels: list[str]) -> None:
+    """Temporarily patch topic labels in results so exports pick them up."""
+    for topic, label in zip(results["topics"], labels):
+        topic["label"] = label
+
+
+def _render_label_editor(results: dict[str, Any]) -> None:
+    """Render topic label editor in the sidebar (decision 33)."""
+    topics = results["topics"]
+    default_labels = [t["label"] for t in topics]
+    current_labels = get_topic_labels(results)
+
+    with st.expander("Edit topic labels"):
+        edited: list[str] = []
+        for i, topic in enumerate(topics):
+            val = st.text_input(
+                f"Topic {topic['topic_id']}",
+                value=current_labels[i],
+                key=f"label_edit_{topic['topic_id']}",
+            )
+            edited.append(val)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Apply labels", use_container_width=True):
+                st.session_state["custom_topic_labels"] = edited
+                st.rerun()
+        with col2:
+            if st.button("Reset to default", use_container_width=True):
+                st.session_state.pop("custom_topic_labels", None)
+                st.rerun()
+
+
 def _render_results(results: dict[str, Any]) -> None:
     """Render the seven result tabs (decision 5)."""
     # Language mismatch warning — must be shown here (not in _run_analysis_inner)
@@ -625,13 +685,15 @@ def _render_results(results: dict[str, Any]) -> None:
     if lang_warn:
         st.warning(lang_warn)
 
+    # Apply custom topic labels so they propagate to charts and exports.
+    topic_labels = get_topic_labels(results)
+    _apply_custom_labels(results, topic_labels)
+
     tab_names = [
         "Overview", "Topics", "Topic Map",
         "Heatmap", "Distribution", "Preprocessing", "Export",
     ]
     tabs = st.tabs(tab_names)
-
-    topic_labels = [t["label"] for t in results["topics"]]
 
     with tabs[0]:
         _tab_overview(results, topic_labels)
@@ -1121,6 +1183,8 @@ def main() -> None:
             st.info("Previous results cleared. Download them first if needed.")
         st.session_state["results"] = None
         st.session_state["analysis_run"] = False
+        st.session_state.pop("custom_topic_labels", None)
+        st.session_state.pop("sweep_results", None)
 
         try:
             results = _run_analysis(texts, params)
@@ -1138,6 +1202,9 @@ def main() -> None:
                 st.code(traceback.format_exc())
 
     if st.session_state.get("results"):
+        # Sidebar label editor (decision 33).
+        with st.sidebar:
+            _render_label_editor(st.session_state["results"])
         _render_results(st.session_state["results"])
 
 
