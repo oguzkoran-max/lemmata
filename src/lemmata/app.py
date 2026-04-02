@@ -90,10 +90,13 @@ st.markdown(
     /* Tab bar styling (P036/P037) */
     .stTabs [data-baseweb="tab-list"] {
         border-bottom: 1px solid #ddd !important;
-        gap: 0 !important;
+        gap: 8px !important;
     }
     .stTabs [data-baseweb="tab-list"] button {
         font-size: 1.1rem !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        margin-right: 4px !important;
     }
     .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
         font-size: 1.1rem !important;
