@@ -1,42 +1,45 @@
-# Lemmata — Prompt Log Index
+# Prompt Log Index
 
-| ID | Date | Category | Description |
-|----|------|----------|-------------|
-| P001 | 2026-03-27 | architecture | Central configuration module (config.py + __init__.py) |
-| P002 | 2026-03-27 | implementation | Text preprocessing pipeline (preprocessing.py) |
-| P003 | 2026-03-27 | implementation | LDA topic modeling module (modelling.py) |
-| P004 | 2026-03-27 | implementation | File reading and export module (file_io.py) |
-| P005 | 2026-03-27 | implementation | Visualisation module (visualisation.py) |
-| P006 | 2026-03-27 | implementation | Streamlit application (app.py) |
-| P007 | 2026-03-27 | architecture | Project infrastructure files |
-| P008 | 2026-03-28 | testing | Test suite (7 test modules, ~70 test cases) |
-| P009 | 2026-03-28 | testing | Run tests locally — 120 passed, 0 failed |
-| P010 | 2026-03-28 | bug-fix | Fix Streamlit Cloud deployment issues |
-| P011 | 2026-03-28 | bug-fix | Fix pyproject.toml dependency issues |
-| P012 | 2026-03-29 | implementation | Add pyLDAvis interactive topic map |
-| P013 | 2026-03-29 | bug-fix | Fix pyLDAvis integration issues |
-| P014 | 2026-03-29 | implementation | Add PDF report generation |
-| P015 | 2026-03-29 | bug-fix | Fix PDF report formatting |
-| P016 | 2026-03-29 | implementation | Add diachronic analysis chart |
-| P017 | 2026-03-29 | implementation | Add Altair interactive charts |
-| P018 | 2026-03-30 | refactoring | Streamlit Cloud compatibility fixes |
-| P019 | 2026-03-30 | implementation | Add landing page (docs/index.html) |
-| P020 | 2026-03-30 | bug-fix | Fix landing page responsive design |
-| P021 | 2026-03-30 | implementation | Add analysis_results.json export |
-| P022 | 2026-03-31 | bug-fix | Fix language mismatch detection (is_oov → is_stop) |
-| P023 | 2026-04-01 | implementation | Add OG tags, Twitter Cards, and OG image |
-| P024 | 2026-04-01 | implementation | Add favicon (teal λ) |
-| P025 | 2026-04-01 | implementation | Update landing page mockup values |
-| P026 | 2026-04-01 | implementation | Add Powered By technology section |
-| P027 | 2026-04-01 | documentation | Add screenshot to README |
-| P028 | 2026-04-01 | implementation | Add scroll fade-in animations |
-| P029 | 2026-04-01 | implementation | Add custom 404 page |
-| P030 | 2026-04-02 | implementation | Implement coherence sweep |
-| P031 | 2026-04-02 | implementation | Add topic label editing |
-| P032 | 2026-04-02 | implementation | Add topic-document safeguard and imbalanced corpus warning |
-| P033 | 2026-04-02 | implementation | Add file preview, duplicate warning, time estimate |
-| P034 | 2026-04-02 | implementation | Add per-file chunk count display |
-| P035 | 2026-04-02 | implementation | Add pedagogical guides and convergence warning |
-| P036 | 2026-04-02 | implementation | UI polish — tab styling, section headers |
-| P037 | 2026-04-02 | bug-fix | Fix tab font size CSS specificity |
-| P038 | 2026-04-02 | bug-fix | Fix tab spacing — add padding |
+| Prompt | Title | Date | Tests |
+|--------|-------|------|-------|
+| P001 | Create config.py module | 27-28 Mar 2026 | 120 |
+| P002 | Create preprocessing.py module | 27-28 Mar 2026 | 120 |
+| P003 | Create modelling.py module | 27-28 Mar 2026 | 120 |
+| P004 | Create file_io.py module | 27-28 Mar 2026 | 120 |
+| P005 | Create visualisation.py module | 27-28 Mar 2026 | 120 |
+| P006 | Create app.py module | 27-28 Mar 2026 | 120 |
+| P007 | Create infrastructure files | 27-28 Mar 2026 | 120 |
+| P008 | Write test suite | 28 Mar 2026 | 120 |
+| P009 | Run tests and fix issues | 28 Mar 2026 | 120 |
+| P010 | Push to GitHub | 28 Mar 2026 | N/A |
+| P011 | Deploy to Streamlit Cloud | 29 Mar 2026 | 120 |
+| P012 | Redesign landing page | 29 Mar 2026 | N/A |
+| P013 | Add GitHub Actions CI | 29-30 Mar 2026 | 117 |
+| P014 | Fix numpy serialization, heatmap export, distribution performance | 30 Mar 2026 | 117 |
+| P015 | Add Svevo Trieste Trilogy sample texts | 30 Mar 2026 | 117 |
+| P016 | Add README badges | 30 Mar 2026 | 117 |
+| P017 | Update landing page mockup with real Svevo analysis data | 30 Mar – 1 Apr 2026 | 117 |
+| P018 | Fix placeholder DOI, Python version, app path, MALLET claim, Paper link | 1 Apr 2026 | 117 |
+| P019 | Fix crash on small corpus, add language warning, fix charts | 1 Apr 2026 | 117 |
+| P020 | Fix distribution and diachronic chart rendering (failed attempt) | 1-2 Apr 2026 | 117 |
+| P021 | Replace charts with matplotlib for Streamlit Cloud compatibility | 2 Apr 2026 | 117 |
+| P022 | Fix language mismatch warning using stop-word detection | 2 Apr 2026 | 117 |
+| P023 | Add OpenGraph, Twitter Card, and SEO meta tags | 2 Apr 2026 | 117 |
+| P024 | Add teal lambda favicon | 2 Apr 2026 | 117 |
+| P025 | Update browser mockup with latest Svevo analysis data | 2 Apr 2026 | 117 |
+| P026 | Add Powered By technology band, clean up footer | 2 Apr 2026 | 117 |
+| P027 | Add overview screenshot to README | 2 Apr 2026 | 117 |
+| P028 | Add scroll fade-in animations to landing page | 2 Apr 2026 | 117 |
+| P029 | Add custom 404 page | 2 Apr 2026 | 117 |
+| P030 | Implement coherence sweep for optimal topic selection | 2 Apr 2026 | 117 |
+| P031 | Add topic label editing with propagation | 2 Apr 2026 | 117 |
+| P032 | Add topic-document safeguard and imbalanced corpus warning | 2 Apr 2026 | 147 |
+| P033 | Add file preview, duplicate detection, estimated time | 2 Apr 2026 | 156 |
+| P034 | Add per-file chunk count display | 2 Apr 2026 | 162 |
+| P035 | Add pedagogical guides, convergence warning, privacy note | 2 Apr 2026 | 162 |
+| P036 | Improve UI visibility — tab styling, headers, sidebar summary | 2 Apr 2026 | 162 |
+| P037 | Fix tab font size with aggressive CSS targeting | 2 Apr 2026 | 162 |
+| P038 | Fix tab spacing — add padding between tab labels | 2 Apr 2026 | 162 |
+| P039 | Populate prompts/ directory with P001-P038 prompt logs | 2-3 Apr 2026 | 162 |
+| P040 | Update CHANGELOG.md with v0.1.0 release notes | 3 Apr 2026 | 162 |
+| P041 | Add Zenodo DOI to CITATION.cff, README, and landing page | 3 Apr 2026 | 162 |
