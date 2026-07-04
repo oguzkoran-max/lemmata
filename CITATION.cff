@@ -8,16 +8,16 @@ authors:
     email: oguz.koran@ankara.edu.tr
     affiliation: "Ankara University, School of Foreign Languages, Italian Language and Literature"
     orcid: "https://orcid.org/0000-0001-7954-9597"
-  - given-names: Hakan
-    family-names: Cangır
-    email: hcangir@ankara.edu.tr
-    affiliation: "Ankara University, School of Foreign Languages, Applied Linguistics"
-    orcid: "https://orcid.org/0000-0003-2589-2466"
   - given-names: Barış
     family-names: Yücesan
     email: byucesan@ankara.edu.tr
     affiliation: "Ankara University, Faculty of Languages, History and Geography (DTCF), Italian Language and Literature"
     orcid: "https://orcid.org/0000-0002-1776-9815"
+  - given-names: Hakan
+    family-names: Cangır
+    email: hcangir@ankara.edu.tr
+    affiliation: "Ankara University, School of Foreign Languages, Applied Linguistics"
+    orcid: "https://orcid.org/0000-0003-2589-2466"
 doi: "10.5281/zenodo.19391730"
 identifiers:
   - type: doi

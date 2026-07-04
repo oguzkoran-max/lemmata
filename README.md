@@ -152,7 +152,7 @@ An accompanying article is in preparation for submission to *Digital Scholarship
 
 ```bibtex
 @software{koran_lemmata_2026,
-  author       = {Koran, Oğuz and Cangır, Hakan and Yücesan, Barış},
+  author       = {Koran, Oğuz and Yücesan, Barış and Cangır, Hakan},
   title        = {Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities},
   year         = {2026},
   url          = {https://lemmata.app}
