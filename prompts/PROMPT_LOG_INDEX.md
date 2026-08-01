@@ -43,3 +43,4 @@
 | P039 | Populate prompts/ directory with P001-P038 prompt logs | 2-3 Apr 2026 | 162 |
 | P040 | Update CHANGELOG.md with v0.1.0 release notes | 3 Apr 2026 | 162 |
 | P041 | Add Zenodo DOI to CITATION.cff, README, and landing page | 3 Apr 2026 | 162 |
+| P042 | Add full prompt texts to all prompt log files | 8 Jun 2026 | 162 |
