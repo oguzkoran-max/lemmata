@@ -43,6 +43,12 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (`pyLDAvis.sklearn` was removed; its default PCoA also fails to
   serialise with numpy 2), so the PCA fallback was always used. It now
   uses `pyLDAvis.prepare` with metric MDS.
+- A variational fit that stopped early reported one iteration too few:
+  scikit-learn's `n_iter_` does not count the iteration whose perplexity
+  check stopped the fit.
+- The app's GitHub links (About, bug report, footer, sample data) pointed
+  to a repository address that does not exist; they now point to
+  github.com/oguzkoran-max/lemmata.
 
 ### Known issues
 - pyLDAvis passes a scikit-learn MDS parameter scheduled for removal in

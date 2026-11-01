@@ -367,7 +367,7 @@ def _render_sidebar() -> dict[str, Any]:
                 "modeling platform for humanities researchers.\n\n"
                 "Built with spaCy, tomotopy, scikit-learn, Gensim, and Streamlit.\n\n"
                 "**Authors:** Oğuz Koran, Hakan Cangır, Barış Yücesan\n\n"
-                "[Source code](https://github.com/oguzkoran/lemmata)"
+                "[Source code](https://github.com/oguzkoran-max/lemmata)"
             )
             st.caption(
                 "Privacy: Texts are processed in memory during your session. "
@@ -399,13 +399,13 @@ def _render_sidebar() -> dict[str, Any]:
         # ── Feedback (decision 60) ───────────────────────────────────────
         st.markdown(
             "[Report a bug · Request a feature]"
-            "(https://github.com/oguzkoran/lemmata/issues)"
+            "(https://github.com/oguzkoran-max/lemmata/issues)"
         )
 
         # ── Version footer (decision 47) ─────────────────────────────────
         st.caption(
             f"v{APP_VERSION} · "
-            "[GitHub](https://github.com/oguzkoran/lemmata) · MIT License"
+            "[GitHub](https://github.com/oguzkoran-max/lemmata) · MIT License"
         )
 
     return {
@@ -550,7 +550,7 @@ def _render_welcome() -> None:
         st.markdown(
             "To try Lemmata, you can use short public-domain texts. "
             "Check the `examples/` folder in the "
-            "[GitHub repository](https://github.com/oguzkoran/lemmata) "
+            "[GitHub repository](https://github.com/oguzkoran-max/lemmata) "
             "for sample Italian, English, and German texts."
         )
 

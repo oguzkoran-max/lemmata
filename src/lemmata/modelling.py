@@ -336,6 +336,18 @@ def _check_convergence(model: Any, method: str, max_iter: int) -> tuple[bool, st
     )
 
 
+def _iterations_run(model: Any, method: str, max_iter: int) -> int:
+    """Iterations actually run.
+
+    scikit-learn leaves its loop before counting the iteration whose
+    perplexity check stopped the fit, so ``n_iter_`` is one short whenever
+    a variational fit stops early.
+    """
+    if method == "variational" and model.n_iter_ < max_iter:
+        return int(model.n_iter_) + 1
+    return int(model.n_iter_)
+
+
 def _hyperparameters(model: Any, method: str) -> dict[str, Any]:
     """Priors and inference settings actually used, for the export."""
     if method == "gibbs":
@@ -436,7 +448,7 @@ def run_lda(
         "n_words": n_words,
         "random_seed": random_seed,
         "max_iter": max_iter,
-        "iterations_used": int(model.n_iter_),
+        "iterations_used": _iterations_run(model, method, max_iter),
         "converged": converged,
         "convergence_warning": convergence_warning,
         "perplexity": float(perplexity),

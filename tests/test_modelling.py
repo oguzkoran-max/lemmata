@@ -13,6 +13,7 @@ from lemmata.config import (
     GIBBS_BURN_IN,
     GIBBS_ITERATIONS,
     GIBBS_OPTIMIZE_INTERVAL,
+    LDA_EVALUATE_EVERY,
     LDA_MAX_ITER,
     RANDOM_SEED,
 )
@@ -288,6 +289,23 @@ class TestConvergence:
         assert info["iterations_used"] < 500
         assert info["converged"] is True
         assert info["convergence_warning"] == ""
+
+    def test_variational_early_stop_counts_last_iteration(self, themed_texts):
+        # The fit can only stop at a perplexity check, i.e. after a multiple
+        # of LDA_EVALUATE_EVERY iterations; scikit-learn's n_iter_ is one short.
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        model, _, _, info = run_lda(
+            dtm, vec, n_topics=4, method="variational", max_iter=500,
+        )
+        assert info["iterations_used"] == model.n_iter_ + 1
+        assert info["iterations_used"] % LDA_EVALUATE_EVERY == 0
+
+    def test_variational_full_run_counts_all_iterations(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, _, info = run_lda(
+            dtm, vec, n_topics=4, method="variational", max_iter=10,
+        )
+        assert info["iterations_used"] == 10
 
     def test_variational_unconverged_model_warns(self, themed_texts):
         dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
