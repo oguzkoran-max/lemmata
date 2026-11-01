@@ -18,7 +18,7 @@
 
 Lemmata is a browser-based tool that lets humanities researchers perform LDA (Latent Dirichlet Allocation) topic modeling on literary and historical texts — without writing a single line of code.
 
-Upload your texts, choose your language, adjust parameters, and download reproducible results. Everything runs in the browser.
+Upload your texts, choose your language, adjust parameters, and download reproducible results. You use it in a web browser with nothing to install; the analysis itself runs on the server that hosts the app (lda.lemmata.app, or your own computer if you run it locally).
 
 **Supported languages:** Italian, English, German, French, Spanish
 
