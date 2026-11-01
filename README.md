@@ -49,7 +49,7 @@ No installation required. Open the platform in your browser:
 | **Interactive charts** | Altair-based interactive visualizations with hover details |
 | **Topic Map** | pyLDAvis visualization with graceful fallback |
 | **Preprocessing trace** | Token-level table showing every step (original, lemma, kept/removed, reason) |
-| **Deterministic results** | random_state=42 and batch learning ensure identical results on repeated runs |
+| **Deterministic results** | A fixed seed (default 42) gives identical results on repeated runs with either inference method |
 | **PDF report** | Auto-generated analysis report suitable for course assignments or publications |
 | **ZIP export** | All outputs (CSV, JSON, PNG, SVG, environment report) in one download |
 
@@ -107,44 +107,44 @@ lemmata/
 ├── app.py              # Streamlit UI only
 ├── config.py           # Constants, language configs, slider ranges
 ├── preprocessing.py    # spaCy NLP pipeline, POS filtering, lemmatization, trace
-├── modelling.py        # LDA (scikit-learn), coherence (Gensim), corpus stats
+├── modelling.py        # LDA (tomotopy Gibbs, scikit-learn variational), coherence (Gensim)
 ├── visualisation.py    # Charts, wordclouds, pyLDAvis (zero st.* calls)
 ├── file_io.py          # File readers, ZIP/PDF export, environment report
 ├── requirements.txt    # Pinned dependencies
 ├── ARCHITECTURE.md     # 200 design decisions
-├── prompts/            # Vibe coding development logs
+├── prompts/            # Development prompt logs
 └── tests/              # Pytest test suite
 ```
 
 **Design decisions:**
-- scikit-learn LDA over Gensim: deterministic output with random_state=42.
+- Two inference methods: Gibbs sampling (tomotopy), the default since v0.3.0, with MALLET's default settings; variational Bayes (scikit-learn), the only method before v0.3.0, kept to reproduce earlier results.
 - Gensim CoherenceModel used independently for C_v evaluation.
-- Language configurations reviewed and approved by a corpus linguistics specialist (Doc. Dr. Hakan Cangir).
+- The use of spaCy and the default part-of-speech filter (NOUN, PROPN, ADJ) follow the advice of a corpus linguist (Doç. Dr. Hakan Cangır), given before development. The choice of small (sm) spaCy models was proposed by the language model during planning.
 
 ---
 
 ## Reproducibility
 
-- **Fixed random state:** random_state=42 across all stochastic processes.
-- **Batch learning:** learning_method='batch' eliminates document-order effects.
+- **Fixed random state:** seed 42 by default, editable in Advanced settings. Gibbs sampling runs on one worker so that the seed fixes the result.
+- **Batch learning (variational method):** learning_method='batch' eliminates document-order effects.
 - **Environment report:** Every analysis exports Python version, package versions, and all parameters.
-- **Same data + same parameters = same results.** Guaranteed and verifiable.
+- **Same data, parameters, seed and package versions give the same result;** the test suite checks this.
 
 ---
 
-## How it was built: vibe coding
+## How it was built
 
-Lemmata was developed entirely through **vibe coding** — a researcher with no programming expertise communicated requirements to a large language model exclusively in natural language, and the LLM generated all code. Development was carried out using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic).
+Lemmata was developed by a researcher without programming expertise. Decisions were planned in a conversation with Claude (Opus 4.6) and the code was written by [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic) from prompts drafted there (27 March – 3 April 2026).
 
-Three safeguards ensured methodological rigor:
+What is documented, and its limits:
 
-1. **Full prompt-response documentation.** Every prompt and response is archived in the [`prompts/`](prompts/) directory and published as supplementary material.
+1. **Prompt log.** The prompts sent to Claude Code and summaries of their results are in the [`prompts/`](prompts/) directory. Full responses are not included.
 
-2. **Expert validation at every decision point.** Domain-specific decisions followed a human-in-the-loop model: corpus linguistics choices were reviewed by a specialist; literary interpretations were provided by a scholar. Technical code generation operated under a human-on-the-loop model: the LLM produced code, the principal investigator tested outputs.
+2. **Expert input.** A corpus linguist advised on spaCy and the default part-of-speech filter before development. Most other technical decisions were proposed by the language model and accepted by the developer.
 
-3. **Automated testing.** A 120-test suite with determinism verification ensures correctness and reproducibility.
+3. **Automated testing.** The test suite (185 tests in v0.3.0) checks determinism and module behaviour. It did not catch two errors found later by a validation study, both fixed in v0.3.0 (see [CHANGELOG](CHANGELOG.md)).
 
-An accompanying article is in preparation for submission to *Digital Scholarship in the Humanities* (Oxford University Press).
+An article on the development process is in preparation.
 
 ---
 
@@ -179,4 +179,4 @@ MIT License. See [`LICENSE`](LICENSE).
 
 Lemmata is developed at [Ankara University](https://www.ankara.edu.tr/), School of Foreign Languages (Italian Language and Literature) and Faculty of Languages, History and Geography — DTCF (Italian Language and Literature).
 
-The entire codebase was generated through LLM-assisted development using [Claude](https://claude.ai/) and [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by [Anthropic](https://www.anthropic.com/). Built with [spaCy](https://spacy.io/), [scikit-learn](https://scikit-learn.org/), [Gensim](https://radimrehurek.com/gensim/), [Altair](https://altair-viz.github.io/), and [Streamlit](https://streamlit.io/).
+The entire codebase was generated through LLM-assisted development using [Claude](https://claude.ai/) and [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by [Anthropic](https://www.anthropic.com/). Built with [spaCy](https://spacy.io/), [tomotopy](https://bab2min.github.io/tomotopy/), [scikit-learn](https://scikit-learn.org/), [Gensim](https://radimrehurek.com/gensim/), [Altair](https://altair-viz.github.io/), and [Streamlit](https://streamlit.io/).

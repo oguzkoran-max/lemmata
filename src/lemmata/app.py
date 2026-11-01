@@ -365,7 +365,7 @@ def _render_sidebar() -> dict[str, Any]:
             st.markdown(
                 "**Lemmata** is a browser-based, multilingual LDA topic "
                 "modeling platform for humanities researchers.\n\n"
-                "Built with spaCy, scikit-learn, Gensim, and Streamlit.\n\n"
+                "Built with spaCy, tomotopy, scikit-learn, Gensim, and Streamlit.\n\n"
                 "**Authors:** Oğuz Koran, Hakan Cangır, Barış Yücesan\n\n"
                 "[Source code](https://github.com/oguzkoran/lemmata)"
             )

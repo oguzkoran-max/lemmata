@@ -82,7 +82,8 @@ GIBBS_CONVERGENCE_WINDOW: int = 5
 GIBBS_CONVERGENCE_TOL: float = 0.001
 
 # ── POS Filtering ─────────────────────────────────────────────────────────────
-# Hakan-approved defaults (decision 12, 95).
+# Defaults (decisions 12, 95): chosen by the developer on the advice of a
+# corpus linguist (Hakan Cangır), given before development.
 
 DEFAULT_POS_TAGS: list[str] = ["NOUN", "PROPN", "ADJ"]
 
