@@ -1,7 +1,8 @@
 """LDA topic modeling for Lemmata.
 
-Builds the document-term matrix, fits scikit-learn LDA, extracts topics
-ordered by corpus prevalence, and computes coherence / fit metrics.
+Builds the document-term matrix, fits LDA (Gibbs sampling via tomotopy or
+scikit-learn variational Bayes), extracts topics ordered by corpus
+prevalence, and computes coherence / fit metrics.
 """
 
 from __future__ import annotations
@@ -12,13 +13,25 @@ from typing import Any
 import numpy as np
 from gensim.corpora import Dictionary as GensimDictionary
 from gensim.models.coherencemodel import CoherenceModel
-from scipy.sparse import spmatrix
+from scipy.sparse import csr_matrix, spmatrix
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.feature_extraction.text import CountVectorizer
 
 from lemmata.config import (
+    GIBBS_ALPHA_SUM,
+    GIBBS_BETA,
+    GIBBS_BURN_IN,
+    GIBBS_CHECK_EVERY,
+    GIBBS_CONVERGENCE_TOL,
+    GIBBS_CONVERGENCE_WINDOW,
+    GIBBS_ITERATIONS,
+    GIBBS_OPTIMIZE_INTERVAL,
+    LDA_EVALUATE_EVERY,
     LDA_LEARNING_METHOD,
     LDA_MAX_ITER,
+    LDA_METHOD_DEFAULT,
+    LDA_METHODS,
+    LDA_PERP_TOL,
     NGRAM_RANGE,
     NUM_TOPICS_DEFAULT,
     RANDOM_SEED,
@@ -102,14 +115,256 @@ def build_dtm(
 # ── LDA ───────────────────────────────────────────────────────────────────────
 
 
+class GibbsLDA:
+    """Collapsed Gibbs sampling LDA (tomotopy) for the Lemmata pipeline.
+
+    Exposes the parts of scikit-learn's ``LatentDirichletAllocation`` that
+    the rest of Lemmata reads (``components_``, ``n_components``,
+    ``n_iter_``, ``transform``, ``perplexity``, ``score``), so visualisation
+    and export code work with either method.
+
+    Parameters
+    ----------
+    n_components:
+        Number of topics.
+    random_state:
+        Sampler seed. With one worker, the same seed gives the same model.
+    max_iter:
+        Number of Gibbs iterations.
+    alpha_sum:
+        Sum of the symmetric document-topic prior (MALLET ``--alpha``).
+    beta:
+        Topic-word prior (MALLET ``--beta``).
+    burn_in:
+        Iterations before the first hyperparameter optimisation.
+    optimize_interval:
+        Iterations between hyperparameter optimisations (0 disables it).
+        tomotopy optimises the document-topic prior only.
+    check_every:
+        Iterations between log-likelihood records (for convergence).
+    """
+
+    def __init__(
+        self,
+        n_components: int,
+        random_state: int = RANDOM_SEED,
+        max_iter: int = GIBBS_ITERATIONS,
+        alpha_sum: float = GIBBS_ALPHA_SUM,
+        beta: float = GIBBS_BETA,
+        burn_in: int = GIBBS_BURN_IN,
+        optimize_interval: int = GIBBS_OPTIMIZE_INTERVAL,
+        check_every: int = GIBBS_CHECK_EVERY,
+    ) -> None:
+        self.n_components = n_components
+        self.random_state = random_state
+        self.max_iter = max_iter
+        self.alpha_sum = alpha_sum
+        self.beta = beta
+        self.burn_in = burn_in
+        self.optimize_interval = optimize_interval
+        self.check_every = check_every
+
+        self.components_: np.ndarray | None = None
+        self.alpha_: np.ndarray | None = None
+        self.n_iter_: int = 0
+        self.ll_trace_: list[float] = []
+        self._mdl: Any = None
+        self._doc_topic: np.ndarray | None = None
+        self._train_signature: tuple[tuple[int, int], int] | None = None
+        self._feature_names: np.ndarray | None = None
+
+    def fit_transform(self, dtm: spmatrix, feature_names: np.ndarray) -> np.ndarray:
+        """Fit on a document-term matrix and return the doc-topic matrix."""
+        try:
+            import tomotopy as tp
+        except ImportError as exc:  # pragma: no cover - dependency check
+            raise ImportError(
+                "Gibbs sampling needs the 'tomotopy' package. Install it or "
+                "choose the variational method."
+            ) from exc
+
+        dtm = csr_matrix(dtm)
+        n_docs, n_terms = dtm.shape
+        feature_names = np.asarray(feature_names)
+
+        mdl = tp.LDAModel(
+            k=self.n_components,
+            alpha=self.alpha_sum / self.n_components,
+            eta=self.beta,
+            seed=self.random_state,
+        )
+        mdl.burn_in = self.burn_in
+        mdl.optim_interval = self.optimize_interval
+
+        # tomotopy takes token lists; LDA is bag-of-words, so counts suffice.
+        rows_in_model = self._add_rows(mdl, dtm, feature_names)
+        if not rows_in_model:
+            raise ValueError("All documents are empty after filtering; nothing to model.")
+
+        self.ll_trace_ = []
+        while mdl.global_step < self.max_iter:
+            step = min(self.check_every, self.max_iter - mdl.global_step)
+            mdl.train(step, workers=1, parallel=tp.ParallelScheme.NONE)
+            self.ll_trace_.append(float(mdl.ll_per_word))
+        self.n_iter_ = int(mdl.global_step)
+        self.alpha_ = np.asarray(mdl.alpha, dtype=float)
+
+        # Topic-word pseudo-counts aligned to the vectorizer vocabulary.
+        column = {word: i for i, word in enumerate(feature_names)}
+        cols = np.array([column[word] for word in mdl.used_vocabs])
+        counts = np.asarray(mdl.get_count_by_topics(), dtype=float)
+        components = np.zeros((self.n_components, n_terms))
+        for t in range(self.n_components):
+            components[t, cols] = np.asarray(mdl.get_topic_word_dist(t)) * max(counts[t], 1.0)
+        self.components_ = components
+
+        # Empty documents get the prior mean. Iterate over mdl.docs:
+        # tomotopy 0.14.0 raises IndexError for mdl.docs[j] with j > 0.
+        doc_topic = np.tile(self.alpha_ / self.alpha_.sum(), (n_docs, 1))
+        for row, doc in zip(rows_in_model, mdl.docs):
+            doc_topic[row] = doc.get_topic_dist()
+
+        self._mdl = mdl
+        self._doc_topic = doc_topic
+        self._train_signature = (dtm.shape, dtm.nnz)
+        self._feature_names = feature_names
+        return doc_topic.copy()
+
+    def transform(self, dtm: spmatrix) -> np.ndarray:
+        """Doc-topic matrix; the stored one for the training matrix."""
+        import tomotopy as tp
+
+        dtm = csr_matrix(dtm)
+        if (dtm.shape, dtm.nnz) == self._train_signature:
+            return self._doc_topic.copy()
+
+        out = np.tile(self.alpha_ / self.alpha_.sum(), (dtm.shape[0], 1))
+        docs, rows = [], []
+        for row in range(dtm.shape[0]):
+            words = self._row_words(dtm, row, self._feature_names)
+            if words:
+                docs.append(self._mdl.make_doc(words))
+                rows.append(row)
+        if docs:
+            dists, _ = self._mdl.infer(
+                docs, iterations=100, workers=1, parallel=tp.ParallelScheme.NONE
+            )
+            for row, dist in zip(rows, dists):
+                out[row] = dist
+        return out
+
+    def perplexity(self, dtm: spmatrix | None = None) -> float:
+        """Training perplexity, exp(-log-likelihood per word)."""
+        return float(self._mdl.perplexity)
+
+    def score(self, dtm: spmatrix | None = None) -> float:
+        """Training log-likelihood (per-word value × number of words)."""
+        return float(self._mdl.ll_per_word * self._mdl.num_words)
+
+    @staticmethod
+    def _row_words(dtm: csr_matrix, row: int, feature_names: np.ndarray) -> list[str]:
+        start, end = dtm.indptr[row], dtm.indptr[row + 1]
+        idx, counts = dtm.indices[start:end], dtm.data[start:end].astype(int)
+        return np.repeat(feature_names[idx], counts).tolist()
+
+    def _add_rows(self, mdl: Any, dtm: csr_matrix, feature_names: np.ndarray) -> list[int]:
+        rows = []
+        for row in range(dtm.shape[0]):
+            words = self._row_words(dtm, row, feature_names)
+            if words:
+                mdl.add_doc(words)
+                rows.append(row)
+        return rows
+
+
+def _fit_model(
+    dtm: spmatrix,
+    feature_names: np.ndarray,
+    n_topics: int,
+    method: str,
+    random_seed: int,
+    max_iter: int,
+) -> tuple[Any, np.ndarray]:
+    """Fit LDA with the chosen method; return the model and raw doc-topic matrix."""
+    if method == "gibbs":
+        model = GibbsLDA(n_components=n_topics, random_state=random_seed, max_iter=max_iter)
+        return model, model.fit_transform(dtm, feature_names)
+    if method == "variational":
+        model = LatentDirichletAllocation(
+            n_components=n_topics,
+            random_state=random_seed,
+            learning_method=LDA_LEARNING_METHOD,
+            max_iter=max_iter,
+            evaluate_every=LDA_EVALUATE_EVERY,
+            perp_tol=LDA_PERP_TOL,
+        )
+        return model, model.fit_transform(dtm)
+    raise ValueError(f"Unknown LDA method {method!r}; use one of {sorted(LDA_METHODS)}.")
+
+
+def _gibbs_converged(
+    ll_trace: list[float],
+    window: int = GIBBS_CONVERGENCE_WINDOW,
+    tol: float = GIBBS_CONVERGENCE_TOL,
+) -> bool:
+    """True if mean log-likelihood per word has stopped changing."""
+    if len(ll_trace) < 2 * window:
+        return False
+    recent = float(np.mean(ll_trace[-window:]))
+    before = float(np.mean(ll_trace[-2 * window:-window]))
+    return abs(recent - before) <= tol * abs(before)
+
+
+def _check_convergence(model: Any, method: str, max_iter: int) -> tuple[bool, str]:
+    """Return (converged, warning text) for decision 124, per method."""
+    if method == "gibbs":
+        if _gibbs_converged(model.ll_trace_):
+            return True, ""
+        span = 2 * GIBBS_CONVERGENCE_WINDOW * GIBBS_CHECK_EVERY
+        return False, (
+            f"Log-likelihood was still changing after {max_iter} Gibbs "
+            f"iterations (by more than {GIBBS_CONVERGENCE_TOL:.1%} over the "
+            f"last {span} iterations). Consider increasing iterations in "
+            "Advanced settings."
+        )
+    if model.n_iter_ < max_iter:
+        return True, ""
+    return False, (
+        f"Model did not converge within {max_iter} iterations (perplexity "
+        f"still improved by more than {LDA_PERP_TOL} between checks). "
+        "Consider increasing max iterations in Advanced settings."
+    )
+
+
+def _hyperparameters(model: Any, method: str) -> dict[str, Any]:
+    """Priors and inference settings actually used, for the export."""
+    if method == "gibbs":
+        return {
+            "alpha_sum_initial": model.alpha_sum,
+            "alpha_final": [float(a) for a in model.alpha_],
+            "beta": model.beta,
+            "burn_in": model.burn_in,
+            "optimize_interval": model.optimize_interval,
+            "workers": 1,
+        }
+    return {
+        "doc_topic_prior": float(model.doc_topic_prior_),
+        "topic_word_prior": float(model.topic_word_prior_),
+        "learning_method": LDA_LEARNING_METHOD,
+        "evaluate_every": LDA_EVALUATE_EVERY,
+        "perp_tol": LDA_PERP_TOL,
+    }
+
+
 def run_lda(
     dtm: spmatrix,
     vectorizer: CountVectorizer,
     n_topics: int = NUM_TOPICS_DEFAULT,
     n_words: int = WORDS_PER_TOPIC_DEFAULT,
     random_seed: int = RANDOM_SEED,
-    max_iter: int = LDA_MAX_ITER,
-) -> tuple[LatentDirichletAllocation, np.ndarray, list[dict[str, Any]], dict[str, Any]]:
+    max_iter: int | None = None,
+    method: str = LDA_METHOD_DEFAULT,
+) -> tuple[Any, np.ndarray, list[dict[str, Any]], dict[str, Any]]:
     """Fit LDA and return topics ordered by corpus prevalence.
 
     Parameters
@@ -125,33 +380,30 @@ def run_lda(
     random_seed:
         Deterministic seed (decision 121).
     max_iter:
-        Maximum EM iterations.
+        Iterations (Gibbs) or maximum EM iterations (variational).
+        *None* → the method's default.
+    method:
+        ``"gibbs"`` or ``"variational"`` (see ``config.LDA_METHODS``).
 
     Returns
     -------
-    tuple[LDA, ndarray, list[dict], dict]
-        - Fitted LDA model.
+    tuple[model, ndarray, list[dict], dict]
+        - Fitted model (:class:`GibbsLDA` or ``LatentDirichletAllocation``).
         - Document-topic matrix (docs × topics), **reordered** by prevalence.
         - Topic summaries (reordered).
         - Model info dict (perplexity, log-likelihood, convergence warning).
     """
-    model = LatentDirichletAllocation(
-        n_components=n_topics,
-        random_state=random_seed,
-        learning_method=LDA_LEARNING_METHOD,
-        max_iter=max_iter,
-    )
+    if max_iter is None:
+        max_iter = GIBBS_ITERATIONS if method == "gibbs" else LDA_MAX_ITER
 
-    doc_topic_raw = model.fit_transform(dtm)  # (n_docs, n_topics)
+    feature_names = vectorizer.get_feature_names_out()
+    model, doc_topic_raw = _fit_model(
+        dtm, feature_names, n_topics, method, random_seed, max_iter
+    )  # (n_docs, n_topics)
 
     # ── Convergence check (decision 124) ──────────────────────────────────
-    converged = model.n_iter_ < max_iter
-    convergence_warning = ""
-    if not converged:
-        convergence_warning = (
-            f"Model used all {max_iter} iterations without converging. "
-            "Consider increasing max iterations in Advanced settings."
-        )
+    converged, convergence_warning = _check_convergence(model, method, max_iter)
+    if convergence_warning:
         logger.warning(convergence_warning)
 
     # ── Metrics ───────────────────────────────────────────────────────────
@@ -159,7 +411,6 @@ def run_lda(
     log_likelihood = model.score(dtm)
 
     # ── Topic summaries (unordered) ───────────────────────────────────────
-    feature_names = vectorizer.get_feature_names_out()
     summaries_raw = _extract_topic_summaries(model, feature_names, n_words)
 
     # ── Reorder by corpus prevalence (decision 122) ───────────────────────
@@ -180,15 +431,17 @@ def run_lda(
     dominant_topics = np.argmax(doc_topic, axis=1) + 1  # 1-indexed
 
     model_info: dict[str, Any] = {
+        "method": method,
         "n_topics": n_topics,
         "n_words": n_words,
         "random_seed": random_seed,
         "max_iter": max_iter,
-        "iterations_used": model.n_iter_,
+        "iterations_used": int(model.n_iter_),
         "converged": converged,
         "convergence_warning": convergence_warning,
         "perplexity": float(perplexity),
         "log_likelihood": float(log_likelihood),
+        "hyperparameters": _hyperparameters(model, method),
         "dominant_topics": dominant_topics.tolist(),
         "prevalence_order": prevalence_order.tolist(),
     }
@@ -241,7 +494,7 @@ def compute_coherence(
 
 
 def get_topic_summary(
-    model: LatentDirichletAllocation,
+    model: Any,
     vectorizer: CountVectorizer,
     n_words: int = WORDS_PER_TOPIC_DEFAULT,
 ) -> list[dict[str, Any]]:
@@ -276,9 +529,10 @@ def sweep_coherence(
     vectorizer: CountVectorizer,
     topic_range: tuple[int, int] = (2, 15),
     random_seed: int = RANDOM_SEED,
-    max_iter: int = LDA_MAX_ITER,
+    max_iter: int | None = None,
     n_words: int = WORDS_PER_TOPIC_DEFAULT,
     progress_callback: Any | None = None,
+    method: str = LDA_METHOD_DEFAULT,
 ) -> dict[str, Any]:
     """Run LDA across a range of topic counts and return coherence scores.
 
@@ -297,12 +551,14 @@ def sweep_coherence(
     random_seed:
         Deterministic seed.
     max_iter:
-        Maximum EM iterations per fit.
+        Iterations per fit. *None* → the method's default.
     n_words:
         Words per topic for coherence computation.
     progress_callback:
         Optional callable ``(current_step, total_steps) -> None``
         for UI progress updates.
+    method:
+        ``"gibbs"`` or ``"variational"``, as in :func:`run_lda`.
 
     Returns
     -------
@@ -310,6 +566,9 @@ def sweep_coherence(
         ``{"k_values": list[int], "coherence_scores": list[float],
         "best_k": int}``
     """
+    if max_iter is None:
+        max_iter = GIBBS_ITERATIONS if method == "gibbs" else LDA_MAX_ITER
+
     k_min, k_max = topic_range
     k_values: list[int] = list(range(k_min, k_max + 1))
     coherence_scores: list[float] = []
@@ -326,13 +585,7 @@ def sweep_coherence(
             progress_callback(i, total)
 
         # Fit LDA with same parameters as run_lda().
-        model = LatentDirichletAllocation(
-            n_components=k,
-            random_state=random_seed,
-            learning_method=LDA_LEARNING_METHOD,
-            max_iter=max_iter,
-        )
-        model.fit(dtm)
+        model, _ = _fit_model(dtm, feature_names, k, method, random_seed, max_iter)
 
         # Extract topic word lists.
         topic_word_lists: list[list[str]] = []
@@ -370,7 +623,7 @@ def sweep_coherence(
 
 
 def _extract_topic_summaries(
-    model: LatentDirichletAllocation,
+    model: Any,
     feature_names: np.ndarray,
     n_words: int,
 ) -> list[dict[str, Any]]:

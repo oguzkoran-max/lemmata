@@ -436,47 +436,67 @@ def create_topic_map(
     model: Any,
     dtm: Any,
     vectorizer: Any,
+    topic_order: list[int] | None = None,
 ) -> str | alt.Chart:
     """Create an interactive topic map.
 
     Tries pyLDAvis first; falls back to an Altair 2-D scatter if that
-    fails (decision 16).
+    fails (decision 16). Uses ``pyLDAvis.prepare``, which works for both
+    inference methods; ``pyLDAvis.sklearn`` no longer exists in
+    pyLDAvis 3.4, so the map had always fallen back (P045).
 
     Parameters
     ----------
     model:
-        Fitted ``LatentDirichletAllocation``.
+        Fitted model with ``components_`` and ``transform`` (either method).
     dtm:
         Sparse document-term matrix.
     vectorizer:
         Fitted ``CountVectorizer``.
+    topic_order:
+        Model topic indices in display order (``model_info
+        ["prevalence_order"]``), so that "Topic 1" here is "Topic 1" in the
+        topic list. *None* → model order.
 
     Returns
     -------
     str or alt.Chart
         HTML string (pyLDAvis) **or** Altair scatter fallback.
     """
+    components = np.asarray(model.components_)  # (n_topics, n_features)
+    doc_topic = np.asarray(model.transform(dtm))  # (n_docs, n_topics)
+    if topic_order is not None:
+        components = components[topic_order]
+        doc_topic = doc_topic[:, topic_order]
+
     try:
         import pyLDAvis
-        import pyLDAvis.sklearn
 
-        panel = pyLDAvis.sklearn.prepare(model, dtm, vectorizer, sort_topics=False)
+        # mds="mmds": the default PCoA yields complex coordinates with
+        # numpy 2 and fails to serialise; metric MDS is real and seeded.
+        panel = pyLDAvis.prepare(
+            topic_term_dists=components / components.sum(axis=1, keepdims=True),
+            doc_topic_dists=doc_topic,
+            doc_lengths=np.asarray(dtm.sum(axis=1)).ravel(),
+            vocab=list(vectorizer.get_feature_names_out()),
+            term_frequency=np.asarray(dtm.sum(axis=0)).ravel(),
+            mds="mmds",
+            sort_topics=False,
+        )
         return pyLDAvis.prepared_data_to_html(panel)
     except Exception as exc:
         logger.info("pyLDAvis unavailable, using scatter fallback: %s", exc)
-        return _topic_map_fallback(model, dtm)
+        return _topic_map_fallback(components, doc_topic)
 
 
-def _topic_map_fallback(model: Any, dtm: Any) -> alt.Chart:
+def _topic_map_fallback(components: np.ndarray, doc_topic: np.ndarray) -> alt.Chart:
     """2-D PCA scatter of topic centres as pyLDAvis fallback."""
     from sklearn.decomposition import PCA
 
-    components = model.components_  # (n_topics, n_features)
     pca = PCA(n_components=2, random_state=42)
     coords = pca.fit_transform(components)  # (n_topics, 2)
 
     # Topic prevalence as circle size.
-    doc_topic = model.transform(dtm)
     avg_weights = doc_topic.mean(axis=0)
 
     n_topics = components.shape[0]

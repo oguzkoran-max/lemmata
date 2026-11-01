@@ -5,8 +5,20 @@ from __future__ import annotations
 import numpy as np
 import pytest
 from scipy.sparse import issparse
+from sklearn.decomposition import LatentDirichletAllocation
 
+from lemmata.config import (
+    GIBBS_ALPHA_SUM,
+    GIBBS_BETA,
+    GIBBS_BURN_IN,
+    GIBBS_ITERATIONS,
+    GIBBS_OPTIMIZE_INTERVAL,
+    LDA_MAX_ITER,
+    RANDOM_SEED,
+)
 from lemmata.modelling import (
+    GibbsLDA,
+    _gibbs_converged,
     build_dtm,
     compute_coherence,
     run_lda,
@@ -156,6 +168,166 @@ class TestDeterminism:
 
         # They should (very likely) differ.
         assert not np.array_equal(doc_topic_1, doc_topic_2)
+
+    def test_variational_same_seed_identical_results(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        runs = [
+            run_lda(dtm, vec, n_topics=2, random_seed=42, method="variational")
+            for _ in range(2)
+        ]
+        np.testing.assert_array_equal(runs[0][1], runs[1][1])
+
+
+# ── Methods (P045) ────────────────────────────────────────────────────────────
+
+
+@pytest.fixture()
+def themed_texts() -> list[str]:
+    """Synthetic corpus with four clear themes, large enough to converge."""
+    import random
+
+    rng = random.Random(0)
+    themes = [
+        ["mare", "nave", "isola", "vento", "porto"],
+        ["denaro", "mercante", "fiorino", "prezzo", "vendita"],
+        ["amore", "donna", "cuore", "bacio", "lettera"],
+        ["chiesa", "frate", "peccato", "dio", "messa"],
+    ]
+    texts = []
+    for i in range(120):
+        main, other = themes[i % 4], themes[(i + 1) % 4]
+        words = [rng.choice(main) for _ in range(40)]
+        words += [rng.choice(other) for _ in range(10)]
+        texts.append(" ".join(words))
+    return texts
+
+
+class TestMethods:
+    """Gibbs sampling (default) and variational Bayes (P045)."""
+
+    def test_default_method_is_gibbs(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        model, _, _, model_info = run_lda(dtm, vec, n_topics=2)
+        assert isinstance(model, GibbsLDA)
+        assert model_info["method"] == "gibbs"
+        assert model_info["max_iter"] == GIBBS_ITERATIONS
+
+    def test_variational_method(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        model, doc_topic, _, model_info = run_lda(
+            dtm, vec, n_topics=2, method="variational",
+        )
+        assert isinstance(model, LatentDirichletAllocation)
+        assert model_info["method"] == "variational"
+        assert model_info["max_iter"] == LDA_MAX_ITER
+        np.testing.assert_allclose(doc_topic.sum(axis=1), 1.0, atol=1e-5)
+
+    def test_unknown_method_raises(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        with pytest.raises(ValueError, match="Unknown LDA method"):
+            run_lda(dtm, vec, n_topics=2, method="nmf")
+
+    def test_gibbs_defaults_are_mallet_defaults(self):
+        # MALLET 2.0.8 train-topics: --alpha 5.0, --beta 0.01,
+        # --num-iterations 1000, --optimize-burn-in 200;
+        # little-mallet-wrapper: --optimize-interval 10.
+        assert GIBBS_ALPHA_SUM == 5.0
+        assert GIBBS_BETA == 0.01
+        assert GIBBS_ITERATIONS == 1000
+        assert GIBBS_BURN_IN == 200
+        assert GIBBS_OPTIMIZE_INTERVAL == 10
+
+    def test_gibbs_hyperparameters_recorded(self, processed_texts):
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        _, _, _, model_info = run_lda(dtm, vec, n_topics=2, max_iter=100)
+        hp = model_info["hyperparameters"]
+        assert hp["alpha_sum_initial"] == GIBBS_ALPHA_SUM
+        assert hp["beta"] == GIBBS_BETA
+        assert hp["burn_in"] == GIBBS_BURN_IN
+        assert len(hp["alpha_final"]) == 2
+
+    def test_gibbs_empty_document_gets_prior(self):
+        texts = ["mare nave mare", "mare nave nave", "zzz"]
+        dtm, vec, _ = build_dtm(texts, min_df=2, max_df=1.0)
+        assert dtm[2].nnz == 0
+        model, doc_topic, _, _ = run_lda(dtm, vec, n_topics=2, max_iter=100)
+        np.testing.assert_allclose(doc_topic.sum(axis=1), 1.0, atol=1e-5)
+        prior = model.alpha_ / model.alpha_.sum()
+        np.testing.assert_allclose(np.sort(doc_topic[2]), np.sort(prior), atol=1e-6)
+
+    def test_gibbs_transform_returns_training_matrix(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        model, _, _, model_info = run_lda(dtm, vec, n_topics=4, max_iter=200)
+        raw = model.transform(dtm)
+        order = model_info["prevalence_order"]
+        np.testing.assert_allclose(raw.sum(axis=1), 1.0, atol=1e-5)
+        assert raw.shape == (len(themed_texts), 4)
+        assert len(order) == 4
+
+    def test_gibbs_recovers_planted_themes(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, topics, _ = run_lda(dtm, vec, n_topics=4, n_words=5)
+        found = {frozenset(t["words"]) for t in topics}
+        assert frozenset(["mare", "nave", "isola", "vento", "porto"]) in found
+        assert frozenset(["chiesa", "frate", "peccato", "dio", "messa"]) in found
+
+
+# ── Convergence indicator (decision 124, P045) ────────────────────────────────
+
+
+class TestConvergence:
+    """The warning must say whether the model converged, not whether it
+    reached the iteration limit (D2 check K3: the old warning fired on
+    every run, converged or not)."""
+
+    def test_variational_converged_model_does_not_warn(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, _, info = run_lda(
+            dtm, vec, n_topics=4, method="variational", max_iter=500,
+        )
+        assert info["iterations_used"] < 500
+        assert info["converged"] is True
+        assert info["convergence_warning"] == ""
+
+    def test_variational_unconverged_model_warns(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, _, info = run_lda(
+            dtm, vec, n_topics=4, method="variational", max_iter=10,
+        )
+        assert info["converged"] is False
+        assert "did not converge" in info["convergence_warning"]
+
+    def test_variational_check_does_not_change_fit(self, themed_texts):
+        # Perplexity checks are read-only: a fit stopped at the limit is the
+        # same as before v0.3.0, so earlier results stay reproducible.
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        model, _, _, _ = run_lda(
+            dtm, vec, n_topics=4, method="variational", max_iter=10,
+        )
+        old = LatentDirichletAllocation(
+            n_components=4, random_state=RANDOM_SEED,
+            learning_method="batch", max_iter=10,
+        ).fit(dtm)
+        np.testing.assert_allclose(model.components_, old.components_)
+
+    def test_gibbs_converged_model_does_not_warn(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, _, info = run_lda(dtm, vec, n_topics=4)
+        assert info["converged"] is True
+        assert info["convergence_warning"] == ""
+
+    def test_gibbs_short_run_warns(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, _, info = run_lda(dtm, vec, n_topics=4, max_iter=100)
+        assert info["converged"] is False
+        assert "still changing" in info["convergence_warning"]
+
+    def test_gibbs_criterion(self):
+        flat = [-2.2] * 10
+        rising = [-3.0 + 0.05 * i for i in range(10)]
+        assert _gibbs_converged(flat) is True
+        assert _gibbs_converged(rising) is False
+        assert _gibbs_converged(flat[:9]) is False  # too short to judge
 
 
 # ── compute_coherence ─────────────────────────────────────────────────────────

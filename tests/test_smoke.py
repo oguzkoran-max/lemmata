@@ -136,7 +136,7 @@ class TestSmokePipeline:
             assert "coherence" in metrics
 
             analysis = json.loads(zf.read("analysis_results.json"))
-            assert analysis["lemmata_version"] == "0.1.0"
+            assert analysis["lemmata_version"] == "0.3.0"
             assert len(analysis["topics"]) == 2
 
     def test_determinism(self):

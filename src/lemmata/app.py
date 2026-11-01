@@ -26,7 +26,14 @@ from lemmata.config import (
     CHUNK_SIZE_MIN,
     COLOR_PRIMARY,
     DEFAULT_POS_TAGS,
+    GIBBS_ITERATIONS,
+    GIBBS_ITERATIONS_MAX,
+    GIBBS_ITERATIONS_MIN,
     LDA_MAX_ITER,
+    LDA_MAX_ITER_MAX,
+    LDA_MAX_ITER_MIN,
+    LDA_METHOD_DEFAULT,
+    LDA_METHODS,
     MAX_FILE_SIZE_MB,
     MAX_TOTAL_SIZE_MB,
     NUM_TOPICS_DEFAULT,
@@ -259,6 +266,17 @@ def _render_sidebar() -> dict[str, Any]:
 
         # ── Advanced ──────────────────────────────────────────────────────
         with st.expander("Advanced"):
+            method = st.selectbox(
+                "Inference method",
+                options=list(LDA_METHODS.keys()),
+                index=list(LDA_METHODS.keys()).index(LDA_METHOD_DEFAULT),
+                format_func=lambda m: LDA_METHODS[m],
+                help="Gibbs sampling is the method of MALLET, the standard "
+                     "tool in the field; its defaults follow MALLET. "
+                     "Variational Bayes is faster and was Lemmata's only "
+                     "method before v0.3.0; choose it to reproduce earlier "
+                     "results.",
+            )
             seed = st.number_input(
                 "Random seed",
                 value=RANDOM_SEED,
@@ -266,15 +284,30 @@ def _render_sidebar() -> dict[str, Any]:
                 step=1,
                 help="Set a seed for reproducible results (decision 121).",
             )
-            max_iter = st.number_input(
-                "Max iterations",
-                value=LDA_MAX_ITER,
-                min_value=10,
-                max_value=500,
-                step=10,
-                help="Maximum EM iterations for LDA. Increase if "
-                     "convergence warning appears.",
-            )
+            if method == "gibbs":
+                max_iter = st.number_input(
+                    "Iterations",
+                    value=GIBBS_ITERATIONS,
+                    min_value=GIBBS_ITERATIONS_MIN,
+                    max_value=GIBBS_ITERATIONS_MAX,
+                    step=100,
+                    key="iterations_gibbs",
+                    help="Number of Gibbs sampling iterations (MALLET "
+                         "default: 1000). Increase if the convergence "
+                         "warning appears.",
+                )
+            else:
+                max_iter = st.number_input(
+                    "Max iterations",
+                    value=LDA_MAX_ITER,
+                    min_value=LDA_MAX_ITER_MIN,
+                    max_value=LDA_MAX_ITER_MAX,
+                    step=10,
+                    key="iterations_variational",
+                    help="Maximum EM iterations. Fitting stops earlier once "
+                         "the model has converged. Increase if the "
+                         "convergence warning appears.",
+                )
             auto_min, auto_max = get_df_auto(10)
             min_df = st.number_input(
                 "min_df",
@@ -382,6 +415,7 @@ def _render_sidebar() -> dict[str, Any]:
         "n_words": n_words,
         "pos_tags": pos_tags,
         "custom_stopwords": custom_stopwords,
+        "method": method,
         "seed": int(seed),
         "max_iter": int(max_iter),
         "min_df": min_df if not use_auto_df else None,
@@ -620,6 +654,7 @@ def _run_analysis_inner(
             n_words=params["n_words"],
             random_seed=params["seed"],
             max_iter=params["max_iter"],
+            method=params["method"],
         )
 
         if model_info["convergence_warning"]:
@@ -797,6 +832,11 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
     col2.metric("Perplexity", f"{model_info['perplexity']:.1f}")
     col3.metric("Log-likelihood", f"{model_info['log_likelihood']:.1f}")
     col4.metric("Documents", dtm_info["n_docs"])
+    st.caption(
+        f"Inference: {LDA_METHODS[model_info['method']]}, "
+        f"{model_info['iterations_used']} iterations, "
+        f"seed {model_info['random_seed']}."
+    )
 
     # DTM transparency (decision 103).
     with st.container(border=True):
@@ -843,6 +883,7 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
                 random_seed=results["params"]["seed"],
                 max_iter=results["params"]["max_iter"],
                 progress_callback=_sweep_progress,
+                method=results["params"]["method"],
             )
             st.session_state["sweep_results"] = sweep_results
             progress_bar.empty()
@@ -976,7 +1017,8 @@ def _tab_topic_map(results: dict[str, Any]) -> None:
     st.caption("Interactive visualisation of topic distances and prevalence.")
 
     result = create_topic_map(
-        results["model"], results["dtm"], results["vectorizer"]
+        results["model"], results["dtm"], results["vectorizer"],
+        topic_order=results["model_info"]["prevalence_order"],
     )
 
     if isinstance(result, str):
@@ -1112,10 +1154,10 @@ def _tab_preprocessing(results: dict[str, Any]) -> None:
     with st.container(border=True):
         st.markdown("**Stopword Removal**")
         st.text(
-            f"Stopwords removed: "
-            f"{trace['stopwords_removed_builtin'] + trace['stopwords_removed_custom']:,} "
-            f"(built-in: {trace['stopwords_removed_builtin']:,}, "
-            f"custom: {trace['stopwords_removed_custom']:,})"
+            f"Stopwords removed: {trace['stopwords_removed_total']:,} "
+            f"(built-in list: {trace['stopwords_removed_builtin']:,}, "
+            f"custom list: {trace['stopwords_removed_custom']:,}, "
+            f"on both lists: {trace['stopwords_removed_both']:,})"
         )
         if trace["custom_stopwords"]:
             st.caption(f"Custom: {', '.join(trace['custom_stopwords'])}")

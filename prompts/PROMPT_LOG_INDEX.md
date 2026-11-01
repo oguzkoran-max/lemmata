@@ -44,3 +44,6 @@
 | P040 | Update CHANGELOG.md with v0.1.0 release notes | 3 Apr 2026 | 162 |
 | P041 | Add Zenodo DOI to CITATION.cff, README, and landing page | 3 Apr 2026 | 162 |
 | P042 | Add full prompt texts to all prompt log files | 8 Jun 2026 | 162 |
+| P045 | Gibbs sampling default, convergence indicator and stopword count fixes | 1 Nov 2026 | 185 |
+
+P043 and P044 (4 July 2026) have commits but no prompt log files.

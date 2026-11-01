@@ -217,6 +217,27 @@ class TestProcessDocuments:
         )
         assert trace["stopwords_removed_custom"] >= 0
 
+    def test_stopwords_on_both_lists_counted_once(self, mock_nlp):
+        """A lemma on the built-in and the custom list is removed once (P045)."""
+        texts = [
+            {"filename": "a.txt", "content": "il gatto e il cane dormono in casa"}
+        ]
+        _, _, trace = process_documents(
+            texts=texts,
+            language="it",
+            custom_stopwords={"il", "casa"},
+            nlp=mock_nlp,
+        )
+        # 8 tokens. Built-in: il, e, il, in. Custom: il, il, casa.
+        assert trace["original_tokens"] == 8
+        assert trace["stopwords_removed_builtin"] == 4
+        assert trace["stopwords_removed_custom"] == 3
+        assert trace["stopwords_removed_both"] == 2
+        assert trace["stopwords_removed_total"] == 5
+        assert trace["after_stopwords"] == 3
+        # A sequential filter cannot end with more tokens than it passed on.
+        assert trace["after_stopwords"] >= trace["final_lemmas"]
+
     def test_single_file_triggers_chunking(self, mock_nlp):
         single = [
             {

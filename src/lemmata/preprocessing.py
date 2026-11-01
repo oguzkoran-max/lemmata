@@ -432,6 +432,8 @@ def process_documents(
     total_final = 0
     total_stop_builtin = 0
     total_stop_custom = 0
+    total_stop_any = 0
+    total_stop_both = 0
 
     spacy_docs = list(nlp.pipe([d["text"] for d in documents]))
 
@@ -443,13 +445,20 @@ def process_documents(
         n_original = len([t for t in token_details])
         n_stop_builtin = sum(1 for t in token_details if t["is_stop_builtin"])
         n_stop_custom = sum(1 for t in token_details if t["is_stop_custom"])
+        # A lemma on both lists is removed once, not twice (P045).
+        n_stop_any = sum(
+            1 for t in token_details if t["is_stop_builtin"] or t["is_stop_custom"]
+        )
+        n_stop_both = n_stop_builtin + n_stop_custom - n_stop_any
         n_pos_match = sum(1 for t in token_details if t["pos_match"])
         n_final = len(lemmas)
 
         total_original += n_original
         total_stop_builtin += n_stop_builtin
         total_stop_custom += n_stop_custom
-        total_after_stopwords += n_original - n_stop_builtin - n_stop_custom
+        total_stop_any += n_stop_any
+        total_stop_both += n_stop_both
+        total_after_stopwords += n_original - n_stop_any
         total_after_pos += n_pos_match
         total_final += n_final
 
@@ -470,6 +479,7 @@ def process_documents(
                 "original_tokens": n_original,
                 "stopwords_builtin": n_stop_builtin,
                 "stopwords_custom": n_stop_custom,
+                "stopwords_total": n_stop_any,
                 "pos_matched": n_pos_match,
                 "final_lemmas": n_final,
                 "token_details": token_details,
@@ -512,6 +522,8 @@ def process_documents(
         "empty_chunks_removed": empty_chunks_removed,
         "stopwords_removed_builtin": total_stop_builtin,
         "stopwords_removed_custom": total_stop_custom,
+        "stopwords_removed_total": total_stop_any,
+        "stopwords_removed_both": total_stop_both,
         "language": language,
         "pos_tags": pos_tags,
         "custom_stopwords": sorted(custom_stopwords),

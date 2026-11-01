@@ -445,6 +445,9 @@ def export_zip(results: dict[str, Any], params: dict[str, Any]) -> bytes:
             "perplexity": results["model_info"].get("perplexity"),
             "log_likelihood": results["model_info"].get("log_likelihood"),
             "converged": results["model_info"].get("converged"),
+            "method": results["model_info"].get("method"),
+            "iterations_used": results["model_info"].get("iterations_used"),
+            "hyperparameters": results["model_info"].get("hyperparameters"),
         }
         zf.writestr("metrics.json", _to_json(metrics))
 
@@ -660,7 +663,7 @@ def get_environment_info(params: dict[str, Any]) -> dict[str, Any]:
     }
 
     # Package versions — best effort.
-    for pkg in ("scikit-learn", "spacy", "gensim", "pdfplumber", "reportlab"):
+    for pkg in ("scikit-learn", "tomotopy", "spacy", "gensim", "pdfplumber", "reportlab"):
         try:
             from importlib.metadata import version
 

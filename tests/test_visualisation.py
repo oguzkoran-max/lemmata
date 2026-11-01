@@ -18,11 +18,13 @@ from lemmata.visualisation import (
     create_heatmap,
     create_top_lemmas_chart,
     create_topic_bars,
+    create_topic_map,
     create_wordcloud,
     get_coherence_display,
     get_topic_color,
     get_topic_color_scale,
 )
+from lemmata.visualisation import _topic_map_fallback
 
 
 # ── get_topic_color ───────────────────────────────────────────────────────────
@@ -243,3 +245,32 @@ class TestCreateCoherenceSweepChart:
             [2, 3, 4], [0.4, 0.5, 0.35],
         )
         assert isinstance(fig, Figure)
+
+
+# ── create_topic_map (P045) ───────────────────────────────────────────────────
+
+
+class TestCreateTopicMap:
+    """pyLDAvis map for both methods; topics in display order."""
+
+    @pytest.mark.parametrize("method", ["gibbs", "variational"])
+    def test_pyldavis_html_for_both_methods(self, processed_texts, method):
+        pytest.importorskip("pyLDAvis")
+        from lemmata.modelling import build_dtm, run_lda
+
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        model, _, _, info = run_lda(dtm, vec, n_topics=2, method=method)
+        result = create_topic_map(
+            model, dtm, vec, topic_order=info["prevalence_order"],
+        )
+        # Before v0.3.0 the map always fell back to the PCA chart.
+        assert isinstance(result, str)
+        assert "ldavis" in result.lower()
+
+    def test_fallback_follows_display_order(self):
+        components = np.array([[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]])
+        doc_topic = np.array([[0.1, 0.7, 0.2], [0.1, 0.5, 0.4]])
+        order = list(np.argsort(doc_topic.mean(axis=0))[::-1])
+        chart = _topic_map_fallback(components[order], doc_topic[:, order])
+        prevalence = list(chart.data["Prevalence"])
+        assert prevalence == sorted(prevalence, reverse=True)

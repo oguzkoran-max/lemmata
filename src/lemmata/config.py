@@ -8,7 +8,7 @@ from __future__ import annotations
 
 # ── Application ────────────────────────────────────────────────────────────────
 
-APP_VERSION: str = "0.1.0"
+APP_VERSION: str = "0.3.0"
 APP_TITLE: str = "Lemmata — Multilingual Topic Modeling"
 APP_PAGE_ICON: str = "📊"
 
@@ -32,10 +32,13 @@ CHUNK_SIZE_MAX: int = 3000
 CHUNK_SIZE_DEFAULT: int = 1000
 
 # ── Topic Modeling ────────────────────────────────────────────────────────────
-# scikit-learn LDA, learning_method='batch', deterministic (decision 12-13).
+# Two inference methods, both deterministic for a given seed (P045).
+# "gibbs" (default): collapsed Gibbs sampling via tomotopy, as in MALLET.
+# "variational": scikit-learn batch variational Bayes, the only method
+# before v0.3.0; kept so earlier results can be reproduced.
 
 NUM_TOPICS_MIN: int = 2
-NUM_TOPICS_MAX: int = 15
+NUM_TOPICS_MAX: int = 30
 NUM_TOPICS_DEFAULT: int = 5
 
 WORDS_PER_TOPIC_MIN: int = 5
@@ -43,8 +46,40 @@ WORDS_PER_TOPIC_MAX: int = 30
 WORDS_PER_TOPIC_DEFAULT: int = 10
 
 RANDOM_SEED: int = 42
+
+LDA_METHODS: dict[str, str] = {
+    "gibbs": "Gibbs sampling (MALLET-style)",
+    "variational": "Variational Bayes (fast, scikit-learn)",
+}
+LDA_METHOD_DEFAULT: str = "gibbs"
+
+# Variational: perplexity is checked every LDA_EVALUATE_EVERY iterations and
+# fitting stops once it improves by less than LDA_PERP_TOL (scikit-learn's
+# own criterion). Without the check the model always ran to max_iter.
 LDA_LEARNING_METHOD: str = "batch"
 LDA_MAX_ITER: int = 50
+LDA_MAX_ITER_MIN: int = 10
+LDA_MAX_ITER_MAX: int = 500
+LDA_EVALUATE_EVERY: int = 10
+LDA_PERP_TOL: float = 0.1
+
+# Gibbs: defaults are MALLET 2.0.8's (alpha sum 5, beta 0.01, 1000
+# iterations, burn-in 200) with hyperparameter optimisation every 10
+# iterations, as in little-mallet-wrapper. They were fixed before any
+# validation run (P045). One worker keeps runs reproducible.
+GIBBS_ALPHA_SUM: float = 5.0
+GIBBS_BETA: float = 0.01
+GIBBS_ITERATIONS: int = 1000
+GIBBS_ITERATIONS_MIN: int = 100
+GIBBS_ITERATIONS_MAX: int = 5000
+GIBBS_BURN_IN: int = 200
+GIBBS_OPTIMIZE_INTERVAL: int = 10
+GIBBS_CHECK_EVERY: int = 10
+# Converged when the mean log-likelihood per word of the last
+# GIBBS_CONVERGENCE_WINDOW checks differs from the window before by less
+# than GIBBS_CONVERGENCE_TOL (relative).
+GIBBS_CONVERGENCE_WINDOW: int = 5
+GIBBS_CONVERGENCE_TOL: float = 0.001
 
 # ── POS Filtering ─────────────────────────────────────────────────────────────
 # Hakan-approved defaults (decision 12, 95).

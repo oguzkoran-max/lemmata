@@ -42,7 +42,7 @@ class TestConstants:
 
     def test_app_version_is_string(self):
         assert isinstance(APP_VERSION, str)
-        assert APP_VERSION == "0.1.0"
+        assert APP_VERSION == "0.3.0"
 
     def test_supported_languages(self):
         assert isinstance(SUPPORTED_LANGUAGES, dict)
@@ -68,7 +68,7 @@ class TestConstants:
     def test_topic_count_range(self):
         assert NUM_TOPICS_MIN < NUM_TOPICS_DEFAULT < NUM_TOPICS_MAX
         assert NUM_TOPICS_MIN == 2
-        assert NUM_TOPICS_MAX == 15
+        assert NUM_TOPICS_MAX == 30  # raised from 15 in v0.3.0 (P045)
 
     def test_words_per_topic_range(self):
         assert WORDS_PER_TOPIC_MIN < WORDS_PER_TOPIC_DEFAULT < WORDS_PER_TOPIC_MAX
