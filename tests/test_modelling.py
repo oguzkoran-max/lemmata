@@ -19,7 +19,7 @@ from lemmata.config import (
 )
 from lemmata.modelling import (
     GibbsLDA,
-    _gibbs_converged,
+    _ll_change,
     build_dtm,
     compute_coherence,
     run_lda,
@@ -328,24 +328,39 @@ class TestConvergence:
         ).fit(dtm)
         np.testing.assert_allclose(model.components_, old.components_)
 
-    def test_gibbs_converged_model_does_not_warn(self, themed_texts):
+    def test_gibbs_reports_change_instead_of_verdict(self, themed_texts):
+        # Gibbs runs get no converged/not-converged verdict and no warning;
+        # the change over the second half of the run is reported instead.
         dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
         _, _, _, info = run_lda(dtm, vec, n_topics=4)
-        assert info["converged"] is True
+        assert info["converged"] is None
         assert info["convergence_warning"] == ""
+        pct, first, last = info["ll_change_second_half"]
+        assert isinstance(pct, float)
+        assert (first, last) == (510, GIBBS_ITERATIONS)
 
-    def test_gibbs_short_run_warns(self, themed_texts):
+    def test_gibbs_short_run_reports_its_own_second_half(self, themed_texts):
         dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
         _, _, _, info = run_lda(dtm, vec, n_topics=4, max_iter=100)
-        assert info["converged"] is False
-        assert "still changing" in info["convergence_warning"]
+        _, first, last = info["ll_change_second_half"]
+        assert (first, last) == (60, 100)
 
-    def test_gibbs_criterion(self):
-        flat = [-2.2] * 10
-        rising = [-3.0 + 0.05 * i for i in range(10)]
-        assert _gibbs_converged(flat) is True
-        assert _gibbs_converged(rising) is False
-        assert _gibbs_converged(flat[:9]) is False  # too short to judge
+    def test_variational_has_no_ll_change(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        _, _, _, info = run_lda(dtm, vec, n_topics=4, method="variational")
+        assert info["ll_change_second_half"] is None
+
+    def test_ll_change(self):
+        iters = [10 * (i + 1) for i in range(10)]
+        flat = [-2.0] * 10
+        rising = [-3.0 + 0.01 * i for i in range(10)]
+        pct, first, last = _ll_change(flat, iters)
+        assert pct == pytest.approx(0.0, abs=1e-9)
+        assert (first, last) == (60, 100)
+        pct, _, _ = _ll_change(rising, iters)
+        # Second half -2.95 ... -2.91: change 0.04 on a mean of 2.93.
+        assert pct == pytest.approx(0.04 / 2.93 * 100)
+        assert _ll_change(flat[:4], iters[:4]) is None  # 2 values in the half
 
 
 # ── compute_coherence ─────────────────────────────────────────────────────────

@@ -74,12 +74,12 @@ GIBBS_ITERATIONS_MIN: int = 100
 GIBBS_ITERATIONS_MAX: int = 5000
 GIBBS_BURN_IN: int = 200
 GIBBS_OPTIMIZE_INTERVAL: int = 10
+# Log-likelihood per word is recorded every GIBBS_CHECK_EVERY iterations.
+# Gibbs runs get no converged/not-converged verdict: with MALLET's defaults
+# the log-likelihood still rises slowly at 1000 iterations, so any fixed
+# threshold either warns on nearly every run or misses the rise. The app
+# reports how much it changed in the second half of the run instead.
 GIBBS_CHECK_EVERY: int = 10
-# Converged when the mean log-likelihood per word of the last
-# GIBBS_CONVERGENCE_WINDOW checks differs from the window before by less
-# than GIBBS_CONVERGENCE_TOL (relative).
-GIBBS_CONVERGENCE_WINDOW: int = 5
-GIBBS_CONVERGENCE_TOL: float = 0.001
 
 # ── POS Filtering ─────────────────────────────────────────────────────────────
 # Defaults (decisions 12, 95): chosen by the developer on the advice of a

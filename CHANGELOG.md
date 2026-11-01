@@ -22,6 +22,13 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   remains available to reproduce earlier results.
 - Method, iterations used and priors in the results caption,
   `metrics.json` and the environment report (with the tomotopy version).
+- Gibbs runs report how much the log-likelihood per word changed in the
+  second half of the run (a straight-line fit over the values recorded
+  every 10 iterations), in the results and in `metrics.json`. They get no
+  converged/not-converged verdict: with MALLET's defaults the
+  log-likelihood still rises slowly at 1000 iterations (0.3–1.2% over
+  iterations 500–1000 in 31 of 32 runs of the validation study), so a
+  fixed threshold would either warn on nearly every run or miss the rise.
 
 ### Changed
 - Topic count upper limit raised from 15 to 30.
@@ -49,6 +56,11 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
 - The app's GitHub links (About, bug report, footer, sample data) pointed
   to a repository address that does not exist; they now point to
   github.com/oguzkoran-max/lemmata.
+- "How to cite" in the app cited an article in *Digital Scholarship in
+  the Humanities* that has not been published, with the authors in the
+  wrong order. It now cites the software (Zenodo DOI), as README and
+  CITATION.cff do. The About text and `pyproject.toml` list the authors
+  as Koran, Yücesan, Cangır.
 
 ### Known issues
 - pyLDAvis passes a scikit-learn MDS parameter scheduled for removal in

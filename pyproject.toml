@@ -11,8 +11,8 @@ license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
     {name = "Oğuz Koran", email = "oguz.koran@ankara.edu.tr"},
-    {name = "Hakan Cangır", email = "hcangir@ankara.edu.tr"},
     {name = "Barış Yücesan", email = "byucesan@ankara.edu.tr"},
+    {name = "Hakan Cangır", email = "hcangir@ankara.edu.tr"},
 ]
 keywords = [
     "topic-modeling",

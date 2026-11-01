@@ -293,8 +293,9 @@ def _render_sidebar() -> dict[str, Any]:
                     step=100,
                     key="iterations_gibbs",
                     help="Number of Gibbs sampling iterations (MALLET "
-                         "default: 1000). Increase if the convergence "
-                         "warning appears.",
+                         "default: 1000). Increase if the results report "
+                         "that the model was still changing noticeably "
+                         "in the second half of the run.",
                 )
             else:
                 max_iter = st.number_input(
@@ -366,7 +367,7 @@ def _render_sidebar() -> dict[str, Any]:
                 "**Lemmata** is a browser-based, multilingual LDA topic "
                 "modeling platform for humanities researchers.\n\n"
                 "Built with spaCy, tomotopy, scikit-learn, Gensim, and Streamlit.\n\n"
-                "**Authors:** Oğuz Koran, Hakan Cangır, Barış Yücesan\n\n"
+                "**Authors:** Oğuz Koran, Barış Yücesan, Hakan Cangır\n\n"
                 "[Source code](https://github.com/oguzkoran-max/lemmata)"
             )
             st.caption(
@@ -377,21 +378,25 @@ def _render_sidebar() -> dict[str, Any]:
 
         # ── How to cite (decision 24) ────────────────────────────────────
         with st.expander("How to cite"):
+            # Cites the software (as README and CITATION.cff do); no article
+            # on Lemmata has been published yet.
             st.code(
-                "Koran, O., Cangır, H., & Yücesan, B. (2026). "
-                "Lemmata: A Browser-Based Multilingual Topic Modeling "
-                "Platform for Humanities Research. "
-                "Digital Scholarship in the Humanities.",
+                "Koran, O., Yücesan, B., & Cangır, H. (2026). "
+                "Lemmata: A Multilingual LDA Topic Modeling Platform for "
+                f"Digital Humanities (Version {APP_VERSION}) [Computer software]. "
+                "https://doi.org/10.5281/zenodo.19391730",
                 language=None,
             )
             st.code(
-                "@article{koran2026lemmata,\n"
-                "  title={Lemmata: A Browser-Based Multilingual Topic "
-                "Modeling Platform for Humanities Research},\n"
-                "  author={Koran, O{\\u{g}}uz and Cang{\\i}r, Hakan "
-                "and Y{\\\"u}cesan, Bar{\\i}{\\c{s}}},\n"
-                "  journal={Digital Scholarship in the Humanities},\n"
-                "  year={2026}\n"
+                "@software{koran_lemmata_2026,\n"
+                "  author={Koran, O{\\u{g}}uz and Y{\\\"u}cesan, "
+                "Bar{\\i}{\\c{s}} and Cang{\\i}r, Hakan},\n"
+                "  title={Lemmata: A Multilingual LDA Topic Modeling "
+                "Platform for Digital Humanities},\n"
+                f"  version={{{APP_VERSION}}},\n"
+                "  year={2026},\n"
+                "  doi={10.5281/zenodo.19391730},\n"
+                "  url={https://lemmata.app}\n"
                 "}",
                 language="bibtex",
             )
@@ -837,6 +842,14 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
         f"{model_info['iterations_used']} iterations, "
         f"seed {model_info['random_seed']}."
     )
+    ll_change = model_info.get("ll_change_second_half")
+    if ll_change:
+        pct, first, last = ll_change
+        st.caption(
+            f"How settled is the model? Between iterations {first} and "
+            f"{last}, its fit to the texts (log-likelihood per word) changed "
+            f"by {pct:+.2f}%. The closer to 0, the more settled the model."
+        )
 
     # DTM transparency (decision 103).
     with st.container(border=True):

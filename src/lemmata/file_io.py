@@ -445,6 +445,7 @@ def export_zip(results: dict[str, Any], params: dict[str, Any]) -> bytes:
             "perplexity": results["model_info"].get("perplexity"),
             "log_likelihood": results["model_info"].get("log_likelihood"),
             "converged": results["model_info"].get("converged"),
+            "ll_change_second_half": results["model_info"].get("ll_change_second_half"),
             "method": results["model_info"].get("method"),
             "iterations_used": results["model_info"].get("iterations_used"),
             "hyperparameters": results["model_info"].get("hyperparameters"),

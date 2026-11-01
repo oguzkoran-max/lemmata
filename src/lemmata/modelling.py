@@ -22,8 +22,6 @@ from lemmata.config import (
     GIBBS_BETA,
     GIBBS_BURN_IN,
     GIBBS_CHECK_EVERY,
-    GIBBS_CONVERGENCE_TOL,
-    GIBBS_CONVERGENCE_WINDOW,
     GIBBS_ITERATIONS,
     GIBBS_OPTIMIZE_INTERVAL,
     LDA_EVALUATE_EVERY,
@@ -141,7 +139,7 @@ class GibbsLDA:
         Iterations between hyperparameter optimisations (0 disables it).
         tomotopy optimises the document-topic prior only.
     check_every:
-        Iterations between log-likelihood records (for convergence).
+        Iterations between log-likelihood records (for the change report).
     """
 
     def __init__(
@@ -168,6 +166,7 @@ class GibbsLDA:
         self.alpha_: np.ndarray | None = None
         self.n_iter_: int = 0
         self.ll_trace_: list[float] = []
+        self.ll_iters_: list[int] = []
         self._mdl: Any = None
         self._doc_topic: np.ndarray | None = None
         self._train_signature: tuple[tuple[int, int], int] | None = None
@@ -201,11 +200,12 @@ class GibbsLDA:
         if not rows_in_model:
             raise ValueError("All documents are empty after filtering; nothing to model.")
 
-        self.ll_trace_ = []
+        self.ll_trace_, self.ll_iters_ = [], []
         while mdl.global_step < self.max_iter:
             step = min(self.check_every, self.max_iter - mdl.global_step)
             mdl.train(step, workers=1, parallel=tp.ParallelScheme.NONE)
             self.ll_trace_.append(float(mdl.ll_per_word))
+            self.ll_iters_.append(int(mdl.global_step))
         self.n_iter_ = int(mdl.global_step)
         self.alpha_ = np.asarray(mdl.alpha, dtype=float)
 
@@ -302,31 +302,34 @@ def _fit_model(
     raise ValueError(f"Unknown LDA method {method!r}; use one of {sorted(LDA_METHODS)}.")
 
 
-def _gibbs_converged(
-    ll_trace: list[float],
-    window: int = GIBBS_CONVERGENCE_WINDOW,
-    tol: float = GIBBS_CONVERGENCE_TOL,
-) -> bool:
-    """True if mean log-likelihood per word has stopped changing."""
-    if len(ll_trace) < 2 * window:
-        return False
-    recent = float(np.mean(ll_trace[-window:]))
-    before = float(np.mean(ll_trace[-2 * window:-window]))
-    return abs(recent - before) <= tol * abs(before)
+def _ll_change(
+    ll_trace: list[float], ll_iters: list[int]
+) -> tuple[float, int, int] | None:
+    """Change in log-likelihood per word over the second half of a run.
+
+    A straight line is fitted to all recorded values in the second half, so
+    the result depends less on the sampler's fluctuation than a comparison
+    of two single values would (it still reflects some of it). Returns the
+    change as a percentage of the mean value (positive = the model fits the
+    texts better) and the first and last iteration of that half, or *None*
+    if too few values were recorded.
+    """
+    half = np.asarray(ll_trace[len(ll_trace) // 2:], dtype=float)
+    if len(half) < 3:
+        return None
+    x = np.arange(len(half))
+    slope = np.polyfit(x, half, 1)[0]
+    pct = float(slope * (len(half) - 1) / abs(half.mean()) * 100)
+    return pct, ll_iters[len(ll_iters) // 2], ll_iters[-1]
 
 
-def _check_convergence(model: Any, method: str, max_iter: int) -> tuple[bool, str]:
-    """Return (converged, warning text) for decision 124, per method."""
+def _check_convergence(model: Any, method: str, max_iter: int) -> tuple[bool | None, str]:
+    """Return (converged, warning text) for decision 124, per method.
+
+    Gibbs runs get no verdict (None); see ``config.GIBBS_CHECK_EVERY``.
+    """
     if method == "gibbs":
-        if _gibbs_converged(model.ll_trace_):
-            return True, ""
-        span = 2 * GIBBS_CONVERGENCE_WINDOW * GIBBS_CHECK_EVERY
-        return False, (
-            f"Log-likelihood was still changing after {max_iter} Gibbs "
-            f"iterations (by more than {GIBBS_CONVERGENCE_TOL:.1%} over the "
-            f"last {span} iterations). Consider increasing iterations in "
-            "Advanced settings."
-        )
+        return None, ""
     if model.n_iter_ < max_iter:
         return True, ""
     return False, (
@@ -442,6 +445,8 @@ def run_lda(
     # ── Dominant topic per document (decision 114) ────────────────────────
     dominant_topics = np.argmax(doc_topic, axis=1) + 1  # 1-indexed
 
+    ll_change = _ll_change(model.ll_trace_, model.ll_iters_) if method == "gibbs" else None
+
     model_info: dict[str, Any] = {
         "method": method,
         "n_topics": n_topics,
@@ -451,6 +456,8 @@ def run_lda(
         "iterations_used": _iterations_run(model, method, max_iter),
         "converged": converged,
         "convergence_warning": convergence_warning,
+        # Gibbs only: (% change, from iteration, to iteration), see _ll_change.
+        "ll_change_second_half": ll_change,
         "perplexity": float(perplexity),
         "log_likelihood": float(log_likelihood),
         "hyperparameters": _hyperparameters(model, method),
