@@ -50,6 +50,12 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   source. Both thresholds are set as percentages under Advanced; the
   "Auto-adjust by corpus size" checkbox is gone, since shares of the
   documents already follow the corpus size.
+- The Language help text says what spaCy's reported lemma accuracy
+  (97.15% for Italian) was measured on, and gives the authors'
+  measurement on older literary Italian: about 87% of nouns, proper
+  nouns and adjectives received the correct lemma in Manzoni's *I
+  promessi sposi* (1840) and about 76% in Dante's *Commedia* (UD gold
+  standards, CoNLL 2018 evaluation script) (P047).
 - Default number of topics raised from 5 to 10, the default of MALLET and
   scikit-learn (P046). The help text says that no number is right for
   every corpus.
@@ -98,7 +104,8 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
 - tomotopy 0.14.0 raises `IndexError` when indexing `model.docs` beyond
   the first document; Lemmata iterates instead.
 - Lemmatisation still uses modern-language spaCy models; historical
-  forms may receive wrong lemmas.
+  forms may receive wrong lemmas (see the Language help text for the
+  measured accuracy on older Italian).
 
 ## [0.1.0] — 2026-04-02
 

@@ -196,7 +196,19 @@ def _render_sidebar() -> dict[str, Any]:
             "Language",
             options=lang_options,
             format_func=lambda x: f"{lang_labels.get(x, x)} ({x})",
-            help="Select the language of your corpus.",
+            # Accuracy figures: spaCy's model record (it_core_news_sm 3.8.0)
+            # and the authors' measurement on UD gold standards (P047).
+            help="Choose the language of your texts. Lemmata uses spaCy's "
+                 "small model for that language to find lemmas, parts of "
+                 "speech and stopwords. For Italian, spaCy reports 97.15% "
+                 "lemma accuracy on mostly legal, news and Wikipedia "
+                 "texts. On older literary Italian it is lower: in the "
+                 "Lemmata team's measurement (2026), about 87% of the "
+                 "nouns, proper nouns and adjectives in Manzoni's I "
+                 "promessi sposi (1840) and about 76% in Dante's Commedia "
+                 "received the correct lemma. Archaic forms (such as sanza, "
+                 "avea, loco) can keep their own form, so check the topic "
+                 "words of older texts.",
         )
 
         st.divider()
