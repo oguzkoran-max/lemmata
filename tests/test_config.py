@@ -62,7 +62,8 @@ class TestConstants:
         assert isinstance(CHUNK_SIZE_MAX, int)
         assert isinstance(CHUNK_SIZE_DEFAULT, int)
         assert CHUNK_SIZE_MIN < CHUNK_SIZE_DEFAULT < CHUNK_SIZE_MAX
-        assert CHUNK_SIZE_MIN == 300
+        # 200 since P048: the document length of Cooper et al. (2021).
+        assert CHUNK_SIZE_MIN == 200
         assert CHUNK_SIZE_MAX == 3000
         assert CHUNK_SIZE_DEFAULT == 1000
 

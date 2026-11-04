@@ -47,5 +47,6 @@
 | P045 | Gibbs sampling default, convergence indicator and stopword count fixes | 1 Nov 2026 | 185 |
 | P046 | Default of 10 topics; topic stability check; no optimal-k or coherence bands | 2 Nov 2026 | 192 |
 | P047 | Vocabulary pruning at 0.5% and 99% of documents; report of removed terms | 3 Nov 2026 | 195 |
+| P048 | Sourced help texts; chunk-size minimum of 200 words; C_v on every word shown | 4 Nov 2026 | 196 |
 
 P043 and P044 (4 July 2026) have commits but no prompt log files.

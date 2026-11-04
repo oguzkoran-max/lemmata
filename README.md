@@ -46,7 +46,7 @@ No installation required. Open the platform in your browser:
 | **POS filtering** | Presets (content words, content + verbs, all open classes) or custom selection |
 | **Custom stopwords** | Add domain-specific stopwords on top of the built-in lists |
 | **Vocabulary pruning** | Removes words in fewer than 0.5% or more than 99% of the documents (the standard reported by Maier et al. 2020), shows what was removed, and lets you change both thresholds |
-| **Coherence scoring** | C_v coherence (Röder et al. 2015) with an explanation of what it measures; no quality bands, since the measure has no accepted cut-offs |
+| **Coherence scoring** | C_v coherence (Röder et al. 2015) with an explanation of what it measures; no quality bands, since the earlier cut-offs had no source |
 | **Interactive charts** | Altair-based interactive visualizations with hover details |
 | **Topic Map** | pyLDAvis visualization with graceful fallback |
 | **Preprocessing trace** | Token-level table showing every step (original, lemma, kept/removed, reason) |

@@ -65,9 +65,15 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   because automated coherence does not reliably agree with human
   judgements (Hoyle et al. 2021; Chang et al. 2009) (P046).
 - The coherence box no longer labels C_v as Good, Moderate or Low (cut-offs
-  0.5 and 0.3, decision 41). The cut-offs had no source and the measure's
-  authors give none; the box now explains what C_v measures (P046).
+  0.5 and 0.3, decision 41). The cut-offs had no source; the box now
+  explains what C_v measures (P046, wording P048).
 - Topic count upper limit raised from 15 to 30.
+- Chunk size minimum lowered from 300 to 200 words, so that a single file
+  can be split into documents of the length Cooper et al. (2021) used for
+  the Decameron (P048). Chunks still end at sentence boundaries.
+- Help texts for chunk size, words per topic, part-of-speech filter,
+  custom stopwords and random seed now say what each setting does and on
+  what the default rests, with sources (P048).
 - Variational method: perplexity is checked every 10 iterations and
   fitting stops once it improves by less than 0.1 (scikit-learn's own
   criterion). A fit that reaches the iteration limit is identical to
@@ -76,6 +82,9 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (by prevalence).
 
 ### Fixed
+- C_v was computed on at most 20 words per topic (gensim's default) even
+  when more were shown, and the coherence sweep always used 10 words. Both
+  now use every word shown (P048).
 - The convergence warning appeared on every run, converged or not: it
   only tested whether the iteration limit had been reached.
 - The preprocessing summary subtracted tokens on both stopword lists

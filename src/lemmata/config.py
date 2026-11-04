@@ -26,8 +26,10 @@ SUPPORTED_LANGUAGES: dict[str, str] = {
 
 # ── Chunking ──────────────────────────────────────────────────────────────────
 # Word-count target; sentence boundaries respected (decision 32).
+# The minimum was 300 (decision 11). It is 200 since P048 so that the
+# 200-word documents of Cooper et al. (2021, Decameron) can be chosen.
 
-CHUNK_SIZE_MIN: int = 300
+CHUNK_SIZE_MIN: int = 200
 CHUNK_SIZE_MAX: int = 3000
 CHUNK_SIZE_DEFAULT: int = 1000
 

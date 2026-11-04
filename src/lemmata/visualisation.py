@@ -588,17 +588,16 @@ def create_top_lemmas_chart(
 
 
 # Decision 41 coloured C_v in green / yellow / red bands labelled Good,
-# Moderate and Low (cut-offs 0.5 and 0.3). The cut-offs had no source and
-# Röder et al. (2015), who defined C_v, give none, so the bands were removed
-# in P046 at the authors' decision. The score is shown with COHERENCE_NOTE.
+# Moderate and Low (cut-offs 0.5 and 0.3). The cut-offs had no source, so
+# the bands were removed in P046 at the authors' decision. The score is
+# shown with COHERENCE_NOTE (wording approved in P048).
 
 COHERENCE_NOTE: str = (
     "C_v measures how often each topic's top words occur near one another in "
-    "your own texts (within a 110-word window). Röder et al. (2015), who "
-    "defined it, found that it agreed best with human ratings of topics among "
-    "the measures they tested; they give no cut-off for a good or a weak score. "
-    "Automated coherence does not reliably agree with human judgements (Hoyle "
-    "et al. 2021), so read the topics as well."
+    "your own texts (within a 110-word window). Röder et al. (2015) proposed "
+    "it after testing many coherence measures against human ratings of "
+    "topics. Automated coherence does not reliably agree with human "
+    "judgements (Hoyle et al. 2021), so read the topics as well."
 )
 
 

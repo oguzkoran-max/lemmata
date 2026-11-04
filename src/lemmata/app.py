@@ -222,11 +222,14 @@ def _render_sidebar() -> dict[str, Any]:
             max_value=CHUNK_SIZE_MAX,
             value=CHUNK_SIZE_DEFAULT,
             step=100,
-            help="Target word count per chunk when processing a single file. "
-                 "Sentence boundaries are respected. "
-                 "Smaller (300-500): more documents, finer analysis, noisier topics. "
-                 "Larger (1500-3000): fewer documents, more stable topics, less detail. "
-                 "Default (1000) works well for most texts.",
+            help="When you upload a single file, Lemmata splits it into "
+                 "parts of about this many words, ending at sentence "
+                 "boundaries; each part is one document for the model. The "
+                 "default, about 1,000 words, is the segment length Schöch "
+                 "(2017) used for plays; Cooper et al. (2021) used 200-word "
+                 "documents for the Decameron. Report the length with your "
+                 "results (Giménez Celano and Gillings 2026), and use the "
+                 "same length when you compare with a published study.",
         )
 
         n_topics = st.slider(
@@ -245,7 +248,8 @@ def _render_sidebar() -> dict[str, Any]:
             min_value=WORDS_PER_TOPIC_MIN,
             max_value=WORDS_PER_TOPIC_MAX,
             value=WORDS_PER_TOPIC_DEFAULT,
-            help="Number of top words to display for each topic.",
+            help="Number of top words shown for each topic. The coherence "
+                 "score (C_v) is computed from the same words.",
         )
 
         st.divider()
@@ -256,7 +260,12 @@ def _render_sidebar() -> dict[str, Any]:
         preset_name = st.selectbox(
             "Preset",
             options=list(POS_PRESETS.keys()),
-            help="Select a part-of-speech filter preset, or choose 'Custom'.",
+            help="Which word classes are kept. The default keeps nouns, "
+                 "proper nouns and adjectives, on the advice of a corpus "
+                 "linguist; Schöch (2017), for example, also kept verbs. "
+                 "Choose 'Custom' for any combination. This is a "
+                 "methodological choice: report it with your results "
+                 "(Giménez Celano and Gillings 2026).",
         )
 
         if preset_name == "Custom":
@@ -278,8 +287,15 @@ def _render_sidebar() -> dict[str, Any]:
             "Custom stopwords",
             value="",
             height=68,
-            help="One word per line. These will be removed in addition to "
-                 "the built-in stopwords.",
+            help="One word per line. Words to remove in addition to spaCy's "
+                 "built-in list (624 words for Italian). spaCy gives no "
+                 "source or period for its list. For older texts, check the "
+                 "most frequent words: of the 296 words Cooper et al. "
+                 "(2021) removed from the Decameron, 143 are not in spaCy's "
+                 "Italian list (mostly character names, but also older "
+                 "forms such as avea, poscia and quivi). Removing too many "
+                 "words can bias the model towards what you consider "
+                 "important (Schofield et al. 2017).",
         )
         custom_stopwords: set[str] = set()
         if custom_sw_text.strip():
@@ -307,7 +323,12 @@ def _render_sidebar() -> dict[str, Any]:
                 value=RANDOM_SEED,
                 min_value=0,
                 step=1,
-                help="Set a seed for reproducible results (decision 121).",
+                help="Fixes the random starting point, so the same texts and "
+                     "settings give the same result; record it with your "
+                     "results (Sandve et al. 2013). Another seed can give "
+                     "somewhat different topics (Giménez Celano and Gillings "
+                     "2026); use 'Check topic stability' to see how much your "
+                     "results depend on it.",
             )
             if method == "gibbs":
                 max_iter = st.number_input(
@@ -977,6 +998,7 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
                 dtm=results["dtm"],
                 vectorizer=results["vectorizer"],
                 topic_range=topic_range,
+                n_words=results["params"]["n_words"],
                 random_seed=results["params"]["seed"],
                 max_iter=results["params"]["max_iter"],
                 progress_callback=_sweep_progress,
@@ -1013,8 +1035,9 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
             f"counts, for each topic, the runs (this one included) in which a topic "
             f"sharing at least {STABILITY_DISPLAY_N} of its top {STABILITY_TOP_WORDS} "
             "words appears. The measure follows Agrawal, Fu and Menzies (2018). "
-            "Topics that recur across runs deserve more interpretive weight than "
-            "topics that do not (Giménez Celano 2026)."
+            "Giménez Celano and Gillings (2026) recommend running a model "
+            "several times and giving more interpretive weight to what stays "
+            "stable across runs."
         )
         if st.button("Run Stability Check"):
             progress_bar = st.progress(0, text="Starting stability check...")

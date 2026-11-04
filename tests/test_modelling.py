@@ -460,6 +460,25 @@ class TestComputeCoherence:
         assert "per_topic" in result
         assert len(result["per_topic"]) == 2
 
+    def test_uses_every_word_shown(self, processed_texts, monkeypatch):
+        # gensim keeps only 20 words per topic unless told otherwise (P048).
+        import lemmata.modelling as modelling
+
+        seen = []
+        real = modelling.CoherenceModel
+
+        def spy(*args, **kwargs):
+            cm = real(*args, **kwargs)
+            seen.append(len(cm.topics[0]))
+            return cm
+
+        monkeypatch.setattr(modelling, "CoherenceModel", spy)
+        dtm, vec, _ = build_dtm(processed_texts, min_df=1, max_df=1.0)
+        _, _, topics, _ = run_lda(dtm, vec, n_topics=2, n_words=25)
+        compute_coherence(topics, processed_texts)
+        sweep_coherence(processed_texts, dtm, vec, topic_range=(2, 2), n_words=25)
+        assert seen == [25, 25]
+
 
 # ── sweep_coherence ───────────────────────────────────────────────────────────
 

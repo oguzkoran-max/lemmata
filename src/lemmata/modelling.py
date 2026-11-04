@@ -522,11 +522,14 @@ def compute_coherence(
 
     topic_word_lists = [t["words"] for t in topics]
 
+    # gensim keeps only the first ``topn`` words of each topic (default 20);
+    # the score uses every word shown (P048).
     cm = CoherenceModel(
         topics=topic_word_lists,
         texts=tokenized,
         dictionary=dictionary,
         coherence="c_v",
+        topn=max(len(words) for words in topic_word_lists),
     )
     c_v = cm.get_coherence()
     per_topic = cm.get_coherence_per_topic()
@@ -642,12 +645,13 @@ def sweep_coherence(
             words = [str(feature_names[idx]) for idx in top_indices]
             topic_word_lists.append(words)
 
-        # Compute C_v coherence.
+        # Compute C_v coherence on all n_words words (see compute_coherence).
         cm = CoherenceModel(
             topics=topic_word_lists,
             texts=tokenized,
             dictionary=dictionary,
             coherence="c_v",
+            topn=n_words,
         )
         coherence_scores.append(float(cm.get_coherence()))
 
