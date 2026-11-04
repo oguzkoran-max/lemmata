@@ -18,8 +18,10 @@ from lemmata.config import (
     LDA_LEARNING_METHOD,
     LDA_MAX_ITER,
     LOW_TOKEN_RATIO_THRESHOLD,
+    MAX_DF_DEFAULT,
     MAX_FILE_SIZE_MB,
     MAX_TOTAL_SIZE_MB,
+    MIN_DF_DEFAULT,
     MIN_UNIQUE_LEMMAS_WARNING,
     MODEL_SIZE,
     NGRAM_RANGE,
@@ -33,7 +35,6 @@ from lemmata.config import (
     WORDS_PER_TOPIC_DEFAULT,
     WORDS_PER_TOPIC_MAX,
     WORDS_PER_TOPIC_MIN,
-    get_df_auto,
 )
 
 
@@ -69,6 +70,13 @@ class TestConstants:
         assert NUM_TOPICS_MIN < NUM_TOPICS_DEFAULT < NUM_TOPICS_MAX
         assert NUM_TOPICS_MIN == 2
         assert NUM_TOPICS_MAX == 30  # raised from 15 in v0.3.0 (P045)
+
+    def test_topic_count_default_is_scikit_learns(self):
+        # P046: the default follows MALLET and scikit-learn, which both use 10.
+        from sklearn.decomposition import LatentDirichletAllocation
+
+        assert NUM_TOPICS_DEFAULT == 10
+        assert LatentDirichletAllocation().n_components == NUM_TOPICS_DEFAULT
 
     def test_words_per_topic_range(self):
         assert WORDS_PER_TOPIC_MIN < WORDS_PER_TOPIC_DEFAULT < WORDS_PER_TOPIC_MAX
@@ -136,42 +144,25 @@ class TestPosPresets:
             assert isinstance(tags, list), f"{name} should be a list"
 
 
-class TestGetDfAuto:
-    """Verify auto df threshold selection."""
+class TestPruningDefaults:
+    """Vocabulary pruning follows the standard in Maier et al. (2020) (P047)."""
 
-    def test_small_corpus(self):
-        min_df, max_df = get_df_auto(5)
-        assert min_df == 1
-        assert max_df == 0.95
+    def test_rare_word_share(self):
+        # Fewer than 0.5% of the documents.
+        assert MIN_DF_DEFAULT == 0.005
 
-    def test_medium_corpus(self):
-        min_df, max_df = get_df_auto(30)
-        assert min_df == 2
-        assert max_df == 0.90
+    def test_common_word_share(self):
+        # More than 99% of the documents.
+        assert MAX_DF_DEFAULT == 0.99
 
-    def test_large_corpus(self):
-        min_df, max_df = get_df_auto(200)
-        assert min_df == 5
-        assert max_df == 0.80
+    def test_both_are_proportions(self):
+        # Floats, so scikit-learn reads them as shares of the documents.
+        assert isinstance(MIN_DF_DEFAULT, float)
+        assert isinstance(MAX_DF_DEFAULT, float)
+        assert 0 < MIN_DF_DEFAULT < MAX_DF_DEFAULT < 1
 
-    def test_very_large_corpus(self):
-        min_df, max_df = get_df_auto(50_000)
-        assert min_df == 10
-        assert max_df == 0.75
+    def test_corpus_size_tiers_are_gone(self):
+        import lemmata.config as config
 
-    def test_returns_tuple(self):
-        result = get_df_auto(10)
-        assert isinstance(result, tuple)
-        assert len(result) == 2
-
-    def test_max_df_always_less_than_one(self):
-        for n in [1, 5, 10, 50, 100, 500, 10_000, 100_000]:
-            _, max_df = get_df_auto(n)
-            assert 0 < max_df <= 1.0
-
-    def test_boundary_values(self):
-        # Exactly at boundary should use that tier.
-        min_df_10, _ = get_df_auto(10)
-        min_df_11, _ = get_df_auto(11)
-        assert min_df_10 == 1
-        assert min_df_11 == 2
+        assert not hasattr(config, "DF_THRESHOLDS")
+        assert not hasattr(config, "get_df_auto")

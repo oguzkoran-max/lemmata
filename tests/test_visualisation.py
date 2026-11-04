@@ -20,7 +20,7 @@ from lemmata.visualisation import (
     create_topic_bars,
     create_topic_map,
     create_wordcloud,
-    get_coherence_display,
+    COHERENCE_NOTE,
     get_topic_color,
     get_topic_color_scale,
 )
@@ -183,43 +183,23 @@ class TestCreateTopLemmasChart:
         assert isinstance(chart, alt.Chart)
 
 
-# ── get_coherence_display ─────────────────────────────────────────────────────
+# ── coherence note (decision 41, bands removed in P046) ───────────────────────
 
 
-class TestGetCoherenceDisplay:
-    """Verify coherence colour coding (decision 41)."""
+class TestCoherenceNote:
+    """C_v is shown with its source and without quality bands."""
 
-    def test_returns_required_keys(self):
-        result = get_coherence_display(0.55)
-        required = {"color", "background", "label", "suggestion"}
-        assert required == set(result.keys())
+    def test_cites_the_measures_definition(self):
+        assert "Röder et al. (2015)" in COHERENCE_NOTE
 
-    def test_good_coherence(self):
-        result = get_coherence_display(0.65)
-        assert result["label"] == "Good"
-        assert "d4edda" in result["background"]  # green
+    def test_has_no_quality_labels(self):
+        for label in ("Good", "Moderate", "Low"):
+            assert label not in COHERENCE_NOTE
 
-    def test_moderate_coherence(self):
-        result = get_coherence_display(0.4)
-        assert result["label"] == "Moderate"
-        assert "fff3cd" in result["background"]  # yellow
+    def test_bands_function_is_gone(self):
+        import lemmata.visualisation as vis
 
-    def test_low_coherence(self):
-        result = get_coherence_display(0.2)
-        assert result["label"] == "Low"
-        assert "f8d7da" in result["background"]  # red
-
-    def test_boundary_05(self):
-        result = get_coherence_display(0.5)
-        assert result["label"] == "Good"
-
-    def test_boundary_03(self):
-        result = get_coherence_display(0.3)
-        assert result["label"] == "Moderate"
-
-    def test_zero(self):
-        result = get_coherence_display(0.0)
-        assert result["label"] == "Low"
+        assert not hasattr(vis, "get_coherence_display")
 
 
 # ── create_coherence_sweep_chart ─────────────────────────────────────────────

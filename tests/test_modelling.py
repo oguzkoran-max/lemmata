@@ -15,7 +15,11 @@ from lemmata.config import (
     GIBBS_OPTIMIZE_INTERVAL,
     LDA_EVALUATE_EVERY,
     LDA_MAX_ITER,
+    MAX_DF_DEFAULT,
+    MIN_DF_DEFAULT,
     RANDOM_SEED,
+    STABILITY_RUNS,
+    STABILITY_TOP_WORDS,
 )
 from lemmata.modelling import (
     GibbsLDA,
@@ -23,7 +27,9 @@ from lemmata.modelling import (
     build_dtm,
     compute_coherence,
     run_lda,
+    stability_scores,
     sweep_coherence,
+    topic_stability,
 )
 
 
@@ -66,6 +72,75 @@ class TestBuildDtm:
     def test_vocabulary_kept_le_total(self, processed_texts):
         _, _, info = build_dtm(processed_texts)
         assert info["vocabulary_kept"] <= info["vocabulary_total"]
+
+
+# ── vocabulary pruning (P047) ─────────────────────────────────────────────────
+
+
+def _pruning_corpus() -> list[str]:
+    """400 documents: 0.5% is 2 documents and 99% is 396."""
+    docs = []
+    for i in range(400):
+        words = ["ovunque", "base" if i % 2 == 0 else "altro"]
+        if i < 396:
+            words.append("quasi")
+        if i < 2:
+            words.append("bordo")
+        if i == 0:
+            words.append("raro")
+        docs.append(" ".join(words))
+    return docs
+
+
+class TestPruning:
+    """Rare and common terms are removed by share of documents (P047)."""
+
+    def test_defaults_are_the_standard_shares(self, processed_texts):
+        _, _, info = build_dtm(processed_texts)
+        assert info["min_df"] == MIN_DF_DEFAULT == 0.005
+        assert info["max_df"] == MAX_DF_DEFAULT == 0.99
+
+    def test_strictly_fewer_and_strictly_more(self):
+        # raro: 1 of 400 documents (< 0.5%) and ovunque: 400 of 400
+        # (> 99%) go; bordo (exactly 0.5%) and quasi (exactly 99%) stay.
+        _, vec, info = build_dtm(_pruning_corpus())
+        assert set(vec.get_feature_names_out()) == {"altro", "base", "bordo", "quasi"}
+        assert info["terms_removed_rare"] == 1
+        assert info["terms_removed_common"] == 1
+        assert info["rare_cutoff_docs"] == 1
+        assert info["common_cutoff_docs"] == 397
+
+    def test_shares_removed(self):
+        _, _, info = build_dtm(_pruning_corpus())
+        assert info["terms_removed_share"] == pytest.approx(2 / 6)
+        # 1199 word occurrences; raro once and ovunque 400 times.
+        assert info["tokens_total"] == 1199
+        assert info["tokens_removed"] == 401
+        assert info["tokens_removed_share"] == pytest.approx(401 / 1199)
+
+    def test_counts_add_up(self, processed_texts):
+        _, _, info = build_dtm(processed_texts)
+        assert (
+            info["terms_removed_rare"] + info["terms_removed_common"]
+            == info["terms_removed"]
+            == info["vocabulary_total"] - info["vocabulary_kept"]
+        )
+
+    def test_document_counts_and_emptied_documents(self):
+        # Integers are numbers of documents, as in scikit-learn.
+        _, vec, info = build_dtm(["aa bb", "aa cc", "dd"], min_df=2, max_df=1.0)
+        assert list(vec.get_feature_names_out()) == ["aa"]
+        assert info["terms_removed_rare"] == 3
+        assert info["rare_cutoff_docs"] == 1
+        assert info["common_cutoff_docs"] > info["n_docs"]
+        assert info["docs_emptied"] == 1
+
+    def test_small_corpus_keeps_rare_terms(self):
+        # 70 documents: 0.5% is 0.35 documents, so no term is rare.
+        docs = [f"comune parola{i}" for i in range(70)]
+        _, _, info = build_dtm(docs, max_df=1.0)
+        assert info["terms_removed_rare"] == 0
+        assert info["rare_cutoff_docs"] == 0
 
 
 # ── run_lda ───────────────────────────────────────────────────────────────────
@@ -438,3 +513,75 @@ class TestSweepCoherence:
         assert result["k_values"] == [2, 3, 4, 5]
         assert len(result["coherence_scores"]) == 4
         assert result["best_k"] in [2, 3, 4, 5]
+
+
+# ── topic stability (P046) ────────────────────────────────────────────────────
+
+
+def _words(start: int, n: int = 9) -> set[int]:
+    return set(range(start, start + n))
+
+
+class TestStabilityScores:
+    """The measure of Agrawal, Fu and Menzies (2018), checked on its own example."""
+
+    def test_worked_example(self):
+        # Four runs, four topics of nine words. As in the paper's example, at
+        # n = 5 the first run's topics recur in 2, 3, 1 and 4 of the 4 runs.
+        t0, t1, t2, t3 = _words(0), _words(100), _words(200), _words(300)
+        f1, f2, f3 = _words(900), _words(1000), _words(1100)
+        runs = [
+            [t0, t1, t2, t3],
+            [t0, t1, t3, f1],
+            [t1, t3, f1, f2],
+            [t3, f1, f2, f3],
+        ]
+        result = stability_scores(runs)
+        assert result["per_topic"][5] == [0.5, 0.75, 0.25, 1.0]
+        assert result["r_n"][5] == pytest.approx(0.625)
+
+    def test_partial_overlap_counts_up_to_shared_words(self):
+        reference = _words(0)
+        five_shared = set(range(5)) | _words(500, 4)
+        result = stability_scores([[reference], [five_shared]])
+        assert result["overlaps"] == [[9, 5]]
+        assert result["per_topic"][5] == [1.0]
+        assert result["per_topic"][6] == [0.5]
+
+    def test_scores_for_every_size(self):
+        result = stability_scores([[_words(0)], [_words(0)]])
+        assert sorted(result["r_n"]) == list(range(1, STABILITY_TOP_WORDS + 1))
+
+
+class TestTopicStability:
+
+    def test_defaults_follow_config(self):
+        import inspect
+
+        params = inspect.signature(topic_stability).parameters
+        assert params["n_runs"].default == STABILITY_RUNS == 10
+        assert params["top_n"].default == STABILITY_TOP_WORDS == 9
+
+    def test_runs_seeds_and_shapes(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        result = topic_stability(dtm, vec, n_topics=4, random_seed=42, n_runs=3)
+        assert result["seeds"] == [42, 43, 44]
+        assert result["n_runs"] == 3
+        for n in range(1, STABILITY_TOP_WORDS + 1):
+            assert len(result["per_topic"][n]) == 4
+            assert all(1 / 3 <= s <= 1.0 for s in result["per_topic"][n])
+
+    def test_reference_model_is_the_users_model(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        model, _, _, _ = run_lda(dtm, vec, n_topics=4, random_seed=7)
+        given = topic_stability(dtm, vec, n_topics=4, random_seed=7, n_runs=2,
+                                reference_model=model)
+        fitted = topic_stability(dtm, vec, n_topics=4, random_seed=7, n_runs=2)
+        assert given["overlaps"] == fitted["overlaps"]
+
+    def test_progress_callback_called(self, themed_texts):
+        dtm, vec, _ = build_dtm(themed_texts, min_df=1, max_df=1.0)
+        calls = []
+        topic_stability(dtm, vec, n_topics=4, n_runs=3,
+                        progress_callback=lambda c, t: calls.append((c, t)))
+        assert calls == [(1, 3), (2, 3), (3, 3)]

@@ -8,6 +8,8 @@ prevalence, and computes coherence / fit metrics.
 from __future__ import annotations
 
 import logging
+import math
+from numbers import Integral
 from typing import Any
 
 import numpy as np
@@ -30,12 +32,15 @@ from lemmata.config import (
     LDA_METHOD_DEFAULT,
     LDA_METHODS,
     LDA_PERP_TOL,
+    MAX_DF_DEFAULT,
+    MIN_DF_DEFAULT,
     NGRAM_RANGE,
     NUM_TOPICS_DEFAULT,
     RANDOM_SEED,
+    STABILITY_RUNS,
+    STABILITY_TOP_WORDS,
     VECTORIZER_TYPE,
     WORDS_PER_TOPIC_DEFAULT,
-    get_df_auto,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,7 +52,7 @@ logger = logging.getLogger(__name__)
 def build_dtm(
     processed_texts: list[str],
     min_df: int | float | None = None,
-    max_df: float | None = None,
+    max_df: int | float | None = None,
 ) -> tuple[spmatrix, CountVectorizer, dict[str, Any]]:
     """Build a document-term matrix from pre-processed texts.
 
@@ -56,25 +61,26 @@ def build_dtm(
     processed_texts:
         Space-joined lemma strings, one per document.
     min_df:
-        Minimum document frequency.  *None* → auto from corpus size.
+        Terms in fewer documents are removed: a share of the documents
+        (float) or a number of documents (int), as in scikit-learn.
+        *None* → ``MIN_DF_DEFAULT`` (0.5% of the documents).
     max_df:
-        Maximum document frequency.  *None* → auto from corpus size.
+        Terms in more documents are removed, in the same units.
+        *None* → ``MAX_DF_DEFAULT`` (99% of the documents).
 
     Returns
     -------
     tuple[spmatrix, CountVectorizer, dict]
         - Sparse DTM (docs × terms).
         - Fitted vectorizer.
-        - DTM info dict with transparency fields (decision 103).
+        - DTM info dict with transparency fields (decision 103), including
+          what the thresholds removed (P047).
     """
     n_docs = len(processed_texts)
-
-    if min_df is None or max_df is None:
-        auto_min, auto_max = get_df_auto(n_docs)
-        if min_df is None:
-            min_df = auto_min
-        if max_df is None:
-            max_df = auto_max
+    if min_df is None:
+        min_df = MIN_DF_DEFAULT
+    if max_df is None:
+        max_df = MAX_DF_DEFAULT
 
     vectorizer = CountVectorizer(
         min_df=min_df,
@@ -83,17 +89,39 @@ def build_dtm(
     )
     dtm = vectorizer.fit_transform(processed_texts)
 
-    # Build an unfiltered vectorizer to measure removed terms.
+    # Unfiltered counts, to report what the thresholds removed.
     vec_all = CountVectorizer(ngram_range=NGRAM_RANGE)
-    vec_all.fit(processed_texts)
+    counts_all = vec_all.fit_transform(processed_texts)
     vocab_all = len(vec_all.vocabulary_)
     vocab_kept = len(vectorizer.vocabulary_)
+
+    # Document counts as scikit-learn computes them: a share is multiplied
+    # by the number of documents, an integer is used as it is.
+    low = min_df if isinstance(min_df, Integral) else min_df * n_docs
+    high = max_df if isinstance(max_df, Integral) else max_df * n_docs
+    doc_freq = np.asarray((counts_all > 0).sum(axis=0)).ravel()
+    term_freq = np.asarray(counts_all.sum(axis=0)).ravel()
+    rare = doc_freq < low
+    common = doc_freq > high
+    tokens_total = int(term_freq.sum())
+    tokens_removed = int(term_freq[rare | common].sum())
 
     dtm_info: dict[str, Any] = {
         "n_docs": n_docs,
         "vocabulary_total": vocab_all,
         "vocabulary_kept": vocab_kept,
         "terms_removed": vocab_all - vocab_kept,
+        "terms_removed_rare": int(rare.sum()),
+        "terms_removed_common": int(common.sum()),
+        "terms_removed_share": (vocab_all - vocab_kept) / vocab_all if vocab_all else 0.0,
+        # Terms in this many documents or fewer, and in this many or more,
+        # were removed.
+        "rare_cutoff_docs": max(math.ceil(low) - 1, 0),
+        "common_cutoff_docs": math.floor(high) + 1,
+        "tokens_total": tokens_total,
+        "tokens_removed": tokens_removed,
+        "tokens_removed_share": tokens_removed / tokens_total if tokens_total else 0.0,
+        "docs_emptied": int((np.asarray(dtm.sum(axis=1)).ravel() == 0).sum()),
         "dtm_shape": dtm.shape,
         "min_df": min_df,
         "max_df": max_df,
@@ -555,7 +583,8 @@ def sweep_coherence(
 ) -> dict[str, Any]:
     """Run LDA across a range of topic counts and return coherence scores.
 
-    Implements decision 6 — optimal topic finder.
+    Implements decision 6. ``best_k`` is the count with the highest C_v; since
+    P046 the app reports it as such and not as the optimal number of topics.
 
     Parameters
     ----------
@@ -636,6 +665,94 @@ def sweep_coherence(
         "coherence_scores": coherence_scores,
         "best_k": best_k,
     }
+
+
+# ── Topic Stability ───────────────────────────────────────────────────────────
+
+
+def _top_word_sets(model: Any, top_n: int) -> list[set[int]]:
+    """Vocabulary indices of each topic's ``top_n`` most probable words."""
+    return [set(np.argsort(c)[::-1][:top_n].tolist()) for c in model.components_]
+
+
+def stability_scores(runs: list[list[set[Any]]], max_n: int = STABILITY_TOP_WORDS) -> dict[str, Any]:
+    """Score the topics of ``runs[0]`` against all runs (Agrawal et al. 2018).
+
+    ``runs`` holds one set of top words per topic for each run. For a topic of
+    the first run, its overlap with a run is the largest number of words it
+    shares with any topic of that run. The first run is counted too, as in the
+    paper's worked example, so every topic scores at least ``1 / len(runs)``.
+    The topic's score at size n is the share of runs with an overlap of at
+    least n words; R_n is the median of these scores over the topics.
+
+    Returns
+    -------
+    dict
+        ``{"overlaps": list[list[int]], "per_topic": {n: list[float]},
+        "r_n": {n: float}}`` for n = 1 … ``max_n``.
+    """
+    overlaps = [[max(len(topic & other) for other in run) for run in runs] for topic in runs[0]]
+    per_topic = {
+        n: [sum(o >= n for o in row) / len(runs) for row in overlaps] for n in range(1, max_n + 1)
+    }
+    r_n = {n: float(np.median(scores)) for n, scores in per_topic.items()}
+    return {"overlaps": overlaps, "per_topic": per_topic, "r_n": r_n}
+
+
+def topic_stability(
+    dtm: spmatrix,
+    vectorizer: CountVectorizer,
+    n_topics: int,
+    random_seed: int = RANDOM_SEED,
+    max_iter: int | None = None,
+    method: str = LDA_METHOD_DEFAULT,
+    n_runs: int = STABILITY_RUNS,
+    top_n: int = STABILITY_TOP_WORDS,
+    reference_model: Any | None = None,
+    progress_callback: Any | None = None,
+) -> dict[str, Any]:
+    """Refit the model with other seeds and measure how stable its topics are.
+
+    The first run is the user's model (seed ``random_seed``); the others use
+    seeds ``random_seed + 1`` … ``random_seed + n_runs - 1`` with the same
+    settings (see ``config.STABILITY_RUNS``). Topics keep the model's own
+    order; ``run_lda``'s ``prevalence_order`` maps them to the order shown in
+    the app.
+
+    Parameters
+    ----------
+    reference_model:
+        The fitted model from :func:`run_lda`, to avoid fitting it again.
+        *None* → fitted here with ``random_seed``.
+    progress_callback:
+        Optional callable ``(current_step, total_steps) -> None``.
+
+    Returns
+    -------
+    dict
+        :func:`stability_scores`' result plus ``seeds``, ``n_runs``,
+        ``top_n`` and ``method``.
+    """
+    if max_iter is None:
+        max_iter = GIBBS_ITERATIONS if method == "gibbs" else LDA_MAX_ITER
+
+    feature_names = vectorizer.get_feature_names_out()
+    seeds = [random_seed + i for i in range(n_runs)]
+    if reference_model is None:
+        reference_model, _ = _fit_model(dtm, feature_names, n_topics, method, seeds[0], max_iter)
+
+    runs = [_top_word_sets(reference_model, top_n)]
+    for i, seed in enumerate(seeds[1:], start=1):
+        if progress_callback is not None:
+            progress_callback(i, n_runs)
+        model, _ = _fit_model(dtm, feature_names, n_topics, method, seed, max_iter)
+        runs.append(_top_word_sets(model, top_n))
+    if progress_callback is not None:
+        progress_callback(n_runs, n_runs)
+
+    result = stability_scores(runs, top_n)
+    result.update({"seeds": seeds, "n_runs": n_runs, "top_n": top_n, "method": method})
+    return result
 
 
 # ── Internal Helpers ──────────────────────────────────────────────────────────

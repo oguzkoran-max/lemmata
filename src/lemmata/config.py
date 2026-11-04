@@ -39,7 +39,11 @@ CHUNK_SIZE_DEFAULT: int = 1000
 
 NUM_TOPICS_MIN: int = 2
 NUM_TOPICS_MAX: int = 30
-NUM_TOPICS_DEFAULT: int = 5
+# No number of topics is right for every corpus. The default follows the two
+# most widely used tools, MALLET (--num-topics) and scikit-learn
+# (LatentDirichletAllocation n_components), which both default to 10 (P046).
+# It was 5 up to v0.3.0 (decision 13).
+NUM_TOPICS_DEFAULT: int = 10
 
 WORDS_PER_TOPIC_MIN: int = 5
 WORDS_PER_TOPIC_MAX: int = 30
@@ -81,6 +85,24 @@ GIBBS_OPTIMIZE_INTERVAL: int = 10
 # reports how much it changed in the second half of the run instead.
 GIBBS_CHECK_EVERY: int = 10
 
+# Topic stability (P046), as defined by Agrawal, Fu and Menzies (2018,
+# Information and Software Technology 98: 74–88). The model is fitted
+# STABILITY_RUNS times with different seeds. A topic of the first run is
+# stable at size n in a run when some topic of that run shares at least n of
+# its top STABILITY_TOP_WORDS words; its score is the share of runs in which
+# it is stable, and R_n is the median score over the topics. Agrawal et al.
+# use 10 runs and at most 9 words (7 ± 2 items, from the cognitive science
+# literature they cite); their worked example and first finding use n = 5.
+# Rieger et al. (2024, PeerJ Computer Science 10: e2279) use 100 runs by
+# default; 10 runs, as in Agrawal et al., take a tenth of the time. Runs
+# differ only in the seed, as Rieger et al.'s replications differ only in
+# the random initialisation; Agrawal et al. also shuffle the document order.
+# The seeds follow the user's seed (seed, seed + 1, ...) and are fixed in
+# advance, so that none is picked after seeing the results.
+STABILITY_RUNS: int = 10
+STABILITY_TOP_WORDS: int = 9
+STABILITY_DISPLAY_N: int = 5
+
 # ── POS Filtering ─────────────────────────────────────────────────────────────
 # Defaults (decisions 12, 95): chosen by the developer on the advice of a
 # corpus linguist (Hakan Cangır), given before development.
@@ -100,26 +122,19 @@ ALLOWED_EXTENSIONS: list[str] = ["txt", "pdf", "odt", "docx", "epub"]
 MAX_FILE_SIZE_MB: int = 50
 MAX_TOTAL_SIZE_MB: int = 100
 
-# ── Document-Term Matrix Auto Thresholds ──────────────────────────────────────
-# min_df / max_df adjusted by corpus size (decision 25).
-# Keys are upper bounds of document count; values are (min_df, max_df).
-
-DF_THRESHOLDS: dict[int, tuple[int | float, float]] = {
-    10: (1, 0.95),
-    50: (2, 0.90),
-    100: (3, 0.85),
-    500: (5, 0.80),
-    10_000: (10, 0.75),
-}
-
-
-def get_df_auto(n_docs: int) -> tuple[int | float, float]:
-    """Return (min_df, max_df) for the given corpus size."""
-    for upper, thresholds in DF_THRESHOLDS.items():
-        if n_docs <= upper:
-            return thresholds
-    # Very large corpus: use the most aggressive filtering.
-    return 10, 0.75
+# ── Document-Term Matrix: vocabulary pruning ──────────────────────────────────
+# Terms in fewer than 0.5% or in more than 99% of the documents are removed.
+# Maier, Niekler, Wiedemann and Stoltenberg (2020, Computational Communication
+# Research 2(2): 139–152, p. 141) report these as the disciplinary standard:
+# fewer than 0.5% (at most 1%) of all documents for infrequent words (Grimmer
+# 2010; Quinn et al. 2010; Denny and Spirling 2018) and more than 99% for
+# frequent words (Hopkins and King 2010; Grimmer and Stewart 2013). Both are
+# shares of the documents, so they follow the corpus size. Approved by the
+# authors in P047; they replace the unsourced tiers of decision 25 (min_df 1
+# to 10 documents, max_df 0.95 to 0.75 by corpus size). Passed to scikit-learn's
+# CountVectorizer as proportions.
+MIN_DF_DEFAULT: float = 0.005
+MAX_DF_DEFAULT: float = 0.99
 
 
 # ── Visual / Theme ────────────────────────────────────────────────────────────

@@ -34,18 +34,22 @@ from lemmata.config import (
     LDA_MAX_ITER_MIN,
     LDA_METHOD_DEFAULT,
     LDA_METHODS,
+    MAX_DF_DEFAULT,
     MAX_FILE_SIZE_MB,
     MAX_TOTAL_SIZE_MB,
+    MIN_DF_DEFAULT,
     NUM_TOPICS_DEFAULT,
     NUM_TOPICS_MAX,
     NUM_TOPICS_MIN,
     POS_PRESETS,
     RANDOM_SEED,
+    STABILITY_DISPLAY_N,
+    STABILITY_RUNS,
+    STABILITY_TOP_WORDS,
     SUPPORTED_LANGUAGES,
     WORDS_PER_TOPIC_DEFAULT,
     WORDS_PER_TOPIC_MAX,
     WORDS_PER_TOPIC_MIN,
-    get_df_auto,
 )
 from lemmata.file_io import (
     FileReadError,
@@ -59,7 +63,13 @@ from lemmata.file_io import (
     read_files,
     text_from_paste,
 )
-from lemmata.modelling import build_dtm, compute_coherence, run_lda, sweep_coherence
+from lemmata.modelling import (
+    build_dtm,
+    compute_coherence,
+    run_lda,
+    sweep_coherence,
+    topic_stability,
+)
 from lemmata.preprocessing import check_language_match, load_spacy_model, process_documents
 from lemmata.visualisation import (
     configure_altair_theme,
@@ -71,7 +81,7 @@ from lemmata.visualisation import (
     create_coherence_sweep_chart,
     create_topic_map,
     create_wordcloud,
-    get_coherence_display,
+    COHERENCE_NOTE,
     get_topic_color,
 )
 
@@ -212,7 +222,10 @@ def _render_sidebar() -> dict[str, Any]:
             min_value=NUM_TOPICS_MIN,
             max_value=NUM_TOPICS_MAX,
             value=NUM_TOPICS_DEFAULT,
-            help="How many topics the model should extract from your corpus.",
+            help="How many topics the model should extract from your corpus. "
+                 "No number is right for every corpus: try several and read "
+                 "the topics. The default (10) is that of MALLET and "
+                 "scikit-learn.",
         )
 
         n_words = st.slider(
@@ -309,26 +322,41 @@ def _render_sidebar() -> dict[str, Any]:
                          "the model has converged. Increase if the "
                          "convergence warning appears.",
                 )
-            auto_min, auto_max = get_df_auto(10)
-            min_df = st.number_input(
-                "min_df",
-                value=auto_min,
-                min_value=1,
-                step=1,
-                help="Minimum document frequency. Terms appearing in fewer "
-                     "documents are removed.",
+            # Vocabulary pruning (P047), entered as percentages of the
+            # documents and passed on as proportions.
+            min_df_pct = st.number_input(
+                "Remove rare words: in fewer than this % of documents",
+                value=MIN_DF_DEFAULT * 100,
+                min_value=0.0,
+                max_value=100.0,
+                step=0.1,
+                format="%.1f",
+                help="Words that occur in fewer than this share of the "
+                     "documents are removed. The default, 0.5%, is the "
+                     "standard Maier et al. (2020) report for topic models "
+                     "in the social sciences. With few documents it removes "
+                     "nothing: in 70 "
+                     "documents, 0.5% is less than one document. 0 keeps "
+                     "every rare word.",
             )
-            max_df = st.number_input(
-                "max_df",
-                value=auto_max,
-                min_value=0.1,
-                max_value=1.0,
-                step=0.05,
-                format="%.2f",
-                help="Maximum document frequency (proportion). Very common "
-                     "terms are removed.",
+            max_df_pct = st.number_input(
+                "Remove common words: in more than this % of documents",
+                value=MAX_DF_DEFAULT * 100,
+                min_value=0.0,
+                max_value=100.0,
+                step=1.0,
+                format="%.1f",
+                help="Words that occur in more than this share of the "
+                     "documents are removed. The default, 99%, is the "
+                     "standard reported by Maier et al. (2020), after "
+                     "Grimmer and Stewart (2013). 100 keeps every common "
+                     "word.",
             )
-            use_auto_df = st.checkbox("Auto-adjust by corpus size", value=True)
+            if min_df_pct >= max_df_pct:
+                st.error(
+                    "The rare-word share must be lower than the "
+                    "common-word share."
+                )
 
         st.divider()
 
@@ -423,9 +451,8 @@ def _render_sidebar() -> dict[str, Any]:
         "method": method,
         "seed": int(seed),
         "max_iter": int(max_iter),
-        "min_df": min_df if not use_auto_df else None,
-        "max_df": max_df if not use_auto_df else None,
-        "use_auto_df": use_auto_df,
+        "min_df": round(min_df_pct / 100, 6),
+        "max_df": round(max_df_pct / 100, 6),
     }
 
 
@@ -634,11 +661,21 @@ def _run_analysis_inner(
 
         # Step 3: Build DTM.
         st.write("Building document-term matrix...")
-        dtm, vectorizer, dtm_info = build_dtm(
-            processed_texts,
-            min_df=params["min_df"],
-            max_df=params["max_df"],
-        )
+        try:
+            dtm, vectorizer, dtm_info = build_dtm(
+                processed_texts,
+                min_df=params["min_df"],
+                max_df=params["max_df"],
+            )
+        except ValueError:
+            # scikit-learn: no terms left, or the two shares cross.
+            status.update(label="Analysis failed", state="error")
+            st.error(
+                "No words remained after removing rare and common words. "
+                "Under Advanced, lower the rare-word share or raise the "
+                "common-word share (the rare-word share must be lower)."
+            )
+            return {}
 
         # Clamp n_topics to doc count (decision 164).
         n_topics = min(params["n_topics"], len(processed_texts) // 2)
@@ -816,16 +853,11 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
     model_info = results["model_info"]
     dtm_info = results["dtm_info"]
 
-    # Coherence display (decision 41).
+    # Coherence display (decision 41; no quality bands since P046).
     c_v = coherence["c_v"]
-    cd = get_coherence_display(c_v)
-    st.markdown(
-        f'<div style="background:{cd["background"]};color:{cd["color"]};'
-        f'padding:0.8rem 1rem;border-radius:0.4rem;margin-bottom:1rem;">'
-        f'<strong>Coherence (C_v): {c_v:.4f} — {cd["label"]}</strong><br>'
-        f'{cd["suggestion"]}</div>',
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.markdown(f"**Coherence (C_v): {c_v:.4f}**")
+        st.caption(COHERENCE_NOTE)
 
     # Convergence warning (decision 124) — shown here so it survives st.rerun().
     if model_info.get("convergence_warning"):
@@ -857,12 +889,46 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
         c1, c2, c3 = st.columns(3)
         c1.metric("Vocabulary (total)", f"{dtm_info['vocabulary_total']:,}")
         c2.metric("Vocabulary (kept)", f"{dtm_info['vocabulary_kept']:,}")
-        c3.metric("Terms removed", f"{dtm_info['terms_removed']:,}")
-        st.caption(
-            f"DTM shape: {dtm_info['dtm_shape'][0]} documents "
-            f"× {dtm_info['dtm_shape'][1]} terms | "
-            f"min_df={dtm_info['min_df']}, max_df={dtm_info['max_df']}"
+        c3.metric(
+            "Terms removed",
+            f"{dtm_info['terms_removed']:,} "
+            f"({dtm_info['terms_removed_share']:.1%})",
         )
+        # What the thresholds removed (P047).
+        n_docs = dtm_info["n_docs"]
+        if dtm_info["rare_cutoff_docs"] > 0:
+            rare = (
+                f"{dtm_info['terms_removed_rare']:,} rare terms (in "
+                f"{dtm_info['rare_cutoff_docs']:,} of {n_docs:,} documents "
+                f"or fewer)"
+            )
+        else:
+            rare = "no rare terms (the threshold is below one document)"
+        if dtm_info["common_cutoff_docs"] == n_docs:
+            common = (
+                f"{dtm_info['terms_removed_common']:,} common terms (in "
+                f"all {n_docs:,} documents)"
+            )
+        elif dtm_info["common_cutoff_docs"] < n_docs:
+            common = (
+                f"{dtm_info['terms_removed_common']:,} common terms (in "
+                f"{dtm_info['common_cutoff_docs']:,} documents or more)"
+            )
+        else:
+            common = "no common terms"
+        st.caption(
+            f"Removed {rare} and {common}. The removed terms account for "
+            f"{dtm_info['tokens_removed_share']:.1%} of all word "
+            f"occurrences. Thresholds can be changed under Advanced: "
+            f"min_df={dtm_info['min_df']}, max_df={dtm_info['max_df']}. "
+            f"DTM shape: {dtm_info['dtm_shape'][0]} documents "
+            f"× {dtm_info['dtm_shape'][1]} terms."
+        )
+        if dtm_info["docs_emptied"]:
+            st.warning(
+                f"{dtm_info['docs_emptied']} documents have no words left "
+                "after rare and common words were removed."
+            )
 
     # Per-topic coherence.
     if coherence.get("per_topic"):
@@ -870,12 +936,18 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
             for label, val in zip(topic_labels, coherence["per_topic"]):
                 st.text(f"{label}: {val:.4f}")
 
-    # Coherence sweep (decision 6).
-    with st.expander("Find optimal number of topics"):
+    # Coherence sweep (decision 6). Since P046 it shows the curve but names no
+    # "optimal" number: automated coherence does not reliably agree with human
+    # judgements (Hoyle et al. 2021; Chang et al. 2009).
+    with st.expander("Compare numbers of topics"):
         st.markdown(
-            "Run LDA with different topic counts (2\u201315) to find the "
-            "optimal number. Higher coherence generally indicates more "
-            "interpretable topics."
+            "Fits the model with each number of topics from 2 to 15 and plots "
+            "its coherence (C_v). The curve can help you decide which numbers "
+            "to try, but it does not pick the best one: automated coherence "
+            "does not reliably agree with human judgements of topics (Hoyle et "
+            "al. 2021; Chang et al. 2009), and there is little guidance on an "
+            "optimal number of topics (Gim\u00e9nez Celano 2026). Run the analysis "
+            "with the numbers you want to compare and read their topics."
         )
         if st.button("Run Coherence Sweep", type="primary"):
             progress_bar = st.progress(0, text="Starting sweep...")
@@ -912,11 +984,65 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
 
             best_k = sr["best_k"]
             best_score = sr["coherence_scores"][sr["k_values"].index(best_k)]
-            st.success(
-                f"Optimal number of topics: **{best_k}** "
-                f"(C_v: {best_score:.4f}). "
-                "You can change the topic count in the sidebar and "
-                "re-run analysis."
+            st.info(
+                f"The highest C_v ({best_score:.4f}) is at {best_k} topics. "
+                "This alone does not make it the best number: change the "
+                "topic count in the sidebar, re-run the analysis for each "
+                "number you want to compare, and read the topics."
+            )
+
+    # Topic stability (P046).
+    seed = model_info["random_seed"]
+    with st.expander(f"Check topic stability ({STABILITY_RUNS} runs)"):
+        st.markdown(
+            "A topic model starts from a random state, so another seed can give "
+            f"different topics. This check fits the same model {STABILITY_RUNS - 1} "
+            f"more times with seeds {seed + 1} to {seed + STABILITY_RUNS - 1} and "
+            f"counts, for each topic, the runs (this one included) in which a topic "
+            f"sharing at least {STABILITY_DISPLAY_N} of its top {STABILITY_TOP_WORDS} "
+            "words appears. The measure follows Agrawal, Fu and Menzies (2018). "
+            "Topics that recur across runs deserve more interpretive weight than "
+            "topics that do not (Giménez Celano 2026)."
+        )
+        if st.button("Run Stability Check"):
+            progress_bar = st.progress(0, text="Starting stability check...")
+
+            def _stability_progress(current: int, total: int) -> None:
+                frac = current / total if total else 1.0
+                progress_bar.progress(frac, text=f"Run {min(current + 1, total)} of {total}...")
+
+            st.session_state["stability_results"] = topic_stability(
+                dtm=results["dtm"],
+                vectorizer=results["vectorizer"],
+                n_topics=model_info["n_topics"],
+                random_seed=seed,
+                max_iter=results["params"]["max_iter"],
+                method=results["params"]["method"],
+                reference_model=results["model"],
+                progress_callback=_stability_progress,
+            )
+            progress_bar.empty()
+
+        stab = st.session_state.get("stability_results")
+        if stab:
+            import pandas as pd
+
+            n, runs = STABILITY_DISPLAY_N, stab["n_runs"]
+            column = f"Runs with ≥{n} of the top {stab['top_n']} words"
+            rows = [
+                {
+                    "Topic": topic_labels[rank],
+                    column: f"{round(stab['per_topic'][n][raw] * runs)}/{runs}",
+                }
+                for rank, raw in enumerate(model_info["prevalence_order"])
+            ]
+            st.dataframe(pd.DataFrame(rows), hide_index=True)
+            st.caption(
+                f"Median share of runs over all topics (R{n}): {stab['r_n'][n]:.2f}. "
+                "R for 1 to "
+                f"{stab['top_n']} shared words: "
+                + ", ".join(f"{stab['r_n'][k]:.2f}" for k in sorted(stab["r_n"]))
+                + f". Seeds {stab['seeds'][0]}–{stab['seeds'][-1]}."
             )
 
     # Top lemmas (decision 92).
@@ -1513,6 +1639,7 @@ def main() -> None:
         st.session_state["analysis_run"] = False
         st.session_state.pop("custom_topic_labels", None)
         st.session_state.pop("sweep_results", None)
+        st.session_state.pop("stability_results", None)
 
         try:
             results = _run_analysis(texts, params)

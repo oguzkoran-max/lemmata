@@ -29,8 +29,38 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   log-likelihood still rises slowly at 1000 iterations (0.3–1.2% over
   iterations 500–1000 in 31 of 32 runs of the validation study), so a
   fixed threshold would either warn on nearly every run or miss the rise.
+- "Check topic stability" in the Overview tab (P046). The model is fitted
+  10 times with seeds that follow the user's seed, and each topic shows in
+  how many runs a topic sharing at least 5 of its top 9 words appears; the
+  median over topics (R_n) is given for 1 to 9 shared words. The measure
+  and the 10 runs follow Agrawal, Fu and Menzies (2018, *Information and
+  Software Technology* 98: 74–88); runs differ only in the seed, as in
+  Rieger et al. (2024, *PeerJ Computer Science* 10: e2279).
+- The Document-Term Matrix box reports how many terms were removed as
+  rare and as common, their share of the vocabulary and of all word
+  occurrences, and any documents left with no words (P047). The same
+  figures are in `metrics.json`.
 
 ### Changed
+- Vocabulary pruning follows the standard that Maier et al. (2020,
+  *Computational Communication Research* 2: 139–152) report for topic
+  models in the social sciences: terms in fewer than 0.5% or in more than 99% of the documents
+  are removed (P047). The earlier thresholds (decision 25: at least 1 to
+  10 documents and at most 95% to 75% of them, by corpus size) had no
+  source. Both thresholds are set as percentages under Advanced; the
+  "Auto-adjust by corpus size" checkbox is gone, since shares of the
+  documents already follow the corpus size.
+- Default number of topics raised from 5 to 10, the default of MALLET and
+  scikit-learn (P046). The help text says that no number is right for
+  every corpus.
+- The coherence sweep ("Compare numbers of topics", formerly "Find
+  optimal number of topics") no longer announces an optimal number. It
+  reports where C_v is highest and asks the user to compare topics,
+  because automated coherence does not reliably agree with human
+  judgements (Hoyle et al. 2021; Chang et al. 2009) (P046).
+- The coherence box no longer labels C_v as Good, Moderate or Low (cut-offs
+  0.5 and 0.3, decision 41). The cut-offs had no source and the measure's
+  authors give none; the box now explains what C_v measures (P046).
 - Topic count upper limit raised from 15 to 30.
 - Variational method: perplexity is checked every 10 iterations and
   fitting stops once it improves by less than 0.1 (scikit-learn's own

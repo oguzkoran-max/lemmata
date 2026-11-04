@@ -587,51 +587,19 @@ def create_top_lemmas_chart(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def get_coherence_display(c_v: float) -> dict[str, str]:
-    """Return colour, label, and suggestion for a C_v coherence score.
+# Decision 41 coloured C_v in green / yellow / red bands labelled Good,
+# Moderate and Low (cut-offs 0.5 and 0.3). The cut-offs had no source and
+# Röder et al. (2015), who defined C_v, give none, so the bands were removed
+# in P046 at the authors' decision. The score is shown with COHERENCE_NOTE.
 
-    Implements decision 41: green / yellow / red bands, no emoji.
-
-    Parameters
-    ----------
-    c_v:
-        C_v coherence value.
-
-    Returns
-    -------
-    dict
-        ``{"color": str, "background": str, "label": str, "suggestion": str}``.
-    """
-    if c_v >= 0.5:
-        return {
-            "color": "#155724",
-            "background": "#d4edda",
-            "label": "Good",
-            "suggestion": (
-                "Coherence is solid. Review the topics qualitatively "
-                "to confirm they make sense for your research question."
-            ),
-        }
-    if c_v >= 0.3:
-        return {
-            "color": "#856404",
-            "background": "#fff3cd",
-            "label": "Moderate",
-            "suggestion": (
-                "Some topics may be mixed. Try adjusting the number of "
-                "topics, changing POS filters, or adding custom stopwords."
-            ),
-        }
-    return {
-        "color": "#721c24",
-        "background": "#f8d7da",
-        "label": "Low",
-        "suggestion": (
-            "Topics are not well differentiated. Consider: fewer topics, "
-            "a larger corpus, different chunk size, or reviewing the "
-            "language selection."
-        ),
-    }
+COHERENCE_NOTE: str = (
+    "C_v measures how often each topic's top words occur near one another in "
+    "your own texts (within a 110-word window). Röder et al. (2015), who "
+    "defined it, found that it agreed best with human ratings of topics among "
+    "the measures they tested; they give no cut-off for a good or a weak score. "
+    "Automated coherence does not reliably agree with human judgements (Hoyle "
+    "et al. 2021), so read the topics as well."
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

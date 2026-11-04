@@ -45,11 +45,13 @@ No installation required. Open the platform in your browser:
 | **Multilingual NLP** | Five languages with dedicated spaCy pipelines and language-specific stopwords |
 | **POS filtering** | Presets (content words, content + verbs, all open classes) or custom selection |
 | **Custom stopwords** | Add domain-specific stopwords on top of the built-in lists |
-| **Coherence scoring** | C_v coherence metric with interpretive guidance (good / fair / weak) |
+| **Vocabulary pruning** | Removes words in fewer than 0.5% or more than 99% of the documents (the standard reported by Maier et al. 2020), shows what was removed, and lets you change both thresholds |
+| **Coherence scoring** | C_v coherence (Röder et al. 2015) with an explanation of what it measures; no quality bands, since the measure has no accepted cut-offs |
 | **Interactive charts** | Altair-based interactive visualizations with hover details |
 | **Topic Map** | pyLDAvis visualization with graceful fallback |
 | **Preprocessing trace** | Token-level table showing every step (original, lemma, kept/removed, reason) |
 | **Deterministic results** | A fixed seed (default 42) gives identical results on repeated runs with either inference method |
+| **Topic stability check** | Refits the model with 10 seeds and shows how often each topic recurs (measure of Agrawal, Fu and Menzies 2018) |
 | **PDF report** | Auto-generated analysis report suitable for course assignments or publications |
 | **ZIP export** | All outputs (CSV, JSON, PNG, SVG, environment report) in one download |
 
