@@ -29,8 +29,10 @@ abstract: >-
   Lemmata is a browser-based, multilingual LDA topic modeling platform
   designed for humanities researchers with no programming expertise.
   It supports Italian, English, German, French, and Spanish through
-  spaCy NLP pipelines, and produces fully deterministic, reproducible
-  results (random_state=42, batch learning). The platform was developed
+  spaCy NLP pipelines. Topics are inferred by Gibbs sampling with
+  MALLET's default settings or, to reproduce earlier versions, by
+  variational Bayes; the same data, settings, seed (default 42) and
+  package versions give the same results. The platform was developed
   entirely through vibe coding — LLM-assisted software development
   using natural language prompts — and serves as both a practical
   research tool and a methodological case study for AI-assisted

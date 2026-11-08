@@ -15,9 +15,14 @@ Three novels by Italo Svevo (1861-1928), collectively known as the Trieste Trilo
 ## Suggested Lemmata Parameters
 
 - **Language:** Italian (it)
-- **Number of Topics:** 5
-- **Chunk Size:** 1000
+- **Number of Topics:** 10 (Lemmata's default)
+- **Chunk Size:** 1000 (Lemmata's default)
 - **Words per Topic:** 10
+
+Chunk size applies only when a single file is uploaded. Upload one novel at
+a time to have it split into parts of about this many words. If you upload
+the three novels together, each novel becomes one document (three documents
+in all) and Lemmata lowers the number of topics to 2.
 
 ## Source
 
