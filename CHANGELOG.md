@@ -82,6 +82,10 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (by prevalence).
 
 ### Fixed
+- spaCy gives some forms with clitics a lemma of several words ("farmi"
+  -> "fare mi"). The stoplists were checked against the whole lemma, so
+  parts such as "mi", "si" and "ne" reached the model. Each part is now
+  checked (P049).
 - C_v was computed on at most 20 words per topic (gensim's default) even
   when more were shown, and the coherence sweep always used 10 words. Both
   now use every word shown (P048).

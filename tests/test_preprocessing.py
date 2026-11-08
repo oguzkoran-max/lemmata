@@ -270,3 +270,65 @@ class TestProcessDocuments:
             texts=corpus, language="en", nlp=mock_nlp,
         )
         assert trace["empty_chunks_removed"] >= 1
+
+
+# ── multi-word lemmas (P049) ──────────────────────────────────────────────────
+
+
+class _Token:
+    """spaCy token stand-in."""
+
+    def __init__(self, text: str, lemma: str, pos: str = "NOUN") -> None:
+        self.text, self.lemma_, self.pos_ = text, lemma, pos
+        self.is_stop, self.is_alpha = False, True
+        self.is_space, self.is_punct = False, False
+
+
+class _Nlp:
+    """spaCy stand-in whose lemmas include clitic splits such as 'fare mi'."""
+
+    pipe_names = ["parser"]
+
+    class Defaults:
+        stop_words = {"mi", "si", "il", "ne"}
+
+    def __init__(self, tokens: list[_Token]) -> None:
+        self._tokens = tokens
+
+    def __call__(self, text: str) -> list[_Token]:
+        return list(self._tokens)
+
+    def pipe(self, texts: list[str]) -> list[list[_Token]]:
+        return [list(self._tokens) for _ in texts]
+
+
+class TestMultiWordLemmas:
+    """Each part of a multi-word lemma is checked against the stoplists (P049)."""
+
+    TOKENS = [
+        _Token("farmi", "fare mi", "VERB"),
+        _Token("andatosene", "andatoe si ne", "ADJ"),
+        _Token("sallo", "sa il", "ADJ"),
+        _Token("casa", "casa", "NOUN"),
+    ]
+
+    def _run(self, custom: set[str] | None = None) -> list[str]:
+        texts = [
+            {"filename": "a.txt", "content": "uno"},
+            {"filename": "b.txt", "content": "due"},
+        ]
+        processed, _, _ = process_documents(
+            texts=texts, language="it", pos_tags=["NOUN", "ADJ", "VERB"],
+            custom_stopwords=custom, nlp=_Nlp(self.TOKENS),
+        )
+        return processed
+
+    def test_stopword_parts_are_dropped(self):
+        # "farmi" -> "fare mi" reached the model as "fare" and "mi".
+        assert self._run()[0].split() == ["fare", "andatoe", "sa", "casa"]
+
+    def test_no_stopword_reaches_the_model(self):
+        custom = {"casa", "sa"}
+        words = {w for text in self._run(custom) for w in text.split()}
+        assert words == {"fare", "andatoe"}
+        assert not words & (_Nlp.Defaults.stop_words | custom)

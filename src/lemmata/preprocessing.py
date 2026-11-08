@@ -304,17 +304,27 @@ def _process_token(
         is_pos_match = pos in pos_tags
         is_alpha = token.is_alpha
 
+        # spaCy gives some forms with clitics a lemma of several words
+        # ("farmi" -> "fare mi"). Each part is checked against both
+        # stoplists, so that "mi" does not reach the model (P049).
+        lemma_used = " ".join(
+            part for part in lemma.split()
+            if part not in builtin_stops and part not in custom_stops
+        )
+
         kept = (
             is_alpha
             and not is_space
             and not is_builtin_stop
             and not is_custom_stop
             and is_pos_match
+            and bool(lemma_used)
         )
 
         return {
             "form": form,
             "lemma": lemma,
+            "lemma_used": lemma_used if kept else "",
             "pos": pos,
             "is_stop_builtin": is_builtin_stop,
             "is_stop_custom": is_custom_stop,
@@ -342,7 +352,7 @@ def _process_doc(
             continue
         token_details.append(result)
         if result["kept"]:
-            lemmas.append(result["lemma"])
+            lemmas.append(result["lemma_used"])
 
     return lemmas, token_details
 
