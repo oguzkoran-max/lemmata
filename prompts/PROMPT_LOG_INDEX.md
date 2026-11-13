@@ -44,3 +44,4 @@
 | P040 | Update CHANGELOG.md with v0.1.0 release notes | 3 Apr 2026 | 162 |
 | P041 | Add Zenodo DOI to CITATION.cff, README, and landing page | 3 Apr 2026 | 162 |
 | P042 | Add full prompt texts to all prompt log files | 8 Jun 2026 | 162 |
+| P045 | Guard archive uploads against zip bombs, cache file parsing | 13 Nov 2026 | 170 |

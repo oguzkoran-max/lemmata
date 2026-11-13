@@ -55,6 +55,71 @@ class TestReadFile:
         assert "content" in result
 
 
+# ── Archive (zip bomb) guard ──────────────────────────────────────────────────
+
+
+def _make_docx(n_paragraphs: int) -> bytes:
+    """Build a real DOCX whose document.xml holds *n_paragraphs* paragraphs."""
+    docx = pytest.importorskip("docx")
+    doc = docx.Document()
+    doc.add_paragraph("Lorem ipsum")
+    for _ in range(n_paragraphs - 1):
+        doc.add_paragraph("lorem ipsum dolor sit amet")
+    buf = BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+def _make_bomb_docx(markup_mb: int) -> bytes:
+    """DOCX whose document.xml inflates to roughly *markup_mb* MB."""
+    base = _make_docx(1)
+    para = b"<w:p><w:r><w:t>lorem ipsum dolor sit amet</w:t></w:r></w:p>"
+    filler = para * (markup_mb * 1024 * 1024 // len(para))
+    zin = zipfile.ZipFile(BytesIO(base))
+    out = BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zout:
+        for info in zin.infolist():
+            data = zin.read(info)
+            if info.filename == "word/document.xml":
+                data = data.replace(b"<w:body>", b"<w:body>" + filler, 1)
+            zout.writestr(info, data)
+    return out.getvalue()
+
+
+class TestArchiveGuard:
+    """Small DOCX/ODT/EPUB uploads must not inflate into huge XML."""
+
+    def test_normal_docx_still_reads(self):
+        result = read_file(_make_docx(50), "ok.docx")
+        assert "lorem ipsum" in result["content"]
+
+    def test_bomb_docx_rejected(self):
+        data = _make_bomb_docx(60)
+        assert len(data) < 2 * 1024 * 1024  # tiny upload, passes the 50 MB cap
+        with pytest.raises(FileReadError, match="expands to more text"):
+            read_file(data, "bomb.docx")
+
+    def test_understated_size_does_not_inflate(self):
+        """Lying about file_size in the headers makes parsing fail, not inflate."""
+        data = bytearray(_make_bomb_docx(60))
+        name = b"word/document.xml"
+        # Patch uncompressed size in local header (offset 22) and
+        # central directory entry (offset 24) to 1 KB.
+        for sig, off in ((b"PK\x03\x04", 22), (b"PK\x01\x02", 24)):
+            pos = 0
+            while (pos := data.find(sig, pos)) != -1:
+                hdr_name_off = 30 if sig == b"PK\x03\x04" else 46
+                if data[pos + hdr_name_off : pos + hdr_name_off + len(name)] == name:
+                    data[pos + off : pos + off + 4] = (1024).to_bytes(4, "little")
+                pos += 4
+        with pytest.raises(FileReadError):
+            read_file(bytes(data), "liar.docx")
+
+    def test_corrupt_archive_rejected(self):
+        with pytest.raises(FileReadError, match="corrupted"):
+            read_file(b"not a zip at all", "broken.epub")
+
+
 # ── text_from_paste ───────────────────────────────────────────────────────────
 
 

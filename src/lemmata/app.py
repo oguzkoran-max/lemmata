@@ -130,6 +130,30 @@ def _load_spacy(language: str):
     return load_spacy_model(language)
 
 
+class _UploadedBytes:
+    """Minimal stand-in for Streamlit's UploadedFile (name, size, read)."""
+
+    def __init__(self, name: str, data: bytes) -> None:
+        self.name = name
+        self.size = len(data)
+        self._data = data
+
+    def read(self) -> bytes:
+        return self._data
+
+
+@st.cache_data(show_spinner=False, max_entries=8, ttl=3600)
+def _read_files_cached(
+    files: tuple[tuple[str, bytes], ...],
+) -> tuple[list[dict[str, str]], list[str]]:
+    """Parse uploads once, not on every Streamlit rerun.
+
+    Streamlit re-executes the script on each widget interaction; without
+    this cache every slider move re-parsed every PDF/DOCX/EPUB.
+    """
+    return read_files([_UploadedBytes(name, data) for name, data in files])
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SESSION STATE DEFAULTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -427,7 +451,9 @@ def _render_upload() -> list[dict[str, str]]:
     warnings: list[str] = []
 
     if uploaded:
-        texts, warnings = read_files(uploaded)
+        texts, warnings = _read_files_cached(
+            tuple((uf.name, uf.getvalue()) for uf in uploaded)
+        )
 
         # Content-duplicate check (decision 163): same content, different names.
         dup_content = find_content_duplicates(texts)
