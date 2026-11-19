@@ -19,7 +19,10 @@ from typing import Any, Optional
 from lemmata.config import (
     ALLOWED_EXTENSIONS,
     APP_VERSION,
+    ARCHIVE_EXTENSIONS,
     CHART_DPI,
+    MAX_ARCHIVE_MARKUP_MB,
+    MAX_ARCHIVE_UNCOMPRESSED_MB,
     MAX_FILE_SIZE_MB,
     MAX_TOTAL_SIZE_MB,
     ZIP_NAME_TEMPLATE,
@@ -75,6 +78,9 @@ def read_file(file_bytes: bytes, filename: str) -> dict[str, str]:
             f"exceeding the {MAX_FILE_SIZE_MB} MB limit."
         )
 
+    if ext in ARCHIVE_EXTENSIONS:
+        _check_archive_size(file_bytes, filename)
+
     readers = {
         "txt": _read_txt,
         "pdf": _read_pdf,
@@ -84,6 +90,42 @@ def read_file(file_bytes: bytes, filename: str) -> dict[str, str]:
     }
     content = readers[ext](file_bytes, filename)
     return {"filename": filename, "content": content}
+
+
+_MARKUP_SUFFIXES = (".xml", ".xhtml", ".html", ".htm", ".opf", ".ncx")
+
+
+def _check_archive_size(file_bytes: bytes, filename: str) -> None:
+    """Reject ZIP-based files whose uncompressed content is too large.
+
+    ``ZipInfo.file_size`` comes from the archive's central directory.  An
+    attacker cannot under-report it to slip past this check: ``zipfile``
+    stops reading a member at the declared size and the CRC check then fails,
+    so parsing aborts instead of inflating further.
+    """
+    try:
+        with zipfile.ZipFile(io.BytesIO(file_bytes)) as zf:
+            infos = zf.infolist()
+    except (zipfile.BadZipFile, ValueError) as exc:
+        raise FileReadError(
+            f"'{filename}' could not be read. The file may be corrupted."
+        ) from exc
+
+    total = sum(i.file_size for i in infos)
+    markup = sum(
+        i.file_size for i in infos if i.filename.lower().endswith(_MARKUP_SUFFIXES)
+    )
+    if total > MAX_ARCHIVE_UNCOMPRESSED_MB * _MB or markup > MAX_ARCHIVE_MARKUP_MB * _MB:
+        logger.warning(
+            "Rejected '%s': uncompressed %d bytes (markup %d bytes)",
+            filename, total, markup,
+        )
+        raise FileReadError(
+            f"'{filename}' expands to more text than Lemmata can process "
+            f"safely (limit: {MAX_ARCHIVE_MARKUP_MB} MB of document markup, "
+            f"{MAX_ARCHIVE_UNCOMPRESSED_MB} MB in total). Please split the "
+            "document or save it as plain text (.txt)."
+        )
 
 
 def read_files(

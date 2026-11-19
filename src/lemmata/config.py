@@ -124,6 +124,14 @@ ALLOWED_EXTENSIONS: list[str] = ["txt", "pdf", "odt", "docx", "epub"]
 MAX_FILE_SIZE_MB: int = 50
 MAX_TOTAL_SIZE_MB: int = 100
 
+# Archive formats (docx/odt/epub) are ZIP containers: the upload limit above
+# only bounds the compressed size.  These bound the *uncompressed* size so a
+# small "zip bomb" cannot exhaust server memory while the XML is parsed.
+# Markup members (XML/HTML) drive parser memory, so they get a tighter cap.
+ARCHIVE_EXTENSIONS: tuple[str, ...] = ("docx", "odt", "epub")
+MAX_ARCHIVE_UNCOMPRESSED_MB: int = 200
+MAX_ARCHIVE_MARKUP_MB: int = 40
+
 # ── Document-Term Matrix: vocabulary pruning ──────────────────────────────────
 # Terms in fewer than 0.5% or in more than 99% of the documents are removed.
 # Maier, Niekler, Wiedemann and Stoltenberg (2020, Computational Communication
