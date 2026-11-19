@@ -21,6 +21,7 @@ from lemmata.config import (
     APP_VERSION,
     BG_MAIN,
     BG_SIDEBAR,
+    CHUNK_EACH_FILE_DEFAULT,
     CHUNK_SIZE_DEFAULT,
     CHUNK_SIZE_MAX,
     CHUNK_SIZE_MIN,
@@ -249,12 +250,27 @@ def _render_sidebar() -> dict[str, Any]:
             step=100,
             help="When you upload a single file, Lemmata splits it into "
                  "parts of about this many words, ending at sentence "
-                 "boundaries; each part is one document for the model. The "
+                 "boundaries; each part is one document for the model. "
+                 "With several files, each file is one document unless "
+                 "'Split every file into parts' below is ticked. The "
                  "default, about 1,000 words, is the segment length Schöch "
                  "(2017) used for plays; Cooper et al. (2021) used 200-word "
                  "documents for the Decameron. Report the length with your "
                  "results (Giménez Celano and Gillings 2026), and use the "
                  "same length when you compare with a published study.",
+        )
+
+        chunk_each_file = st.checkbox(
+            "Split every file into parts",
+            value=CHUNK_EACH_FILE_DEFAULT,
+            help="Only matters when you upload several files. Unticked, "
+                 "each file is one document, so three novels give three "
+                 "documents and at most two topics. Ticked, every file "
+                 "longer than the chunk size is split like a single file "
+                 "(parts are labelled name_001, name_002, ...); shorter "
+                 "files stay whole. Leave it unticked when each file is "
+                 "already one unit of your study, such as a letter, a poem "
+                 "or a novella.",
         )
 
         n_topics = st.slider(
@@ -502,6 +518,7 @@ def _render_sidebar() -> dict[str, Any]:
     return {
         "language": language,
         "chunk_size": chunk_size,
+        "chunk_each_file": chunk_each_file,
         "n_topics": n_topics,
         "n_words": n_words,
         "pos_tags": pos_tags,
@@ -704,6 +721,7 @@ def _run_analysis_inner(
             custom_stopwords=params["custom_stopwords"],
             chunk_size=params["chunk_size"],
             nlp=nlp,
+            chunk_each_file=params["chunk_each_file"],
         )
 
         if not processed_texts:
@@ -1503,19 +1521,26 @@ def _tab_export(results: dict[str, Any]) -> None:
 
 
 def estimate_n_documents(
-    texts: list[dict[str, str]], chunk_size: int,
+    texts: list[dict[str, str]], chunk_size: int, chunk_each_file: bool = False,
 ) -> int:
     """Estimate how many documents/chunks the pipeline will produce.
 
-    For multiple files: one document per file.
+    For multiple files: one document per file, or, with *chunk_each_file*,
+    approximate chunks per file for files longer than *chunk_size* (P052).
     For a single file: approximate chunks = total words / chunk_size.
     """
-    if len(texts) > 1:
-        return len(texts)
     if not texts:
         return 0
-    word_count = len(texts[0]["content"].split())
-    return max(1, round(word_count / chunk_size))
+    if len(texts) > 1 and not chunk_each_file:
+        return len(texts)
+    total = 0
+    for entry in texts:
+        word_count = len(entry["content"].split())
+        if len(texts) > 1 and word_count <= chunk_size:
+            total += 1
+        else:
+            total += max(1, round(word_count / chunk_size))
+    return total
 
 
 def calc_topic_max(n_docs: int) -> int:
@@ -1655,7 +1680,9 @@ def main() -> None:
 
     # Corpus safeguards (decisions 128, 164).
     if has_files:
-        est_docs = estimate_n_documents(texts, params["chunk_size"])
+        est_docs = estimate_n_documents(
+            texts, params["chunk_size"], params["chunk_each_file"],
+        )
         topic_max = calc_topic_max(est_docs)
 
         if params["n_topics"] > topic_max:

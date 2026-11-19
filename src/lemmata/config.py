@@ -33,6 +33,14 @@ CHUNK_SIZE_MIN: int = 200
 CHUNK_SIZE_MAX: int = 3000
 CHUNK_SIZE_DEFAULT: int = 1000
 
+# With several files, every file longer than the chunk size is split into
+# parts, as a single file is (P052); files no longer than the chunk size stay
+# whole, so short files are processed exactly as before. Unticking the option
+# restores one document per file (decision 4), the only behaviour before
+# v0.3.0. Option and default (ticked) are the authors' decisions of
+# 19 November 2026.
+CHUNK_EACH_FILE_DEFAULT: bool = True
+
 # ── Topic Modeling ────────────────────────────────────────────────────────────
 # Two inference methods, both deterministic for a given seed (P045).
 # "gibbs" (default): collapsed Gibbs sampling via tomotopy, as in MALLET.

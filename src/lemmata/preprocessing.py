@@ -367,6 +367,7 @@ def process_documents(
     custom_stopwords: set[str] | None = None,
     chunk_size: int = CHUNK_SIZE_DEFAULT,
     nlp: Language | None = None,
+    chunk_each_file: bool = False,
 ) -> tuple[list[str], list[str], dict[str, Any]]:
     """Run the full preprocessing pipeline.
 
@@ -381,9 +382,15 @@ def process_documents(
     custom_stopwords:
         User-supplied stopwords (lowercased).
     chunk_size:
-        Target word count per chunk (only used for single-file uploads).
+        Target word count per chunk (used for a single file, and for every
+        file when *chunk_each_file* is set).
     nlp:
         Pre-loaded spaCy model.  If *None*, loaded here.
+    chunk_each_file:
+        With several files, split every file longer than *chunk_size* words
+        into chunks, as a single file is (P052). Files no longer than
+        *chunk_size* stay whole, with the file name as label. *False* keeps
+        one document per file (decision 4).
 
     Returns
     -------
@@ -421,7 +428,10 @@ def process_documents(
             logger.info("Empty file skipped: %s", entry["filename"])
             continue
 
-        if single_file:
+        split_this = single_file or (
+            chunk_each_file and len(cleaned.split()) > chunk_size
+        )
+        if split_this:
             chunks = chunk_text(cleaned, filename, chunk_size, nlp)
             if not chunks:
                 empty_chunks_removed += 1

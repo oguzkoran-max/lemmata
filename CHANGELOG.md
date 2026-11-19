@@ -11,6 +11,15 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
 *Decameron*) with Lemmata v0.2.0 and with MALLET. See prompt log P045.
 
 ### Added
+- "Split every file into parts" in the sidebar (P052). With several
+  files, each file is one document unless it is ticked; ticked, every
+  file longer than the chunk size is split as a single file is, and
+  shorter files stay whole. The three Svevo novels in `examples/` give
+  327 documents instead of 3, so 10 topics can be fitted instead of at
+  most 2. Ticked by default, so several long files are now split;
+  untick it for one document per file, the only behaviour before this
+  release. Files no longer than the chunk size are processed as before.
+  The setting is saved with the other parameters.
 - Gibbs sampling inference (tomotopy), now the default method. Defaults
   are MALLET 2.0.8's (alpha sum 5, beta 0.01, 1000 iterations, burn-in
   200) with hyperparameter optimisation every 10 iterations, as in

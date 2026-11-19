@@ -7,6 +7,7 @@ from lemmata.config import (
     APP_VERSION,
     BG_MAIN,
     BG_SIDEBAR,
+    CHUNK_EACH_FILE_DEFAULT,
     CHUNK_SIZE_DEFAULT,
     CHUNK_SIZE_MAX,
     CHUNK_SIZE_MIN,
@@ -66,6 +67,10 @@ class TestConstants:
         assert CHUNK_SIZE_MIN == 200
         assert CHUNK_SIZE_MAX == 3000
         assert CHUNK_SIZE_DEFAULT == 1000
+
+    def test_chunk_each_file_ticked_by_default(self):
+        # Authors' decision of 19 November 2026 (P052).
+        assert CHUNK_EACH_FILE_DEFAULT is True
 
     def test_topic_count_range(self):
         assert NUM_TOPICS_MIN < NUM_TOPICS_DEFAULT < NUM_TOPICS_MAX

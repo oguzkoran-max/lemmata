@@ -144,7 +144,7 @@ What is documented, and its limits:
 
 2. **Expert input.** A corpus linguist advised on spaCy and the default part-of-speech filter before development. Most other technical decisions were proposed by the language model and accepted by the developer.
 
-3. **Automated testing.** The test suite (203 tests in v0.3.0) checks determinism and module behaviour. It did not catch two errors found later by a validation study, both fixed in v0.3.0 (see [CHANGELOG](CHANGELOG.md)).
+3. **Automated testing.** The test suite (208 tests in v0.3.0) checks determinism and module behaviour. It did not catch two errors found later by a validation study, both fixed in v0.3.0 (see [CHANGELOG](CHANGELOG.md)).
 
 An article on the development process is in preparation.
 

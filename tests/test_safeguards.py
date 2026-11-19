@@ -58,6 +58,17 @@ class TestEstimateNDocuments:
         texts = [{"filename": "a.txt", "content": "short text"}]
         assert estimate_n_documents(texts, chunk_size=1000) == 1
 
+    def test_chunk_each_file_counts_parts_of_long_files(self):
+        # P052: 3,000 words → 3 parts; 500 words stays one document.
+        texts = [
+            {"filename": "a.txt", "content": "word " * 3000},
+            {"filename": "b.txt", "content": "word " * 500},
+        ]
+        assert estimate_n_documents(texts, chunk_size=1000) == 2
+        assert estimate_n_documents(
+            texts, chunk_size=1000, chunk_each_file=True,
+        ) == 4
+
 
 class TestCheckImbalancedCorpus:
     """Verify imbalanced corpus warning (decision 128)."""

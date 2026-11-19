@@ -261,6 +261,49 @@ class TestProcessDocuments:
         for label in labels:
             assert "_0" not in label or label.startswith("doc")
 
+    # ── chunk_each_file (P052) ──────────────────────────────────────────
+
+    _LONG = " ".join(["This is a test sentence."] * 50)  # 250 words
+    _SHORT = "A short note here."  # 4 words
+
+    def test_chunk_each_file_splits_long_files_only(self, mock_nlp):
+        corpus = [
+            {"filename": "long.txt", "content": self._LONG},
+            {"filename": "short.txt", "content": self._SHORT},
+        ]
+        _, labels, _ = process_documents(
+            texts=corpus, language="en", chunk_size=20, nlp=mock_nlp,
+            chunk_each_file=True,
+        )
+        long_parts = [lb for lb in labels if lb.startswith("long_")]
+        assert len(long_parts) > 1
+        assert long_parts[0] == "long_001"
+        # The short file stays whole, labelled with its name.
+        assert labels[-1] == "short"
+        assert len(labels) == len(long_parts) + 1
+
+    def test_chunk_each_file_off_keeps_one_document_per_file(self, mock_nlp):
+        corpus = [
+            {"filename": "long.txt", "content": self._LONG},
+            {"filename": "short.txt", "content": self._SHORT},
+        ]
+        _, labels, _ = process_documents(
+            texts=corpus, language="en", chunk_size=20, nlp=mock_nlp,
+        )
+        assert labels == ["long", "short"]
+
+    def test_chunk_each_file_leaves_short_files_unchanged(
+        self, sample_corpus, mock_nlp,
+    ):
+        # Files no longer than the chunk size are processed exactly as before.
+        off = process_documents(texts=sample_corpus, language="it", nlp=mock_nlp)
+        on = process_documents(
+            texts=sample_corpus, language="it", nlp=mock_nlp,
+            chunk_each_file=True,
+        )
+        assert on[0] == off[0]
+        assert on[1] == off[1]
+
     def test_empty_file_skipped(self, mock_nlp):
         corpus = [
             {"filename": "empty.txt", "content": ""},
