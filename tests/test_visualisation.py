@@ -247,6 +247,17 @@ class TestCreateTopicMap:
         assert isinstance(result, str)
         assert "ldavis" in result.lower()
 
+    def test_fit_to_width_wraps_map_unchanged(self):
+        from lemmata.visualisation import fit_html_to_width
+
+        inner = '<div id="ldavis_el1"></div><script>var x = 1;</script>'
+        page = fit_html_to_width(inner, min_scale=0.5)
+        # The map itself is embedded as it was; only a wrapper is added.
+        assert inner in page
+        assert page.index('id="lemmata-fit-outer"') < page.index(inner)
+        assert "var MIN = 0.5;" in page
+        assert "scale(" in page
+
     def test_fallback_follows_display_order(self):
         components = np.array([[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]])
         doc_topic = np.array([[0.1, 0.7, 0.2], [0.1, 0.5, 0.4]])

@@ -82,6 +82,10 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (by prevalence).
 
 ### Fixed
+- The Topic Map (pyLDAvis) draws at about 1,210 px, wider than the main
+  column, so its right-hand panel (term bars and relevance slider) was cut
+  off. The in-app map is now scaled to the column width, down to 60%;
+  below that the frame scrolls (P051).
 - spaCy gives some forms with clitics a lemma of several words ("farmi"
   -> "fare mi"). The stoplists were checked against the whole lemma, so
   parts such as "mi", "si" and "ne" reached the model. Each part is now
@@ -110,6 +114,13 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   wrong order. It now cites the software (Zenodo DOI), as README and
   CITATION.cff do. The About text and `pyproject.toml` list the authors
   as Koran, Yücesan, Cangır.
+
+### Security
+- DOCX, ODT and EPUB uploads are ZIP containers, so the 50 MB upload limit
+  only bounded their compressed size. Archives that expand beyond 200 MB
+  (or 40 MB of XML/HTML) are now rejected before parsing, and parsed
+  uploads are cached instead of being parsed again on every interaction
+  (P050; committed on main as 801fe1e under the title P045).
 
 ### Known issues
 - pyLDAvis passes a scikit-learn MDS parameter scheduled for removal in

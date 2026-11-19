@@ -82,6 +82,7 @@ from lemmata.visualisation import (
     create_topic_map,
     create_wordcloud,
     COHERENCE_NOTE,
+    fit_html_to_width,
     get_topic_color,
 )
 
@@ -1222,9 +1223,10 @@ def _tab_topic_map(results: dict[str, Any]) -> None:
     )
 
     if isinstance(result, str):
-        # pyLDAvis HTML.
+        # pyLDAvis HTML, scaled to the column width (it draws at about
+        # 1,210 x 844 px, wider than the column, so its right panel was cut).
         import streamlit.components.v1 as components
-        components.html(result, height=800, scrolling=True)
+        components.html(fit_html_to_width(result), height=850, scrolling=True)
     else:
         # Altair fallback.
         st.altair_chart(result, use_container_width=False)

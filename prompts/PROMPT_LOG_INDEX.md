@@ -50,5 +50,6 @@
 | P048 | Sourced help texts; chunk-size minimum of 200 words; C_v on every word shown | 4 Nov 2026 | 196 |
 | P049 | Stopword parts of multi-word lemmas no longer reach the model | 7 Nov 2026 | 198 |
 | P050 | Guard archive uploads against zip bombs, cache file parsing (committed as "P045" on main, 801fe1e) | 13 Nov 2026 | 170 |
+| P051 | Fit the Topic Map to the column width | 19 Nov 2026 | 203 |
 
 P043 and P044 (4 July 2026) have commits but no prompt log files.

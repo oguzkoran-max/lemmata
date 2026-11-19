@@ -489,6 +489,46 @@ def create_topic_map(
         return _topic_map_fallback(components, doc_topic)
 
 
+def fit_html_to_width(html: str, min_scale: float = 0.6) -> str:
+    """Shrink an embedded HTML visualisation to the width of its frame.
+
+    pyLDAvis draws at a fixed size of about 1,200 px, wider than the main
+    column of the app, so the right-hand panel (the term bars and the
+    relevance slider) was cut off. The returned page measures the drawing
+    once it appears and scales it down to the frame width, never below
+    *min_scale* (a legibility choice, not from literature); below that the
+    frame scrolls instead. Only the in-app view uses this; the exported HTML
+    is unchanged.
+    """
+    return (
+        "<style>html,body{margin:0;padding:0}</style>\n"
+        '<div id="lemmata-fit-outer" style="overflow:hidden">'
+        '<div id="lemmata-fit-inner" style="width:max-content;transform-origin:0 0">\n'
+        f"{html}\n"
+        "</div></div>\n"
+        "<script>\n"
+        "(function () {\n"
+        '  var outer = document.getElementById("lemmata-fit-outer");\n'
+        '  var inner = document.getElementById("lemmata-fit-inner");\n'
+        f"  var MIN = {float(min_scale)};\n"
+        "  function fit() {\n"
+        "    var w = inner.scrollWidth, h = inner.scrollHeight;\n"
+        "    var avail = document.documentElement.clientWidth;\n"
+        "    if (!w || !h || !avail) return;\n"
+        "    var s = Math.max(MIN, Math.min(1, avail / w));\n"
+        '    inner.style.transform = s < 1 ? "scale(" + s + ")" : "";\n'
+        '    outer.style.width = Math.ceil(w * s) + "px";\n'
+        '    outer.style.height = Math.ceil(h * s) + "px";\n'
+        "  }\n"
+        "  new MutationObserver(fit).observe(inner, {childList: true, subtree: true});\n"
+        '  window.addEventListener("resize", fit);\n'
+        '  window.addEventListener("load", fit);\n'
+        "  fit();\n"
+        "})();\n"
+        "</script>\n"
+    )
+
+
 def _topic_map_fallback(components: np.ndarray, doc_topic: np.ndarray) -> alt.Chart:
     """2-D PCA scatter of topic centres as pyLDAvis fallback."""
     from sklearn.decomposition import PCA
