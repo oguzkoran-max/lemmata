@@ -30,6 +30,7 @@ from lemmata.config import (
     GIBBS_ITERATIONS,
     GIBBS_ITERATIONS_MAX,
     GIBBS_ITERATIONS_MIN,
+    LANGUAGE_NAMES,
     LDA_MAX_ITER,
     LDA_MAX_ITER_MAX,
     LDA_MAX_ITER_MIN,
@@ -71,7 +72,12 @@ from lemmata.modelling import (
     sweep_coherence,
     topic_stability,
 )
-from lemmata.preprocessing import check_language_match, load_spacy_model, process_documents
+from lemmata.preprocessing import (
+    check_language_match,
+    detect_language_mismatch,
+    load_spacy_model,
+    process_documents,
+)
 from lemmata.visualisation import (
     configure_altair_theme,
     create_diachronic_chart,
@@ -216,8 +222,7 @@ def _render_sidebar() -> dict[str, Any]:
 
         # ── Language ──────────────────────────────────────────────────────
         lang_options = list(SUPPORTED_LANGUAGES.keys())
-        lang_labels = {"it": "Italian", "en": "English", "de": "German",
-                       "fr": "French", "es": "Spanish"}
+        lang_labels = LANGUAGE_NAMES
         language = st.selectbox(
             "Language",
             options=lang_options,
@@ -674,16 +679,20 @@ def _run_analysis(
 ) -> dict[str, Any]:
     """Execute the full pipeline with st.status progress (decision 35)."""
     # Run early language check so we can show a warning even if the
-    # pipeline crashes (decision 58 / P022).
+    # pipeline crashes (decision 58 / P022). Since P054 it first compares
+    # the texts with every supported language, and its warning is also
+    # shown after a successful run (before, it appeared only on a crash).
     early_lang_warning: str | None = None
     try:
-        nlp = _load_spacy(params["language"])
-        early_lang_warning = check_language_match(texts, nlp)
+        early_lang_warning = detect_language_mismatch(texts, params["language"])
+        if early_lang_warning is None:
+            nlp = _load_spacy(params["language"])
+            early_lang_warning = check_language_match(texts, nlp)
     except Exception:
         pass  # If the check itself fails, just skip it.
 
     try:
-        return _run_analysis_inner(texts, params)
+        results = _run_analysis_inner(texts, params)
     except Exception as exc:
         # Show early language warning *before* the error so the user
         # sees the likely root cause first.
@@ -701,6 +710,12 @@ def _run_analysis(
         for key in ("results", "analysis_done"):
             st.session_state.pop(key, None)
         return {}
+
+    if results and early_lang_warning:
+        trace = results.setdefault("preprocessing_trace", {})
+        if not trace.get("language_warning"):
+            trace["language_warning"] = early_lang_warning
+    return results
 
 
 def _run_analysis_inner(

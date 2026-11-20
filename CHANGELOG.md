@@ -91,6 +91,12 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (by prevalence).
 
 ### Fixed
+- No language mismatch was reported after a successful run: the early
+  check (P022) was shown only when the analysis failed, and the check
+  after preprocessing did not fire when a wrong language was selected.
+  The texts are now also compared with every supported language's
+  stop-word list, so Spanish text run as Italian is caught too, and the
+  warning is shown above the results (P054).
 - The Topic Map (pyLDAvis) draws at about 1,210 px, wider than the main
   column, so its right-hand panel (term bars and relevance slider) was cut
   off. The in-app map is now scaled to the column width, down to 60%;

@@ -22,6 +22,11 @@ from lemmata.config import (
     CHUNK_SIZE_DEFAULT,
     DEFAULT_POS_TAGS,
     ENCODING_FALLBACK_CHAIN,
+    LANGUAGE_CHECK_MARGIN,
+    LANGUAGE_CHECK_MAX_FILES,
+    LANGUAGE_CHECK_WINDOW_CHARS,
+    LANGUAGE_CHECK_WINDOWS,
+    LANGUAGE_NAMES,
     LOW_TOKEN_RATIO_THRESHOLD,
     MIN_UNIQUE_LEMMAS_WARNING,
     SUPPORTED_LANGUAGES,
@@ -243,6 +248,68 @@ def check_language_match(
             "matches your text."
         )
     return None
+
+
+_RE_WORD = re.compile(r"[^\W\d_]+")
+
+
+def _language_sample(texts: list[dict[str, str]]) -> str:
+    """Windows from the middle of each file, so title pages and licence
+    boilerplate at the start or end of a file carry little weight."""
+    n, size = LANGUAGE_CHECK_WINDOWS, LANGUAGE_CHECK_WINDOW_CHARS
+    parts: list[str] = []
+    for entry in texts[:LANGUAGE_CHECK_MAX_FILES]:
+        text = entry["content"]
+        if len(text) <= n * size:
+            parts.append(text)
+            continue
+        for i in range(n):
+            start = int(len(text) * (i + 0.5) / n) - size // 2
+            parts.append(text[start:start + size])
+    return " ".join(parts)
+
+
+def stopword_shares(sample: str) -> dict[str, float]:
+    """Share of the sample's words on each supported language's spaCy
+    stop-word list (P054). Uses the lists only, no language model."""
+    from importlib import import_module
+
+    words = [w.lower() for w in _RE_WORD.findall(sample)]
+    if not words:
+        return {}
+    shares: dict[str, float] = {}
+    for lang in SUPPORTED_LANGUAGES:
+        stops = import_module(f"spacy.lang.{lang}.stop_words").STOP_WORDS
+        shares[lang] = sum(w in stops for w in words) / len(words)
+    return shares
+
+
+def detect_language_mismatch(
+    texts: list[dict[str, str]], language: str,
+) -> str | None:
+    """Warn when the texts look more like another supported language (P054).
+
+    Compares the stop-word share of a sample under the selected language
+    with the other supported languages. Closely related languages share
+    many function words (Italian and Spanish: "a", "del", "la", "se"), so a
+    check on the selected language alone can pass the wrong one.
+    """
+    shares = stopword_shares(_language_sample(texts))
+    if language not in shares:
+        return None
+    best = max((lg for lg in shares if lg != language), key=shares.get)
+    if shares[best] - shares[language] <= LANGUAGE_CHECK_MARGIN:
+        return None
+    best_name = LANGUAGE_NAMES.get(best, best)
+    sel_name = LANGUAGE_NAMES.get(language, language)
+    return (
+        f"Your texts look more like {best_name} than {sel_name}, the "
+        f"selected language. In samples from your files, "
+        f"{shares[best]:.0%} of the words are on spaCy's {best_name} "
+        f"stopword list and {shares[language]:.0%} on the {sel_name} one. "
+        "Lemmas, parts of speech and stopwords all come from the selected "
+        "language, so check the language setting."
+    )
 
 
 def load_spacy_model(language: str) -> Language:

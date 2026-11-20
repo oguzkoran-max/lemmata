@@ -30,6 +30,57 @@ class TestCheckLanguageMatch:
         result = check_language_match(texts, mock_nlp)
         assert result is None
 
+    # ── detect_language_mismatch (P054) ─────────────────────────────────
+
+    _ES = ("La vieja ciudad dormía a orillas del ancho río. En las calles "
+           "estrechas, los niños jugaban hasta la noche. Las casas de los "
+           "comerciantes tenían ventanas altas y puertas pesadas. El alcalde "
+           "hablaba cada domingo delante de la gran iglesia, pero los vecinos "
+           "rara vez le creían.")
+    _IT = ("La vecchia città dormiva sulle rive del largo fiume. Nelle vie "
+           "strette i bambini giocavano fino alla sera. Le case dei mercanti "
+           "avevano finestre alte e porte pesanti. Il sindaco parlava ogni "
+           "domenica davanti alla grande chiesa, ma i cittadini gli credevano "
+           "di rado.")
+
+    def test_spanish_text_with_italian_selected_is_flagged(self):
+        from lemmata.preprocessing import detect_language_mismatch
+
+        warning = detect_language_mismatch(
+            [{"filename": "es.txt", "content": self._ES}], "it",
+        )
+        assert warning is not None
+        assert "Spanish" in warning and "Italian" in warning
+
+    def test_matching_language_is_not_flagged(self):
+        from lemmata.preprocessing import detect_language_mismatch
+
+        assert detect_language_mismatch(
+            [{"filename": "es.txt", "content": self._ES}], "es",
+        ) is None
+        assert detect_language_mismatch(
+            [{"filename": "it.txt", "content": self._IT}], "it",
+        ) is None
+
+    def test_sample_skips_front_matter(self):
+        # A long Italian text that opens with English boilerplate is still
+        # read as Italian: the sample comes from the middle of the file.
+        from lemmata.preprocessing import detect_language_mismatch
+
+        text = ("The Project Gutenberg eBook of this work is for the use of "
+                "anyone anywhere at no cost and with almost no restrictions. "
+                * 20) + (" " + self._IT) * 40
+        assert detect_language_mismatch(
+            [{"filename": "it.txt", "content": text}], "it",
+        ) is None
+
+    def test_no_words_gives_no_warning(self):
+        from lemmata.preprocessing import detect_language_mismatch
+
+        assert detect_language_mismatch(
+            [{"filename": "n.txt", "content": "123 456 ..."}], "it",
+        ) is None
+
     def test_samples_limited_chars(self, mock_nlp):
         long_text = "word " * 10000
         texts = [{"filename": "a.txt", "content": long_text}]
