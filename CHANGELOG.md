@@ -51,6 +51,10 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   figures are in `metrics.json`.
 
 ### Changed
+- README, CITATION.cff and "How to cite" give Zenodo's concept DOI
+  (10.5281/zenodo.19391729), which resolves to the latest version,
+  instead of the DOI of v0.1.0, and https://lda.lemmata.app, where the
+  app runs, as its address (P055).
 - Vocabulary pruning follows the standard that Maier et al. (2020,
   *Computational Communication Research* 2: 139–152) report for topic
   models in the social sciences: terms in fewer than 0.5% or in more than 99% of the documents

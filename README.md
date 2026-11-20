@@ -1,6 +1,6 @@
 # Lemmata
 
-![CI](https://github.com/oguzkoran-max/lemmata/actions/workflows/ci.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg) ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg) ![Streamlit](https://img.shields.io/badge/Streamlit-deployed-FF4B4B.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19391730.svg)](https://doi.org/10.5281/zenodo.19391730)
+![CI](https://github.com/oguzkoran-max/lemmata/actions/workflows/ci.yml/badge.svg) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg) ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg) ![Streamlit](https://img.shields.io/badge/Streamlit-deployed-FF4B4B.svg) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19391729.svg)](https://doi.org/10.5281/zenodo.19391729)
 
 ## Screenshot
 
@@ -28,7 +28,7 @@ Upload your texts, choose your language, adjust parameters, and download reprodu
 
 No installation required. Open the platform in your browser:
 
-**[lemmata.app](https://lemmata.app)**
+**[lda.lemmata.app](https://lda.lemmata.app)**
 
 1. Select your language and POS filter in the sidebar.
 2. Upload one or more files (.txt, .pdf, .odt, .docx, .epub) or paste text directly.
@@ -157,7 +157,7 @@ An article on the development process is in preparation.
   author       = {Koran, Oğuz and Yücesan, Barış and Cangır, Hakan},
   title        = {Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities},
   year         = {2026},
-  url          = {https://lemmata.app}
+  url          = {https://lda.lemmata.app}
 }
 ```
 

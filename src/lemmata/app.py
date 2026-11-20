@@ -486,12 +486,13 @@ def _render_sidebar() -> dict[str, Any]:
         # ── How to cite (decision 24) ────────────────────────────────────
         with st.expander("How to cite"):
             # Cites the software (as README and CITATION.cff do); no article
-            # on Lemmata has been published yet.
+            # on Lemmata has been published yet. Concept DOI: it resolves to
+            # the latest version (authors' decision, 20 Nov 2026, P055).
             st.code(
                 "Koran, O., Yücesan, B., & Cangır, H. (2026). "
                 "Lemmata: A Multilingual LDA Topic Modeling Platform for "
                 f"Digital Humanities (Version {APP_VERSION}) [Computer software]. "
-                "https://doi.org/10.5281/zenodo.19391730",
+                "https://doi.org/10.5281/zenodo.19391729",
                 language=None,
             )
             st.code(
@@ -502,8 +503,8 @@ def _render_sidebar() -> dict[str, Any]:
                 "Platform for Digital Humanities},\n"
                 f"  version={{{APP_VERSION}}},\n"
                 "  year={2026},\n"
-                "  doi={10.5281/zenodo.19391730},\n"
-                "  url={https://lemmata.app}\n"
+                "  doi={10.5281/zenodo.19391729},\n"
+                "  url={https://lda.lemmata.app}\n"
                 "}",
                 language="bibtex",
             )

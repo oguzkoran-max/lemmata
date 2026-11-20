@@ -18,13 +18,13 @@ authors:
     email: hcangir@ankara.edu.tr
     affiliation: "Ankara University, School of Foreign Languages, Applied Linguistics"
     orcid: "https://orcid.org/0000-0003-2589-2466"
-doi: "10.5281/zenodo.19391730"
+doi: "10.5281/zenodo.19391729"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.19391730"
-    description: "Zenodo archive"
+    value: "10.5281/zenodo.19391729"
+    description: "Zenodo concept DOI (all versions; resolves to the latest)"
 repository-code: "https://github.com/oguzkoran-max/lemmata"
-url: "https://lemmata.app"
+url: "https://lda.lemmata.app"
 abstract: >-
   Lemmata is a browser-based, multilingual LDA topic modeling platform
   designed for humanities researchers with no programming expertise.

@@ -61,7 +61,7 @@ markers = [
 ]
 
 [project.urls]
-Homepage = "https://lemmata.app"
+Homepage = "https://lda.lemmata.app"
 Repository = "https://github.com/oguzkoran-max/lemmata"
 Documentation = "https://github.com/oguzkoran-max/lemmata#readme"
 "Bug Tracker" = "https://github.com/oguzkoran-max/lemmata/issues"
