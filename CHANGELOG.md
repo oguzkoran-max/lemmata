@@ -142,7 +142,8 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   only bounded their compressed size. Archives that expand beyond 200 MB
   (or 40 MB of XML/HTML) are now rejected before parsing, and parsed
   uploads are cached instead of being parsed again on every interaction
-  (P050; committed on main as 801fe1e under the title P045).
+  (P050; committed on main as 801fe1e under the title P045). The cache
+  is kept per browser session and cleared when the session ends (P057).
 
 ### Known issues
 - pyLDAvis passes a scikit-learn MDS parameter scheduled for removal in

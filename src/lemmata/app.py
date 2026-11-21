@@ -167,7 +167,9 @@ class _UploadedBytes:
         return self._data
 
 
-@st.cache_data(show_spinner=False, max_entries=8, ttl=3600)
+# scope="session": entries are removed when the browser session ends, so
+# parsed texts are not shared across sessions or kept after them (P057).
+@st.cache_data(show_spinner=False, max_entries=8, ttl=3600, scope="session")
 def _read_files_cached(
     files: tuple[tuple[str, bytes], ...],
 ) -> tuple[list[dict[str, str]], list[str]]:
