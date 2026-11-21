@@ -5,7 +5,7 @@ type: software
 authors:
   - given-names: Oğuz
     family-names: Koran
-    email: oguz.koran@ankara.edu.tr
+    email: koran@ankara.edu.tr
     affiliation: "Ankara University, School of Foreign Languages, Italian Language and Literature"
     orcid: "https://orcid.org/0000-0001-7954-9597"
   - given-names: Barış
