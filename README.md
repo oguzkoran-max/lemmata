@@ -5,10 +5,10 @@
 ## Screenshot
 
 <p align="center">
-  <img src="docs/screenshot-overview.png" alt="Lemmata Overview — Svevo analysis with 5 topics" width="800">
+  <img src="assets/screenshot-overview.png" alt="Lemmata Overview tab: La coscienza di Zeno, 10 topics, Gibbs sampling" width="800">
 </p>
 
-<p align="center"><em>Analysis of Italo Svevo's <i>La coscienza di Zeno</i> — 5 topics, C_v coherence 0.5220</em></p>
+<p align="center"><em>Italo Svevo, <i>La coscienza di Zeno</i>, default settings (10 topics, Gibbs sampling, seed 42). Coherence is shown with an explanation, without a quality label.</em></p>
 
 **A multilingual LDA topic modeling platform for humanities researchers.**
 
@@ -49,11 +49,11 @@ No installation required. Open the platform in your browser:
 | **Coherence scoring** | C_v coherence (Röder et al. 2015) with an explanation of what it measures; no quality bands, since the earlier cut-offs had no source |
 | **Interactive charts** | Altair-based interactive visualizations with hover details |
 | **Topic Map** | pyLDAvis visualization with graceful fallback |
-| **Preprocessing trace** | Token-level table showing every step (original, lemma, kept/removed, reason) |
+| **Preprocessing trace** | Token-level table with each token's lemma, part of speech, and whether it was kept or removed |
 | **Deterministic results** | A fixed seed (default 42) gives identical results on repeated runs with either inference method |
-| **Topic stability check** | Refits the model with 10 seeds and shows how often each topic recurs (measure of Agrawal, Fu and Menzies 2018) |
+| **Topic stability check** | Fits the model 9 more times with the seeds that follow yours and shows in how many of the 10 runs each topic recurs (measure of Agrawal, Fu and Menzies 2018) |
 | **PDF report** | Auto-generated analysis report suitable for course assignments or publications |
-| **ZIP export** | All outputs (CSV, JSON, PNG, SVG, environment report) in one download |
+| **ZIP export** | Tables (CSV), metrics and results (JSON) and the environment report in one download; the PDF report and the heatmap (PNG, SVG) download separately |
 
 ---
 
@@ -112,7 +112,7 @@ lemmata/
 ├── modelling.py        # LDA (tomotopy Gibbs, scikit-learn variational), coherence (Gensim)
 ├── visualisation.py    # Charts, wordclouds, pyLDAvis (zero st.* calls)
 ├── file_io.py          # File readers, ZIP/PDF export, environment report
-├── requirements.txt    # Pinned dependencies
+├── requirements.txt    # Dependencies (spaCy language models pinned to 3.8.0)
 ├── ARCHITECTURE.md     # 200 design decisions
 ├── prompts/            # Development prompt logs
 └── tests/              # Pytest test suite
@@ -157,6 +157,7 @@ An article on the development process is in preparation.
   author       = {Koran, Oğuz and Yücesan, Barış and Cangır, Hakan},
   title        = {Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities},
   year         = {2026},
+  doi          = {10.5281/zenodo.19391729},
   url          = {https://lda.lemmata.app}
 }
 ```

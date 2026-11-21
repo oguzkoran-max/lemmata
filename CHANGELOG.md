@@ -158,6 +158,13 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   forms may receive wrong lemmas (see the Language help text for the
   measured accuracy on older Italian).
 
+## [0.2.0] — 2026-05-17
+
+Documentation release (GitHub release "Full prompt log archive
+(P001–P041) + 200 architectural decisions"). The application code is
+that of v0.1.0, and the app still reports v0.1.0. Archived on Zenodo
+(10.5281/zenodo.20258842).
+
 ## [0.1.0] — 2026-04-02
 
 ### Core Platform
