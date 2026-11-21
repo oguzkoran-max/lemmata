@@ -11,6 +11,8 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
 *Decameron*) with Lemmata v0.2.0 and with MALLET. See prompt log P045.
 
 ### Added
+- The environment report (PDF, ZIP, environment.json) records the spaCy
+  language model and its version (P059).
 - "Split every file into parts" in the sidebar (P052). With several
   files, each file is one document unless it is ticked; ticked, every
   file longer than the chunk size is split as a single file is, and
@@ -98,6 +100,8 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (by prevalence).
 
 ### Fixed
+- The file uploader allowed 100 MB per file while the app's limit is
+  50 MB; both now say 50 MB (P059).
 - No language mismatch was reported after a successful run: the early
   check (P022) was shown only when the analysis failed, and the check
   after preprocessing did not fire when a wrong language was selected.

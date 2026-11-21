@@ -25,6 +25,7 @@ from lemmata.config import (
     MAX_ARCHIVE_UNCOMPRESSED_MB,
     MAX_FILE_SIZE_MB,
     MAX_TOTAL_SIZE_MB,
+    SUPPORTED_LANGUAGES,
     ZIP_NAME_TEMPLATE,
 )
 from lemmata.preprocessing import detect_encoding
@@ -713,6 +714,17 @@ def get_environment_info(params: dict[str, Any]) -> dict[str, Any]:
             info[f"{pkg}_version"] = version(pkg)
         except Exception:
             info[f"{pkg}_version"] = "not installed"
+
+    # The spaCy language model used for the selected language (P059).
+    model = SUPPORTED_LANGUAGES.get(str(params.get("language", "")))
+    if model:
+        info["spacy_model"] = model
+        try:
+            from importlib.metadata import version
+
+            info["spacy_model_version"] = version(model)
+        except Exception:
+            info["spacy_model_version"] = "not installed"
 
     info["parameters"] = params
     return info

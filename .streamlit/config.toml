@@ -6,4 +6,5 @@ font = "sans serif"
 
 [server]
 headless = true
-maxUploadSize = 100
+# Matches MAX_FILE_SIZE_MB in config.py (P059).
+maxUploadSize = 50

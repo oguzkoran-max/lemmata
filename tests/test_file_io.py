@@ -292,6 +292,13 @@ class TestGetEnvironmentInfo:
         assert "platform" in info
         assert "parameters" in info
 
+    def test_records_spacy_model_of_selected_language(self):
+        # P059: the model name and version are part of the environment.
+        info = get_environment_info({"seed": 42, "language": "it"})
+        assert info["spacy_model"] == "it_core_news_sm"
+        assert info["spacy_model_version"]
+        assert "spacy_model" not in get_environment_info({"seed": 42})
+
     def test_includes_params(self):
         params = {"seed": 42, "language": "it"}
         info = get_environment_info(params)
