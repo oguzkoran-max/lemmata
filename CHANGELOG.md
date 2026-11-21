@@ -28,7 +28,10 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   optimises beta).
 - "Inference method" selector in Advanced settings. The variational
   method (scikit-learn), Lemmata's only method before this release,
-  remains available to reproduce earlier results.
+  remains available. It does not by itself reproduce earlier results:
+  vocabulary pruning (P047), clitic handling (P049), early stopping and
+  the new defaults also change them. To reproduce an earlier result
+  exactly, use the release that produced it (archived on Zenodo).
 - Method, iterations used and priors in the results caption,
   `metrics.json` and the environment report (with the tomotopy version).
 - Gibbs runs report how much the log-likelihood per word changed in the

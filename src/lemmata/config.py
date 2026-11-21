@@ -45,7 +45,8 @@ CHUNK_EACH_FILE_DEFAULT: bool = True
 # Two inference methods, both deterministic for a given seed (P045).
 # "gibbs" (default): collapsed Gibbs sampling via tomotopy, as in MALLET.
 # "variational": scikit-learn batch variational Bayes, the only method
-# before v0.3.0; kept so earlier results can be reproduced.
+# before v0.3.0; kept as an alternative. Earlier results need the
+# earlier release (P056).
 
 NUM_TOPICS_MIN: int = 2
 NUM_TOPICS_MAX: int = 30

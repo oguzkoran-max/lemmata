@@ -119,7 +119,7 @@ lemmata/
 ```
 
 **Design decisions:**
-- Two inference methods: Gibbs sampling (tomotopy), the default since v0.3.0, with MALLET's default settings; variational Bayes (scikit-learn), the only method before v0.3.0, kept to reproduce earlier results.
+- Two inference methods: Gibbs sampling (tomotopy), the default since v0.3.0, with MALLET's default settings; variational Bayes (scikit-learn), the only method before v0.3.0, still available. Other v0.3.0 changes also affect results; to reproduce an earlier result exactly, use the release that produced it (archived on Zenodo).
 - Gensim CoherenceModel used independently for C_v evaluation.
 - The use of spaCy and the default part-of-speech filter (NOUN, PROPN, ADJ) follow the advice of a corpus linguist (Doç. Dr. Hakan Cangır), given before development. The choice of small (sm) spaCy models was proposed by the language model during planning.
 

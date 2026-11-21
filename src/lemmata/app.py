@@ -361,8 +361,10 @@ def _render_sidebar() -> dict[str, Any]:
                 help="Gibbs sampling is the method of MALLET, the standard "
                      "tool in the field; its defaults follow MALLET. "
                      "Variational Bayes is faster and was Lemmata's only "
-                     "method before v0.3.0; choose it to reproduce earlier "
-                     "results.",
+                     "method before v0.3.0. Other changes in v0.3.0 "
+                     "(vocabulary pruning, for example) also change results, "
+                     "so to reproduce an earlier result exactly, use the "
+                     "release that produced it (archived on Zenodo).",
             )
             seed = st.number_input(
                 "Random seed",
