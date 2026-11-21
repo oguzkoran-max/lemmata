@@ -629,8 +629,8 @@ def _render_welcome() -> None:
     """Show welcome screen for first-time visitors (decision 26)."""
     st.markdown("### Welcome to Lemmata")
     st.markdown(
-        "Lemmata helps you discover themes in your text corpus using "
-        "**LDA topic modeling** — no coding required."
+        "Lemmata helps you find recurring topics in your text corpus "
+        "with **LDA topic modeling**, with no coding required."
     )
 
     col1, col2, col3 = st.columns(3)
@@ -667,10 +667,11 @@ def _render_welcome() -> None:
 
     with st.expander("Sample data"):
         st.markdown(
-            "To try Lemmata, you can use short public-domain texts. "
-            "Check the `examples/` folder in the "
-            "[GitHub repository](https://github.com/oguzkoran-max/lemmata) "
-            "for sample Italian, English, and German texts."
+            "To try Lemmata, use the three Italian novels by Italo Svevo "
+            "(public domain) in the `examples/` folder of the "
+            "[GitHub repository](https://github.com/oguzkoran-max/lemmata). "
+            "Choose Italian as the language. The folder's README gives "
+            "the settings."
         )
 
 

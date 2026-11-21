@@ -57,5 +57,6 @@
 | P055 | Cite the concept DOI and the app's own address | 20 Nov 2026 | 212 |
 | P056 | Correct what the variational method is said to reproduce | 21 Nov 2026 | 212 |
 | P057 | Keep parsed uploads in a per-session cache | 21 Nov 2026 | 212 |
+| P058 | Sample data and welcome text that match v0.3.0 | 21 Nov 2026 | 212 |
 
 P043 and P044 (4 July 2026) have commits but no prompt log files.

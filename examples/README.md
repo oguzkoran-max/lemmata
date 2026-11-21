@@ -19,10 +19,12 @@ Three novels by Italo Svevo (1861-1928), collectively known as the Trieste Trilo
 - **Chunk Size:** 1000 (Lemmata's default)
 - **Words per Topic:** 10
 
-Chunk size applies only when a single file is uploaded. Upload one novel at
-a time to have it split into parts of about this many words. If you upload
-the three novels together, each novel becomes one document (three documents
-in all) and Lemmata lowers the number of topics to 2.
+With "Split every file into parts" ticked (the default), every file longer
+than the chunk size is split into parts of about that many words. Uploaded
+together, the three novels give 327 documents (La coscienza di Zeno 144,
+Una vita 116, Senilità 67), and the default 10 topics can be fitted. Untick
+the box to treat each novel as one document; with three documents Lemmata
+allows at most 2 topics.
 
 ## Source
 
