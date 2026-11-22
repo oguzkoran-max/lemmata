@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="delta-workbench-url" content="https://delta.lemmata.app/">
+<meta name="description" content="How Delta works: a scholar-led, uncertainty-aware stylometry workbench. One corpus, four most-frequent-word settings, a distance matrix as primary evidence, and a preservation-oriented research record.">
+<title>How Delta works · The Living Corpus</title>
+<link rel="canonical" href="https://lemmata.app/delta/">
+<link rel="alternate" hreflang="en" href="https://lemmata.app/delta/">
+<link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/delta/">
+<link rel="alternate" hreflang="x-default" href="https://lemmata.app/delta/">
+<meta name="theme-color" content="#070E0C">
+<link rel="icon" href="/delta/assets/favicon-32x32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231FA97C'/%3E%3Ctext x='16' y='24' font-size='21' text-anchor='middle' fill='%2306110D' font-family='Georgia,serif'%3E%CE%94%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/delta/assets/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Lemmata">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="tr_TR">
+<meta property="og:title" content="How Delta works · The Living Corpus">
+<meta property="og:description" content="Every text leaves a trace. A scholar-led, uncertainty-aware stylometry workbench: the distance matrix is the primary evidence, and distance is a relation, not a verdict.">
+<meta property="og:url" content="https://lemmata.app/delta/">
+<meta property="og:image" content="https://lemmata.app/delta/assets/og-delta.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="How Delta works: two ink columns joined by a web of measurement lines on off-white paper">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How Delta works · The Living Corpus">
+<meta name="twitter:description" content="Every text leaves a trace. A scholar-led, uncertainty-aware stylometry workbench: the distance matrix is the primary evidence, and distance is a relation, not a verdict.">
+<meta name="twitter:image" content="https://lemmata.app/delta/assets/og-delta.jpg">
+<link rel="preload" href="/delta/assets/keyvis-hero.jpg" as="image">
+<link rel="preload" href="/assets/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/delta/assets/styles.css">
+<link rel="stylesheet" href="/delta/assets/intro.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Delta (Lemmata stylometry workbench)","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","url":"https://delta.lemmata.app/","description":"A scholar-led, uncertainty-aware stylometry workbench for literary and digital-humanities research.","license":"https://opensource.org/licenses/MIT","author":[{"@type":"Person","name":"Oğuz Koran","@id":"https://orcid.org/0000-0001-7954-9597","sameAs":"https://orcid.org/0000-0001-7954-9597"},{"@type":"Person","name":"Barış Yücesan","@id":"https://orcid.org/0000-0002-1776-9815","sameAs":"https://orcid.org/0000-0002-1776-9815"}],"isPartOf":{"@type":"WebSite","name":"Lemmata","url":"https://lemmata.app/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"mainEntityOfPage":"https://lemmata.app/delta/"}
+</script>
+<link rel="stylesheet" href="/assets/accessibility.css?v=20261113d">
+<link rel="stylesheet" href="/assets/site.css?v=20261119a">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="hd intro-aware">
+  <a class="wm" href="/"><span class="mk" aria-hidden="true">Δ</span><span class="tx">Delta</span><span class="sub">Stylometry</span></a>
+  <a class="ghost cine-summary" href="#summary" hidden>Skip to the summary</a>
+  <span class="lang"><b>EN</b> · <a href="/tr/delta/">TR</a></span>
+  <a class="cta" href="https://delta.lemmata.app/" data-workbench>Open the workbench</a>
+</header>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#F2EDE0" stroke-opacity=".3" stroke-width="1"/>
+    </pattern>
+    <pattern id="ticksP" width="16" height="24" patternUnits="userSpaceOnUse">
+      <line x1="8" y1="5" x2="8" y2="19" stroke="#F2EDE0" stroke-opacity=".66" stroke-width="1"/>
+    </pattern>
+    <pattern id="gridP" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" fill="none" stroke="#1FA97C" stroke-opacity=".55" stroke-width=".7"/>
+    </pattern>
+    <filter id="tooth" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.94  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 0.05 0"/>
+    </filter>
+    <clipPath id="cg2"><rect x="700" y="196" width="480" height="116"/></clipPath>
+    <clipPath id="cg4"><rect x="700" y="392" width="480" height="84"/></clipPath>
+    <clipPath id="cg6"><rect x="700" y="564" width="480" height="96"/></clipPath>
+
+    <g id="mono">
+      
+      <g opacity=".3" stroke="#F2EDE0" stroke-width="1">
+        <line x1="640" y1="872" x2="1240" y2="872"/>
+        <line x1="700" y1="866" x2="700" y2="878"/><line x1="940" y1="866" x2="940" y2="878"/><line x1="1180" y1="866" x2="1180" y2="878"/>
+      </g>
+
+      
+      <g class="st" style="--d:-150;--jx:26;--jy:-18;--jr:-2.2;--cx:-600;--cy:278;--mx:-220;--my:206">
+        <rect x="700" y="120" width="480" height="64" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="120" width="480" height="64" class="lift" fill="#F5F1E6"/>
+        <rect x="700" y="120" width="480" height="64" fill="url(#hatch)" class="stx"/>
+        <rect x="700" y="120" width="480" height="64" filter="url(#tooth)" class="stx"/>
+        <rect x="700" y="120" width="480" height="64" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="120" width="2.5" height="64" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:-104;--jx:-30;--jy:12;--jr:1.6;--cx:-600;--cy:306;--mx:-220;--my:148">
+        <rect x="700" y="196" width="480" height="116" fill="#F5F1E6" fill-opacity=".19"/>
+        <rect x="700" y="196" width="480" height="116" class="lift" fill="#F5F1E6"/>
+        <g clip-path="url(#cg2)" class="stx" fill="#F5F1E6" font-family="Fraunces,Georgia,serif">
+          <text x="716" y="296" font-size="104" font-weight="560" opacity=".46">the</text>
+          <text x="912" y="292" font-size="82" font-weight="430" opacity=".4" font-style="italic">of</text>
+          <text x="1016" y="298" font-size="94" font-weight="600" opacity=".44">and</text>
+          <text x="734" y="382" font-size="64" font-weight="500" opacity=".34">a</text>
+          <text x="796" y="382" font-size="60" opacity=".32" font-style="italic">in</text>
+          <text x="874" y="382" font-size="62" font-weight="560" opacity=".36">to</text>
+        </g>
+        <rect x="700" y="196" width="480" height="116" fill="none" stroke="#F5F1E6" stroke-opacity=".42" stroke-width="1"/>
+        <rect x="700" y="196" width="2.5" height="116" fill="#F2EDE0" opacity=".78" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:-60;--jx:18;--jy:-10;--jr:-1.2;--cx:-280;--cy:78;--mx:-220;--my:94">
+        <rect x="700" y="324" width="480" height="56" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="324" width="480" height="56" class="lift" fill="#F5F1E6"/>
+        <rect x="712" y="330" width="456" height="44" fill="url(#ticksP)" class="stx"/>
+        <rect x="700" y="324" width="480" height="56" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="324" width="2.5" height="56" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:-22;--jx:-22;--jy:16;--jr:2;--cx:-280;--cy:126;--mx:-220;--my:56">
+        <rect x="700" y="392" width="480" height="84" fill="#F5F1E6" fill-opacity=".18"/>
+        <rect x="700" y="392" width="480" height="84" class="lift" fill="#F5F1E6"/>
+        <g clip-path="url(#cg4)" class="stx" fill="#F5F1E6" font-family="Fraunces,Georgia,serif" font-size="30">
+          <text x="726" y="430" opacity=".5">,</text><text x="768" y="444" opacity=".38">.</text>
+          <text x="806" y="426" opacity=".53">;</text><text x="850" y="448" opacity=".38">:</text>
+          <text x="888" y="432" opacity=".46">·</text><text x="930" y="444" opacity=".38">,</text>
+          <text x="968" y="428" opacity=".52">—</text><text x="1042" y="446" opacity=".38">.</text>
+          <text x="1080" y="430" opacity=".48">;</text><text x="1122" y="444" opacity=".4">,</text>
+        </g>
+        <rect x="700" y="392" width="480" height="84" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="392" width="2.5" height="84" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:18;--jx:14;--jy:-14;--jr:-1.6;--cx:80;--cy:-90;--mx:-220;--my:14">
+        <rect x="700" y="488" width="480" height="64" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="488" width="480" height="64" class="lift" fill="#F5F1E6"/>
+        <rect x="708" y="494" width="464" height="52" fill="url(#gridP)" class="stx"/>
+        <rect x="700" y="488" width="480" height="64" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="488" width="2.5" height="64" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:62;--jx:-26;--jy:10;--jr:1.2;--cx:80;--cy:-52;--mx:-220;--my:-34">
+        <rect x="700" y="564" width="480" height="96" fill="#F5F1E6" fill-opacity=".19"/>
+        <rect x="700" y="564" width="480" height="96" class="lift" fill="#F5F1E6"/>
+        <g clip-path="url(#cg6)" class="stx" fill="#F5F1E6" font-family="Fraunces,Georgia,serif">
+          <text x="718" y="634" font-size="58" font-weight="380" opacity=".42">it</text>
+          <text x="782" y="644" font-size="66" font-weight="620" opacity=".38">is</text>
+          <text x="856" y="632" font-size="54" opacity=".44" font-style="italic">was</text>
+          <text x="972" y="644" font-size="62" font-weight="520" opacity=".36">that</text>
+          <text x="1096" y="636" font-size="56" opacity=".4">he</text>
+        </g>
+        <rect x="700" y="564" width="480" height="96" fill="none" stroke="#F5F1E6" stroke-opacity=".42" stroke-width="1"/>
+        <rect x="700" y="564" width="2.5" height="96" fill="#F2EDE0" opacity=".78" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:112;--jx:20;--jy:-12;--jr:-1;--cx:360;--cy:-272;--mx:-220;--my:-80">
+        <rect x="700" y="672" width="480" height="60" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="672" width="480" height="60" class="lift" fill="#F5F1E6"/>
+        <rect x="700" y="672" width="9" height="60" fill="#C57B4A" opacity=".92" class="stx"/>
+        <line x1="718" y1="720" x2="1162" y2="720" stroke="#C57B4A" stroke-opacity=".55" stroke-width="1" class="stx"/>
+        <rect x="700" y="672" width="480" height="60" fill="none" stroke="#C57B4A" stroke-opacity=".4" stroke-width="1"/>
+      </g>
+      <g class="st" style="--d:160;--jx:-16;--jy:18;--jr:1.8;--cx:360;--cy:-232;--mx:-220;--my:-126">
+        <rect x="700" y="744" width="480" height="96" fill="#F5F1E6" fill-opacity=".18"/>
+        <rect x="700" y="744" width="480" height="96" class="lift" fill="#F5F1E6"/>
+        <rect x="708" y="752" width="464" height="80" fill="url(#gridP)" class="stx" opacity=".8"/>
+        <rect x="708" y="752" width="464" height="80" fill="url(#ticksP)" class="stx" opacity=".5"/>
+        <rect x="700" y="744" width="480" height="96" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="744" width="2.5" height="96" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+
+      
+      <g opacity="calc(.55 - var(--mat)*.4)" stroke="#1FA97C" stroke-width="1">
+        <line x1="560" y1="522" x2="1320" y2="522"/>
+        <line x1="700" y1="517" x2="700" y2="527"/><line x1="855" y1="517" x2="855" y2="527"/>
+        <line x1="1010" y1="517" x2="1010" y2="527"/><line x1="1165" y1="517" x2="1165" y2="527"/>
+      </g>
+
+      
+      <g class="mgrid">
+        <rect x="480" y="340" width="480" height="352" fill="#123227" fill-opacity=".6" stroke="#5DCAA5" stroke-opacity=".95" stroke-width="2.2"/>
+        <g stroke="#F2EDE0" stroke-opacity=".35" stroke-width="1">
+          <line x1="468" y1="384" x2="480" y2="384"/><line x1="468" y1="472" x2="480" y2="472"/>
+          <line x1="468" y1="560" x2="480" y2="560"/><line x1="468" y1="648" x2="480" y2="648"/>
+          <line x1="576" y1="702" x2="576" y2="692"/><line x1="672" y1="702" x2="672" y2="692"/>
+          <line x1="768" y1="702" x2="768" y2="692"/><line x1="864" y1="702" x2="864" y2="692"/>
+        </g>
+        <g stroke="#1FA97C" stroke-opacity=".5" stroke-width=".7">
+          <path d="M480 384H960M480 428H960M480 472H960M480 516H960M480 560H960M480 604H960M480 648H960"/>
+          <path d="M528 340V692M576 340V692M624 340V692M672 340V692M720 340V692M768 340V692M816 340V692M864 340V692M912 340V692"/>
+        </g>
+        <g class="mdots" fill="#5DCAA5">
+          <g class="md0">
+            <circle cx="552" cy="362" r="5" opacity=".9"/><circle cx="648" cy="406" r="5" opacity=".5"/>
+            <circle cx="744" cy="450" r="5" opacity=".75"/><circle cx="840" cy="384" r="5" opacity=".4"/>
+            <circle cx="600" cy="494" r="5" opacity=".65"/><circle cx="696" cy="538" r="5" opacity=".85"/>
+            <circle cx="888" cy="582" r="5" opacity=".55"/><circle cx="552" cy="626" r="5" opacity=".7"/>
+            <circle cx="792" cy="670" r="5" opacity=".45"/><circle cx="936" cy="450" r="5" opacity=".6"/>
+          </g>
+          <g class="md1">
+            <circle cx="600" cy="362" r="5" opacity=".85"/><circle cx="696" cy="384" r="5" opacity=".5"/>
+            <circle cx="552" cy="450" r="5" opacity=".7"/><circle cx="888" cy="406" r="5" opacity=".45"/>
+            <circle cx="648" cy="538" r="5" opacity=".8"/><circle cx="744" cy="582" r="5" opacity=".5"/>
+            <circle cx="840" cy="516" r="5" opacity=".65"/><circle cx="936" cy="626" r="5" opacity=".75"/>
+            <circle cx="576" cy="670" r="5" opacity=".4"/><circle cx="816" cy="362" r="5" opacity=".55"/>
+          </g>
+          <g class="md2">
+            <circle cx="648" cy="384" r="5" opacity=".9"/><circle cx="744" cy="362" r="5" opacity=".45"/>
+            <circle cx="576" cy="516" r="5" opacity=".75"/><circle cx="864" cy="450" r="5" opacity=".6"/>
+            <circle cx="696" cy="604" r="5" opacity=".5"/><circle cx="792" cy="538" r="5" opacity=".8"/>
+            <circle cx="912" cy="516" r="5" opacity=".4"/><circle cx="600" cy="648" r="5" opacity=".7"/>
+            <circle cx="888" cy="648" r="5" opacity=".6"/><circle cx="528" cy="406" r="5" opacity=".5"/>
+          </g>
+          <g class="md3">
+            <circle cx="576" cy="406" r="5" opacity=".8"/><circle cx="672" cy="450" r="5" opacity=".5"/>
+            <circle cx="768" cy="406" r="5" opacity=".7"/><circle cx="912" cy="384" r="5" opacity=".55"/>
+            <circle cx="624" cy="560" r="5" opacity=".9"/><circle cx="720" cy="516" r="5" opacity=".4"/>
+            <circle cx="864" cy="604" r="5" opacity=".65"/><circle cx="552" cy="582" r="5" opacity=".5"/>
+            <circle cx="816" cy="670" r="5" opacity=".75"/><circle cx="936" cy="538" r="5" opacity=".6"/>
+          </g>
+        </g>
+      </g>
+
+      
+      <g class="minis">
+        <g>
+          <rect x="1040" y="450" width="290" height="104" fill="none" stroke="#F2EDE0" stroke-opacity=".3" stroke-width="1"/>
+          <g>
+            <rect x="1048" y="458" width="66" height="20" fill="#1FA97C" opacity=".85"/><rect x="1118" y="458" width="66" height="20" fill="#1FA97C" opacity=".55"/><rect x="1188" y="458" width="66" height="20" fill="#1FA97C" opacity=".3"/><rect x="1258" y="458" width="64" height="20" fill="#F2EDE0" opacity=".14"/>
+            <rect x="1048" y="482" width="66" height="20" fill="#1FA97C" opacity=".5"/><rect x="1118" y="482" width="66" height="20" fill="#1FA97C" opacity=".75"/><rect x="1188" y="482" width="66" height="20" fill="#F2EDE0" opacity=".12"/><rect x="1258" y="482" width="64" height="20" fill="#1FA97C" opacity=".4"/>
+            <rect x="1048" y="506" width="66" height="20" fill="#1FA97C" opacity=".3"/><rect x="1118" y="506" width="66" height="20" fill="#F2EDE0" opacity=".12"/><rect x="1188" y="506" width="66" height="20" fill="#1FA97C" opacity=".65"/><rect x="1258" y="506" width="64" height="20" fill="#1FA97C" opacity=".5"/>
+            <rect x="1048" y="530" width="66" height="16" fill="#F2EDE0" opacity=".1"/><rect x="1118" y="530" width="66" height="16" fill="#1FA97C" opacity=".45"/><rect x="1188" y="530" width="66" height="16" fill="#1FA97C" opacity=".35"/><rect x="1258" y="530" width="64" height="16" fill="#1FA97C" opacity=".8"/>
+          </g>
+        </g>
+        <g>
+          <rect x="1040" y="610" width="290" height="150" fill="none" stroke="#F2EDE0" stroke-opacity=".3" stroke-width="1"/>
+          <g fill="#5DCAA5">
+            <circle cx="1092" cy="650" r="3.4" opacity=".85"/><circle cx="1118" cy="666" r="3.4" opacity=".7"/>
+            <circle cx="1104" cy="690" r="3.4" opacity=".8"/><circle cx="1210" cy="642" r="3.4" opacity=".6"/>
+            <circle cx="1238" cy="660" r="3.4" opacity=".7"/><circle cx="1286" cy="718" r="3.4" opacity=".55"/>
+            <circle cx="1176" cy="726" r="3.4" opacity=".65"/><circle cx="1150" cy="702" r="3.4" opacity=".75"/>
+          </g>
+        </g>
+      </g>
+
+      
+      <g class="record" transform="translate(0 34)">
+        <rect class="frame" x="520" y="300" width="400" height="420" rx="4" fill="#0C1714" fill-opacity=".88" stroke="#F2EDE0" stroke-opacity=".85" stroke-width="1.6" pathLength="1"/>
+        <g font-family="InterVar,ui-sans-serif,sans-serif" font-size="13" font-weight="650" letter-spacing="1.6" fill="#F2EDE0">
+          <g class="row" style="--rt:.06"><text x="548" y="348" opacity=".85">RUN REFERENCE</text><line x1="548" y1="360" x2="892" y2="360" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="348" x2="892" y2="348" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.16"><text x="548" y="400" opacity=".85">CORPUS DOCUMENTATION</text><line x1="548" y1="412" x2="892" y2="412" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="400" x2="892" y2="400" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.26"><text x="548" y="452" opacity=".85">PARAMETERS · 100–1,000 MFW</text><line x1="548" y1="464" x2="892" y2="464" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="452" x2="892" y2="452" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.36"><text x="548" y="504" opacity=".85">MATRIX OUTPUT</text><line x1="548" y1="516" x2="892" y2="516" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="504" x2="892" y2="504" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.46"><text x="548" y="556" fill="#C57B4A" opacity=".95">RIGHTS SUMMARY</text><line x1="548" y1="568" x2="892" y2="568" stroke="#C57B4A" stroke-opacity=".6"/><line x1="878" y1="556" x2="892" y2="556" stroke="#C57B4A" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.56"><text x="548" y="608" fill="#D8683C" opacity=".95">INTERPRETATION BOUNDARY</text><line x1="548" y1="620" x2="892" y2="620" stroke="#D8683C" stroke-opacity=".55"/><line x1="878" y1="608" x2="892" y2="608" stroke="#D8683C" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.66"><text x="548" y="660" opacity=".85">EXPORT RECORD</text><line x1="548" y1="672" x2="892" y2="672" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="660" x2="892" y2="660" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+        </g>
+        <g class="seal" stroke="#1FA97C" stroke-width="2" fill="none">
+          <circle cx="864" cy="694" r="15" stroke-opacity=".9"/>
+          <path d="M856 694 l6 7 12 -13"/>
+          <line x1="520" y1="736" x2="920" y2="736" stroke-opacity=".85"/>
+        </g>
+      </g>
+
+      
+      <g class="motif">
+        <g transform="translate(408 318)">
+          <text x="0" y="64" font-family="Fraunces,Georgia,serif" font-size="78" font-weight="560" fill="#F2EDE0" opacity=".4">e</text>
+          <rect x="2" y="82" width="76" height="7" fill="#F2EDE0" opacity=".4"/>
+          <rect x="2" y="96" width="54" height="7" fill="#1FA97C" opacity=".65"/>
+          <rect x="2" y="110" width="66" height="7" fill="#F2EDE0" opacity=".25"/>
+        </g>
+        <g transform="translate(950 620)" stroke="#5DCAA5" stroke-opacity=".6" stroke-width="1">
+          <line x1="0" y1="0" x2="0" y2="16"/><line x1="10" y1="-4" x2="10" y2="20"/><line x1="20" y1="2" x2="20" y2="14"/>
+        </g>
+      </g>
+    </g>
+  </defs>
+</svg>
+
+<main id="main">
+
+
+<section class="cine" aria-label="How Delta works · cinematic chapter">
+  <div class="scene" data-scene>
+    <div class="pin">
+      <span class="scene-counter" aria-hidden="true" hidden></span>
+      <div class="plate" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="ruler"></span></div>
+      <div class="stagewrap" aria-hidden="true">
+        <svg viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice" role="presentation" focusable="false"><use href="#mono"/></svg>
+      </div>
+      <figure class="keyvis" aria-hidden="true">
+        <video id="motion-1" data-src="/delta/assets/keyvis-hero.mp4" poster="/delta/assets/keyvis-hero.jpg" muted loop playsinline preload="none" width="1600" height="893"></video>
+      </figure><button type="button" class="motion-toggle" aria-controls="motion-1" aria-pressed="false">Play animation</button>
+
+      
+      <div class="blk b1">
+        <div class="inner">
+          <p class="eyebrow">Delta · A Lemmata stylometry workbench</p>
+          <h1 class="h-mega">Every text leaves a&nbsp;<em class="xr">trace.</em></h1>
+          <p class="lede" style="margin:26px 0 30px">A scholar-led, uncertainty-aware stylometry workbench for literary and digital-humanities research. Corpus choices, parameters, and limitations stay visible.</p>
+          <p class="ctas"><a class="btn" href="https://delta.lemmata.app/" data-workbench>Open the workbench</a><a class="ghost" href="#methods">Read the method note</a><a class="ghost" href="#summary">Skip to the summary</a></p>
+          <p class="status" style="margin-top:22px">Public alpha · Experimental</p>
+          <p class="alpha-note">Tested with small corpora. A run accepts at most 50 texts, only a few corpora can be open at once, and large corpora can fail.</p>
+        </div>
+      </div>
+
+      
+      <div class="blk b2">
+        <h2 class="h-act">A corpus is already an argument.</h2>
+        <p class="sup">Genre, date, edition, audience, source, rights, and OCR shape what a comparison can mean. Delta asks you to document texts before any analysis.</p>
+      </div>
+      <ul class="rail2" aria-hidden="true">
+        <li style="--t:.19;top:13%">GENRE</li>
+        <li style="--t:.21;top:27%">DATE</li>
+        <li style="--t:.23;top:39%">EDITION</li>
+        <li style="--t:.25;top:52%">AUDIENCE</li>
+        <li style="--t:.27;top:65%">SOURCE</li>
+        <li class="rights" style="--t:.23;top:76%">Rights: unknown<small>Recorded. The text is not analysed and is not cleared for public redistribution.</small></li>
+        <li style="--t:.30;top:92%">OCR</li>
+      </ul>
+
+      
+      <div class="blk b3">
+        <h2 class="h-act">One setting is not <em class="xr">evidence.</em></h2>
+        <p class="sup">Guided comparisons run 100, 300, 500, and 1,000 most-frequent-word settings together. 500 MFW opens first as a pre-specified display reference, not a best or optimal setting.</p>
+        <span class="mrule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+      <div class="lenses" aria-hidden="true">
+        <div class="l100"><div class="n">100</div><div class="u">MFW</div><div class="t"></div></div>
+        <div class="l300"><div class="n">300</div><div class="u">MFW</div><div class="t"></div></div>
+        <div class="l500"><div class="n">500</div><div class="u">MFW</div><div class="t"></div></div>
+        <div class="l1000"><div class="n">1,000</div><div class="u">MFW</div><div class="t"></div></div>
+      </div>
+
+      
+      <div class="blk b4">
+        <h2 class="h-act">Distance is a relation, not a verdict.</h2>
+        <p class="sup">Nearer means more similar measured patterns inside this corpus and this setting. The numerical distance matrix is the primary evidence; the heatmap and the MDS projection are renderings of the same matrix.</p>
+      </div>
+      <div class="matlabel" aria-hidden="true"><b>DISTANCE MATRIX</b><p>Primary evidence · cells carry the numbers in the workbench</p></div>
+      <div class="secondary" aria-hidden="true">
+        <p style="margin-bottom:64px"><b>HEATMAP</b>Rendering of the same matrix · colour scale local to the selection</p>
+        <p><b>MDS PROJECTION</b>Supporting view · axes have no literary meaning; apparent clusters can be projection artefacts</p>
+      </div>
+
+      
+      <div class="blk b5">
+        <h2 class="h-act">Change the lens, watch the relation <em class="xr">move.</em></h2>
+        <p class="sup" style="margin:0 auto">A persuasive picture can still be sensitive to corpus composition, parameters, and projection. Delta keeps all four comparisons and every corpus warning side by side, with no winner-takes-all view and no confidence score.</p>
+        <p class="boundary" style="text-align:left">Do not conclude: nearer does not mean the same author, influence, intention, or authenticity.</p>
+      </div>
+      <div class="dial" aria-hidden="true">
+        <div class="track"><span class="stop"></span><span class="stop"></span><span class="stop"></span><span class="stop"></span><span class="ind"></span></div>
+        <div class="nums"><span>100</span><span>300</span><span>500</span><span>1,000</span></div>
+      </div>
+
+      
+      <div class="blk b6">
+        <h2 class="h-act">Keep the numbers, not just the picture.</h2>
+        <p class="sup" style="margin:14px auto 0">Delta's records download as JSON and CSV files: the corpus inventory with its rights records, method settings, numerical results, and stated interpretation limits. A single FAIR package is not part of this alpha.</p>
+      </div>
+
+      <p class="stagecap capnote">Conceptual visualisation · not an analysis result</p>
+      <p class="cue">Scroll · the corpus opens</p>
+    </div>
+  </div>
+</section>
+
+
+<div class="stacked">
+  <section class="sact s1" aria-label="Every text leaves a trace">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-hero.jpg" alt="" loading="eager" decoding="async"></div>
+    <div class="fg">
+      <p class="eyebrow">Delta · A Lemmata stylometry workbench</p>
+      <h1 class="h-mega">Every text leaves a&nbsp;<em class="xr">trace.</em></h1>
+      <p class="lede">A scholar-led, uncertainty-aware stylometry workbench for literary and digital-humanities research. Corpus choices, parameters, and limitations stay visible.</p>
+      <p class="ctas"><a class="btn" href="https://delta.lemmata.app/" data-workbench>Open the workbench</a><a class="ghost" href="#methods">Method note</a></p>
+      <p class="status">Public alpha · Experimental</p>
+      <p class="alpha-note">Tested with small corpora. A run accepts at most 50 texts, only a few corpora can be open at once, and large corpora can fail.</p>
+    </div>
+    <p class="capnote">Conceptual visualisation · not an analysis result</p>
+  </section>
+
+  <section class="sact s2" aria-label="A corpus is already an argument">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-02.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="fg">
+      <h2 class="h-act">A corpus is already an argument.</h2>
+      <p class="sup">Genre, date, edition, audience, source, rights, and OCR shape what a comparison can mean. Delta asks you to document texts before any analysis.</p>
+      <ul class="rails">
+        <li><span>GENRE · DATE · EDITION</span><span class="v">documented</span></li>
+        <li><span>AUDIENCE · SOURCE · OCR</span><span class="v">documented</span></li>
+        <li class="rights"><span>RIGHTS</span><span class="v">unknown, recorded, not analysed, not cleared for public redistribution</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sact s3" aria-label="One setting is not evidence">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-04.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="fg">
+      <h2 class="h-act">One setting is not <em class="xr">evidence.</em></h2>
+      <p class="sup">Guided comparisons run 100, 300, 500, and 1,000 most-frequent-word settings together. 500 MFW opens first as a pre-specified display reference, not a best or optimal setting.</p>
+      <div class="lensrow" aria-hidden="true">
+        <div><div class="n">100</div><div class="u">MFW</div></div>
+        <div><div class="n">300</div><div class="u">MFW</div></div>
+        <div><div class="n">500</div><div class="u">MFW</div></div>
+        <div><div class="n">1,000</div><div class="u">MFW</div></div>
+      </div>
+      <p class="capnote" style="margin-top:14px;text-align:center">All four stay visible together · none is marked best</p>
+    </div>
+  </section>
+
+  <section class="sact s4" aria-label="Distance is a relation, not a verdict">
+    <div class="art" aria-hidden="true"><svg viewBox="450 315 540 400" style="--settle:1;--sep:0;--col:0;--mat:1;--dial:0;--fold:0" role="presentation" focusable="false"><use href="#mono"/></svg></div>
+    <div class="fg">
+      <h2 class="h-act">Distance is a relation, not a verdict.</h2>
+      <p class="sup">Nearer means more similar measured patterns inside this corpus and this setting. The numerical distance matrix is the primary evidence; the heatmap and the MDS projection are renderings of the same matrix.</p>
+      <p class="capnote" style="margin-top:12px">MDS axes have no literary meaning; apparent clusters can be projection artefacts.</p>
+    </div>
+  </section>
+
+  <section class="sact s5" aria-label="Change the lens, watch the relation move">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-04.jpg" alt="" loading="lazy" decoding="async" style="object-position:70% 62%"></div>
+    <div class="fg">
+      <h2 class="h-act">Change the lens, watch the relation <em class="xr">move.</em></h2>
+      <p class="sup">A persuasive picture can still be sensitive to corpus composition, parameters, and projection. Delta keeps all four comparisons and every corpus warning side by side, with no winner-takes-all view and no confidence score.</p>
+      <p class="boundary" style="margin:18px auto 0;text-align:left">Do not conclude: nearer does not mean the same author, influence, intention, or authenticity.</p>
+    </div>
+  </section>
+
+  <section class="sact s6" aria-label="Keep the numbers, not just the picture">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-03.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="fg">
+      <h2 class="h-act">Keep the numbers, not just the picture.</h2>
+      <p class="sup">Delta's records download as JSON and CSV files: the corpus inventory with its rights records, method settings, numerical results, and stated interpretation limits. A single FAIR package is not part of this alpha.</p>
+      <p class="capnote" style="margin-top:12px">Run reference · Corpus documentation · Parameters · Matrix output · Rights summary · Interpretation boundary · Export record</p>
+    </div>
+  </section>
+</div>
+
+
+<div class="after">
+  <section class="methods" id="methods" aria-label="Method note">
+    <h2>The method, in plain terms</h2>
+    <p>Delta computes Classic Delta (Burrows) distances with the R stylo package.</p>
+    <details open>
+      <summary>What the comparison runs</summary>
+      <div class="dbody"><p>Stylometry observes recurring, measurable patterns in language use, such as how often common words recur. It does not read meaning, topics, or intent. Guided comparisons run 100, 300, 500, and 1,000 most-frequent-word settings together; 500 MFW opens first as a pre-specified display reference, not a best or optimal setting.</p></div>
+    </details>
+    <details>
+      <summary>How to read distance</summary>
+      <div class="dbody"><p>Nearer means more similar measured patterns inside this corpus and this setting. The numerical distance matrix is the primary evidence; the heatmap and the MDS projection are renderings of the same matrix, and the heatmap colour scale is local to the selected matrix. Axes of the MDS projection have no literary meaning; apparent clusters can be projection artefacts.</p></div>
+    </details>
+    <details>
+      <summary>What stays visible</summary>
+      <div class="dbody"><p>If a text's rights status is unknown, Delta records it. You can review the text, but it is not analysed and is not cleared for public redistribution. To run a comparison, each text needs documented permission to upload and analyse it. Delta keeps all four comparisons and every corpus warning side by side, with no winner-takes-all view and no confidence score. Do not conclude: nearer does not mean the same author, influence, intention, or authenticity.</p></div>
+    </details>
+  </section>
+
+  <section class="paths" aria-label="Research paths">
+    <h2>Three research paths</h2>
+    <ul>
+      <li><b>Compare texts</b><p>Recurring language patterns across individual texts.</p><a class="go" href="https://delta.lemmata.app/" data-workbench>In the workbench</a></li>
+      <li><b>Compare groups</b><p>Patterns across documented authors, genres, periods, or audiences.</p><a class="go" href="https://delta.lemmata.app/" data-workbench>In the workbench</a></li>
+      <li><b>Trace style over time</b><p>One writer's dated works in sequence.</p><a class="go" href="https://delta.lemmata.app/" data-workbench>In the workbench</a></li>
+    </ul>
+  </section>
+</div>
+<div class="intro-sections" id="summary">
+<section aria-label="The Delta workbench" class="showcase">
+<div class="window reveal">
+<div aria-hidden="true" class="bar"><i></i><i></i><i></i><span class="url">delta.lemmata.app</span></div>
+<div class="shot"><img alt="The Delta workbench: choose a research question (compare texts, compare groups, or trace style over time), a preparation summary of blockers and warnings, and a guided four-step flow from purpose to evidence" loading="lazy" src="/delta/assets/product-delta.jpg" width="2000" height="1203"></div>
+</div>
+<p class="cap reveal">The workbench documents the corpus <b>before</b> any analysis setting appears. Purpose, corpus, parameters, evidence, in that order.</p>
+</section>
+<section aria-label="What Delta compares" class="band tint" id="compare">
+<div class="inner">
+<h2 class="reveal">Three ways to ask a stylometric question.</h2>
+<p class="sub reveal">In this alpha, a limited part of the guided path has been tested end to end. The full workflows for all three research purposes have not yet been validated.</p>
+<p class="sub reveal">Every comparison is relative to your corpus. Choose the question first; Delta explains the choices that follow.</p>
+<p class="sub reveal">Not ready to upload? Open the workbench and choose "Explore the example", a recorded comparison of three short texts created for it.</p>
+<div class="modes">
+<div class="mode reveal"><div class="k">Compare texts</div><b>Text against text</b><p>Which individual texts show more similar recurring language patterns within this corpus, and where does one focal text sit beside the others.</p></div>
+<div class="mode reveal"><div class="k">Compare groups</div><b>Group against group</b><p>Patterns across documented authors, genres, periods, or audiences, always measured relative to the corpus you assembled.</p></div>
+<div class="mode reveal"><div class="k">Trace style over time</div><b>Works in date order</b><p>How one writer's measured position varies across independently dated works. The dates order the corpus. Chronology alone does not establish ageing, maturation, a turning point, or a cause.</p></div>
+</div>
+</div>
+</section>
+<section aria-label="Citation" class="cite" id="cite">
+<p class="lab reveal">Cite Delta</p>
+<h2 class="reveal">Using Delta in your research?</h2>
+<p class="note reveal">Delta does not yet have an archived software release with a DOI. Until it does, cite the workbench as below. The DOI on the LDA page belongs to Lemmata LDA.</p>
+<pre class="reveal" tabindex="0"><span class="k">@software</span>{koran_delta_2026,
+  author = {Koran, Oğuz and Yücesan, Barış},
+  title  = {Delta: An Uncertainty-Aware Stylometry Workbench},
+  year   = {2026},
+  url    = {https://delta.lemmata.app},
+  note   = {Public alpha}
+}</pre>
+<p class="doi reveal"><a href="https://github.com/oguzkoran-max/delta.lemmata.app">Source code</a> · <a href="#methods">Method note</a></p>
+<p class="authors reveal">Authors · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/Oguz.Koran" rel="noopener" target="_blank">Oğuz Koran</a> <a aria-label="Oğuz Koran ORCID iD" class="orcid" href="https://orcid.org/0000-0001-7954-9597">iD</a></span> · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/byucesan" rel="noopener" target="_blank">Barış Yücesan</a> <a aria-label="Barış Yücesan ORCID iD" class="orcid" href="https://orcid.org/0000-0002-1776-9815">iD</a></span></p>
+</section>
+</div>
+<div class="after">
+  <section class="finale" aria-label="Open the workbench">
+    <div class="residue" aria-hidden="true"><i></i><i></i><i></i>
+      <svg width="34" height="34" viewBox="0 0 34 34" role="presentation" focusable="false"><circle cx="17" cy="17" r="15" fill="none" stroke="#1FA97C" stroke-width="2" stroke-opacity=".9"/><path d="M9.5 17 l6 7 12 -13" fill="none" stroke="#1FA97C" stroke-width="2"/></svg>
+    </div>
+    <h2 class="h-act">Bring your corpus. Keep the choices visible.</h2>
+    <p class="ctas"><a class="btn" href="https://delta.lemmata.app/" data-workbench>Open the workbench</a></p>
+    <p class="status">Public alpha · Experimental</p>
+  </section>
+</div>
+</main>
+
+<footer>
+  <p class="bd">Nearer means more similar measured patterns inside this corpus and this setting. It does not mean the same author, influence, intention, or authenticity.</p>
+  <p>Delta · <a href="/">Lemmata</a> · <a href="/lda/">How Lemmata LDA works</a> · <a href="/tr/delta/" lang="tr">Türkçe</a></p>
+<p class="source-code"><a href="https://github.com/oguzkoran-max/delta.lemmata.app">Source code</a></p>
+<p class="tool-trust">Analyses run on the server that hosts each tool · Last updated 22 November 2026</p>
+</footer>
+
+<script src="/delta/assets/narrative.js" defer></script>
+<script src="/assets/accessibility.js?v=20261113f" defer></script>
+</body>
+</html>

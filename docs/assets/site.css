@@ -1,0 +1,191 @@
+/* Lemmata · site-wide design layer (loaded last on every page).
+   One header, one footer, one link and card language across the root page
+   and the two "how it works" pages. Layout and appearance only. */
+
+/* ---------- header: same rhythm and wordmark on every page ---------- */
+.hd{padding-top:14px;padding-bottom:14px}
+.hd .wm{gap:10px;min-height:44px;align-items:center}
+.hd .wm .mk{width:28px;height:28px;border-radius:6px;background:var(--emerald);color:#06110D;display:grid;place-items:center;font-family:var(--disp);font-weight:600;font-size:17px;line-height:1}
+.hd .wm .tx{font-family:var(--disp);font-variation-settings:"opsz" 28;font-weight:540;font-size:22px;letter-spacing:.005em;color:var(--ivory)}
+.hd .wm .sub{font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#9AA39C;margin-left:0}
+/* header action on the tool pages: quiet outline, the filled button stays the hero's job */
+.hd .cta{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:4px;border:1px solid rgba(245,241,230,.28);background:rgba(7,14,12,.45);color:var(--ivory);font-size:13.5px;font-weight:600;text-decoration:none;letter-spacing:.01em}
+.hd .cta:hover{background:rgba(7,14,12,.6);border-color:var(--mint);color:var(--mint)}
+/* "Skip to the summary": centred in the bar, appears once the opening act has passed
+   (the opening act carries the same link; it is gone at --p .155 Delta / .16 LDA, so the two never show together;
+   accessibility.js removes pointer events while it is invisible) */
+.hd .cine-summary{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-height:44px;padding:0 2px;font-size:13px;letter-spacing:.02em;color:var(--bone);border-bottom:0;text-decoration:underline;text-decoration-color:rgba(245,241,230,.3);text-underline-offset:5px;white-space:nowrap;opacity:clamp(0,calc((var(--p,0) - .16)*25),1);transition:opacity .25s ease}
+.hd .cine-summary:hover{color:var(--mint);text-decoration-color:var(--mint)}
+.hd .cine-summary:focus-visible{opacity:1;pointer-events:auto!important}
+
+/* ---------- cinematic chapter: one bottom rail (caption left, cue centre, counter right) ---------- */
+.pin .stagecap{top:auto;bottom:24px;left:clamp(20px,4vw,56px);margin:0}
+.pin .cue{bottom:24px}
+.scene-counter{right:clamp(20px,4vw,56px);bottom:24px;padding:0;border-radius:0;background:none;color:rgba(245,241,230,.72);opacity:1;font-size:11px;letter-spacing:.2em;font-variant-numeric:tabular-nums}
+.pin>.motion-toggle{right:clamp(20px,4vw,56px);bottom:54px}
+
+/* ---------- after-chapter sections: LDA and Delta share one form ---------- */
+.after .methods{max-width:860px}
+.after .methods h2,.after .paths h2{font-family:var(--disp);font-variation-settings:"opsz" 60;font-weight:500;font-size:clamp(30px,3vw,44px);letter-spacing:-.008em;color:var(--ivory)}
+.after .methods details{border:1px solid rgba(245,241,230,.08);border-radius:8px;margin-top:14px;padding:0;background:rgba(12,23,20,.5)}
+.after .methods summary{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:44px;padding:18px 20px;font-family:var(--sans);font-weight:600;font-size:15.5px;color:var(--ivory);list-style:none}
+.after .methods summary::before{content:none}
+.after .methods summary::after{content:"+";font-family:var(--disp);font-size:22px;line-height:1;color:var(--mint)}
+.after .methods details[open] summary::after{content:"\2212"}
+.after .methods .dbody{padding:0 20px 20px}
+.after .paths{max-width:1100px}
+.after .paths h2{text-align:center;margin-bottom:26px}
+.after .paths ul{display:block;list-style:none;border-top:1px solid rgba(245,241,230,.15)}
+.after .paths li{display:grid;grid-template-columns:minmax(220px,1.25fr) 2fr auto;gap:24px;align-items:baseline;padding:22px 4px;border:0;border-bottom:1px solid rgba(245,241,230,.15);border-radius:0;background:none}
+.after .paths li b{margin:0;font-family:var(--disp);font-variation-settings:"opsz" 96;font-weight:520;font-size:clamp(20px,2vw,27px);letter-spacing:-.005em;color:var(--ivory)}
+.after .paths li p{font-size:14.5px}
+.after .paths li .go{margin:0;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--mint);white-space:nowrap}
+@media (max-width:720px){
+  .after .paths li{grid-template-columns:1fr;gap:6px;padding:20px 0}
+}
+
+/* ---------- LDA features: eight items in balanced rows (4+4, 2x4, 1) ---------- */
+.intro-sections .fgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 36px}
+@media (max-width:1100px){.intro-sections .fgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:36px 40px}}
+@media (max-width:600px){.intro-sections .fgrid{grid-template-columns:1fr;gap:30px}}
+
+/* ---------- radius scale: 4px controls, 8px surfaces ---------- */
+.card{border-radius:8px}
+.cite pre,.intro-sections .cite pre{border-radius:8px}
+.intro-sections .mode{border-radius:8px}
+
+/* ---------- root page: card actions on one row ---------- */
+.card .card-links{margin-top:auto;padding-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:0 26px;border-top:1px solid var(--line2)}
+.card .card-links .go,.card .card-links .how-link{margin:0;padding:0;min-height:44px;display:inline-flex;align-items:center;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:650;text-decoration:none}
+.card .card-links .go{color:var(--emerald-ink)}
+.card .card-links .how-link{color:var(--ink-soft)}
+.card .card-links .go:hover,.card .card-links .how-link:hover{color:#094e39;text-decoration:underline;text-underline-offset:4px}
+.card .st{margin-top:4px}
+
+/* ---------- root hero: the direct tool links read as a quiet secondary row ---------- */
+.hero .tool-links{margin-top:28px;padding-top:6px;border-top:1px solid var(--line);gap:0 24px;width:fit-content;max-width:100%;font-size:14px}
+.hero .tool-links span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:650;color:var(--ink-faint)}
+.hero .tool-links a{font-weight:600;color:var(--emerald-ink)}
+.hero .tool-links a:hover{text-decoration:underline;text-underline-offset:4px}
+
+/* ---------- root "how it works" items: 4, then 2x2, then 1 ---------- */
+@media (max-width:860px){.vgrid{grid-template-columns:1fr 1fr;gap:28px 24px}}
+@media (max-width:560px){.vgrid{grid-template-columns:1fr;gap:22px}}
+
+/* ---------- footer: one structure on every page ---------- */
+footer{max-width:none;margin:0;display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:baseline;gap:10px 22px;padding:44px clamp(20px,4vw,56px) 52px;background:var(--forest);border-top:1px solid rgba(245,241,230,.08);color:#A2B1A8;font-size:13px;line-height:1.6}
+footer p{margin:0;max-width:none}
+footer a{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(93,202,165,.35)}
+footer a:hover{color:#fff;border-color:currentColor}
+footer>p:first-child{color:var(--bone)}
+footer .bd{flex:0 0 100%;max-width:none;padding-right:calc(100% - 72ch);margin-bottom:8px;font-size:14px;color:var(--bone)}
+footer>p:not(.bd):not(.tool-trust)+p:not(.tool-trust){padding-left:22px;border-left:1px solid rgba(245,241,230,.16)}
+footer .tool-trust{flex-basis:100%;margin-top:12px;padding-top:16px;border-top:1px solid rgba(245,241,230,.1);font-size:12.5px;color:#8FA098}
+@media (max-width:640px){
+  footer{flex-direction:column;gap:8px}
+  footer>p:not(.bd):not(.tool-trust)+p:not(.tool-trust){padding-left:0;border-left:0}
+  footer .tool-trust{align-self:stretch}
+}
+@media (prefers-reduced-motion:reduce){.hd .cine-summary{transition:none}}
+
+/* ---------- "Built on trusted open source": one sentence, not a flex row of loose words ---------- */
+.powered,.intro-sections .powered{display:block;line-height:1.9}
+.powered span:first-child,.intro-sections .powered span:first-child{display:inline-block;margin-right:16px}
+
+/* ---------- language switch: underline sits on the text, not 44px below it ---------- */
+.lang a{border-bottom:0;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
+.lang a:hover{text-decoration-color:currentColor}
+@media (max-width:560px){
+  .hero .tool-links{width:100%}
+  .hero .tool-links span{flex-basis:100%;padding-top:10px}
+}
+
+/* ---------- tool pages: the bar never lets scrolling headlines run under the logo ---------- */
+.hd.intro-aware{background:linear-gradient(180deg,rgba(7,14,12,.97) 72%,rgba(7,14,12,0))}
+.hd.intro-aware.over-intro{background:var(--void)}
+
+
+/* ---------- ORCID iD links: at least a 24px target ---------- */
+.orcid,.intro-sections .orcid{display:inline-flex;align-items:center;justify-content:center;min-width:24px;min-height:24px;vertical-align:middle}
+
+/* ---------- browser-frame URL label: 4.5:1 on the paper2 bar (was 4.497:1) ---------- */
+.intro-sections .window .bar .url{color:#66635A}
+
+/* ---------- root hero: keep the ink-network dots out of the text column on desktop
+   (the wash is anchored in px so the dots never sit next to the tool links, whatever the height) ---------- */
+@media (min-width:861px){
+  .hero.light .vis::after{background:linear-gradient(90deg,var(--paper) 0 max(20%,500px),rgba(245,246,244,.5) max(46%,740px),transparent max(76%,1020px))}
+}
+
+/* ---------- tool pages: EN · TR switch in the bar, next to the header action (as on the root page) ---------- */
+.hd.intro-aware .lang{margin-left:auto;margin-right:18px;display:inline-flex;align-items:center;gap:6px;font-size:12px;letter-spacing:.1em;color:#9AA39C}
+.hd.intro-aware .lang b{color:var(--ivory);font-weight:650}
+.hd.intro-aware .lang a{color:#9AA39C;min-height:44px;display:inline-flex;align-items:center;padding:0 2px}
+.hd.intro-aware .lang a:hover{color:var(--mint);text-decoration-color:var(--mint)}
+/* Delta now carries a subtitle like LDA; both drop it on narrow screens (LDA's own rule hides it at 560px) */
+.hd.intro-aware{column-gap:12px}
+@media (max-width:560px){.hd .wm .sub{display:none}.hd.intro-aware .lang{margin-right:0}.hd.intro-aware .cta{padding:0 12px}}
+/* at 420px and below the bar cannot hold logo, switch and action on one line (measured: the LDA pages need about 410px);
+   the footer keeps the language link */
+@media (max-width:420px){.hd.intro-aware .lang{display:none}}
+
+/* ================= 20 Nov 2026 · technical audit fixes (Hakem B report, applied by uzman C) ================= */
+/* B06: anchor jumps and keyboard focus scrolling stop below the fixed 72px bar (WCAG 2.4.11) */
+html{scroll-padding-top:88px}
+/* B07: a scroll-reveal block that receives keyboard focus is shown at once (accessibility.js also marks it .in) */
+.js .reveal:focus-within,.js .intro-sections .reveal:focus-within{opacity:1;transform:none;transition:none}
+/* B08: root-page language switch at full strength: ink-soft is 7.0:1 on paper */
+body.landing .hd nav .lang a{color:var(--ink-soft);opacity:1}
+/* B13a: on narrow screens the "Go straight to a tool" row sits on the hero image: darker label and a soft paper backing */
+@media (max-width:860px){
+  .hero .tool-links span{color:var(--ink-soft)}
+  .hero .tool-links{position:relative;z-index:0}
+  .hero .tool-links::before{content:"";position:absolute;z-index:-1;inset:-4px -14px;background:rgba(245,246,244,.82);filter:blur(10px);border-radius:14px;pointer-events:none}
+}
+/* B13c: About text over the paper-texture video: a soft paper backing behind the text column, team line in ink-soft */
+.paperbg .lab::before{content:"";position:absolute;z-index:-1;inset:9vh 2%;background:rgba(245,246,244,.62);filter:blur(30px);border-radius:60px;pointer-events:none}
+.paperbg .lab .team{color:var(--ink-soft)}
+/* B13b: the product-shot caption sits inside the window's drop shadow */
+.intro-sections .showcase .cap{color:var(--ink-soft)}
+/* B15: at 320px the header action keeps one line */
+@media (max-width:360px){.hd.intro-aware{column-gap:8px}.hd.intro-aware .cta{white-space:nowrap;padding:0 10px;font-size:12.5px}}
+/* B19: "In the workbench" is a real link to the tool now; same look, underline on hover and focus */
+.paths li a.go{text-decoration:none}
+.paths li a.go:hover,.paths li a.go:focus-visible{text-decoration:underline;text-underline-offset:4px}
+/* Hakem B "Emin olamadıklarım 7" (WCAG 1.4.11): at rest the play/pause icon on the light card images and the
+   paper video was about 1.9:1; a darker disc and a stronger resting state give the icon at least 3:1 (hover/focus stay 1) */
+.motion-toggle{background:rgba(10,14,12,.7);opacity:.75}
+
+/* ================= 21 Nov 2026 · approved content changes (uzman E) ================= */
+/* D27: the Delta card shows the live opening screen; on phones the card crops the wide image at the sides,
+   so it is anchored left of centre to keep the headline "Compare the style of texts" whole (desktop shows the full width) */
+.card .art img[src$="/card-delta.jpg"]{object-position:20% 0}
+
+/* ================= 21 Nov 2026 · Fable audit task list (06-fable-denetim.md G01–G16), applied by Opus ================= */
+/* G01 (F05, with Fable's 08 decision): the cinematic chapter needs at least 760px of height and 1024px of width,
+   and a stage between 5:4 and 11:5; outside that (short, narrow, near-square or portrait, very wide and short windows)
+   both tool pages show the composed stacked acts (one width threshold on both pages; the stage SVG is cropped too far there).
+   The progress line belongs to the cinematic chapter only (G14), so it is off in stacked mode too. */
+@media (max-height:759px),(max-width:1023px),(max-aspect-ratio:5/4),(min-aspect-ratio:11/5){
+  .cine{display:none!important}
+  .stacked{display:block!important}
+  .hd.intro-aware::before{display:none}
+}
+/* G07 (F07): the open method-note heading had both the old "– " marker on the left and the "−" on the right */
+.after .methods details[open] summary::before{content:none}
+/* G09 (F09): the product window starts below the dark band with its top corners visible, and its caption keeps a gap to the next band */
+.intro-sections .showcase{margin-top:0;padding-top:clamp(40px,8vh,88px);padding-bottom:clamp(28px,5vh,56px)}
+/* G11 (F15): on phones the BibTeX lines wrap inside the box instead of running out of it (the copied text is unchanged) */
+@media (max-width:900px){.cite pre,.intro-sections .cite pre{white-space:pre-wrap;overflow-wrap:anywhere}}
+/* G12 (F16): a name and its ORCID iD badge stay on one line */
+.who{white-space:nowrap}
+/* G13 (F14): the root citation band gets an even top margin above "Cite Lemmata" */
+body.landing .cite{padding-top:clamp(48px,9vh,96px)}
+/* G14a (F12): the same 2px progress line on the LDA bar as on Delta (LDA already writes --p); Delta's own rule is identical */
+.hd.intro-aware::before{content:"";position:absolute;left:0;top:0;height:2px;background:var(--emerald);width:calc(var(--p,0)*100%);transition:none;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.hd.intro-aware::before{display:none}}
+/* G16 (F17): a soft white fade at the foot of the LDA card image, so the row cut by the crop does not read as half a line of numbers */
+.card .art:has(img[src$="/card-lda.jpg"])::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff);pointer-events:none}
+/* S6 side effect (21 Nov, Opus): "Lemmata'yı başlatın ↗" is wider than "…başlat ↗"; at 340px and below the Turkish bar
+   keeps logo, gap and action inside its padding with a 12px side padding instead of 18px (B15 measure: action edge <= padding) */
+@media (max-width:340px){html[lang="tr"] .hd.intro-aware{padding-left:12px;padding-right:12px}}

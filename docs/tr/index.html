@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Lemmata bir dijital filoloji laboratuvarı. Hesaplamalı edebiyat araştırması için araştırmacıların geliştirdiği, şeffaf ve yeniden üretilebilir araçlar: LDA konu modelleme ve Delta stilometri.">
+<title>Lemmata · Dijital filoloji laboratuvarı</title>
+<link rel="canonical" href="https://lemmata.app/tr/">
+<link rel="alternate" hreflang="en" href="https://lemmata.app/">
+<link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/">
+<link rel="alternate" hreflang="x-default" href="https://lemmata.app/">
+<meta name="theme-color" content="#F5F6F4">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231FA97C'/%3E%3Ctext x='16' y='24' font-size='23' text-anchor='middle' fill='%2306110D' font-family='Georgia,serif'%3E%CE%BB%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lemmata">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:title" content="Lemmata · Dijital filoloji laboratuvarı">
+<meta property="og:description" content="Hesaplamalı edebiyat araştırması için şeffaf ve yeniden üretilebilir araçlar: LDA konu modelleme ve Delta stilometri.">
+<meta property="og:url" content="https://lemmata.app/tr/">
+<meta property="og:image" content="https://lemmata.app/assets/og-lemmata.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Lemmata: kırık beyaz kağıt üzerinde birbirine bağlı düğümlerden oluşan bir ağa dağılan mürekkep">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lemmata · Dijital filoloji laboratuvarı">
+<meta name="twitter:description" content="Hesaplamalı edebiyat araştırması için şeffaf ve yeniden üretilebilir araçlar.">
+<meta name="twitter:image" content="https://lemmata.app/assets/og-lemmata.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Lemmata","url":"https://lemmata.app/tr/","description":"Lemmata bir dijital filoloji laboratuvarı. Hesaplamalı edebiyat araştırması için araştırmacıların geliştirdiği, şeffaf ve yeniden üretilebilir araçlar: LDA konu modelleme ve Delta stilometri.","inLanguage":"tr","hasPart":[{"@type":"SoftwareApplication","name":"Lemmata (LDA Topic Modeling)","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","url":"https://lda.lemmata.app/","license":"https://opensource.org/licenses/MIT","author":[{"@type":"Person","name":"Oğuz Koran","@id":"https://orcid.org/0000-0001-7954-9597","sameAs":"https://orcid.org/0000-0001-7954-9597"},{"@type":"Person","name":"Barış Yücesan","@id":"https://orcid.org/0000-0002-1776-9815","sameAs":"https://orcid.org/0000-0002-1776-9815"},{"@type":"Person","name":"Hakan Cangır","@id":"https://orcid.org/0000-0003-2589-2466","sameAs":"https://orcid.org/0000-0003-2589-2466"}],"sameAs":["https://doi.org/10.5281/zenodo.19391729"],"mainEntityOfPage":"https://lemmata.app/tr/lda/","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"SoftwareApplication","name":"Delta (Lemmata stylometry workbench)","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","url":"https://delta.lemmata.app/","license":"https://opensource.org/licenses/MIT","author":[{"@type":"Person","name":"Oğuz Koran","@id":"https://orcid.org/0000-0001-7954-9597","sameAs":"https://orcid.org/0000-0001-7954-9597"},{"@type":"Person","name":"Barış Yücesan","@id":"https://orcid.org/0000-0002-1776-9815","sameAs":"https://orcid.org/0000-0002-1776-9815"}],"mainEntityOfPage":"https://lemmata.app/tr/delta/","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}
+</script>
+<link rel="preload" href="/assets/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Newsreader";src:url("/assets/fonts/Newsreader-Variable.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"NewsreaderIt";src:url("/assets/fonts/Newsreader-Italic-Variable.woff2") format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+@font-face{font-family:"InterVar";src:url("/assets/fonts/InterVariable.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --void:#070E0C;--forest:#0C1714;
+  --paper:#F5F6F4;--paper2:#EBECE8;--paperCard:#FFFFFF;
+  --ink:#1A1E1B;--ink-soft:#4E564F;--ink-faint:#6E6B60;
+  --emerald:#1FA97C;--emerald-ink:#0B6A4B;--mint:#5DCAA5;--copper:#B4703F;
+  --ivory:#F5F1E6;--bone:#D8D2BE;
+  --line:rgba(27,34,29,.14);--line2:rgba(27,34,29,.09);
+  --sans:"InterVar",ui-sans-serif,system-ui,sans-serif;--disp:"Newsreader",Georgia,serif;
+  --dispIt:"NewsreaderIt","Newsreader",Georgia,serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img{max-width:100%;display:block}
+.skip{position:absolute;left:-9999px;top:0;background:var(--emerald);color:#06110D;padding:10px 18px;z-index:99;font-weight:600}
+.skip:focus{left:0}
+:focus-visible{outline:3px solid var(--emerald);outline-offset:3px}
+
+/* header: transparent over the dark hero, solid warm-paper after scroll */
+.hd{position:fixed;inset:0 0 auto 0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(20px,4vw,56px);color:var(--ink);transition:background .3s ease,color .3s ease,box-shadow .3s ease}
+.hd.solid{background:rgba(245,246,244,.92);backdrop-filter:saturate(1.2) blur(8px);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.wm{display:inline-flex;align-items:center;gap:10px;text-decoration:none;min-height:44px;color:inherit}
+.wm b{font-family:var(--disp);font-variation-settings:"opsz" 28;font-weight:540;font-size:22px;letter-spacing:.005em}
+.wm span{font-size:11px;letter-spacing:.2em;opacity:.7;text-transform:uppercase}
+.hd nav{display:flex;gap:26px;align-items:center}
+.hd nav a{font-size:13.5px;font-weight:600;text-decoration:none;min-height:44px;display:inline-flex;align-items:center;color:inherit;opacity:.9}
+.hd nav a:hover{color:var(--emerald-ink);opacity:1}
+.lang{font-size:12px;letter-spacing:.1em;color:var(--ink-faint);display:inline-flex;align-items:center;gap:6px;margin-left:4px}
+.lang b{color:var(--ink);font-weight:650}
+.lang a{color:var(--ink-faint);text-decoration:none;border-bottom:1px solid var(--line)}
+.lang a:hover{color:var(--emerald-ink);border-color:var(--emerald-ink)}
+
+.hd.solid nav a:hover{color:var(--emerald-ink)}
+
+/* dark cinematic hero (the one dramatic accent) */
+.hero{position:relative;min-height:94svh;display:grid;align-items:center;padding:120px clamp(20px,5vw,64px) 64px;overflow:hidden;background:
+  radial-gradient(1100px 700px at 68% 40%, rgba(31,169,124,.12), transparent 62%),
+  linear-gradient(180deg,#0A1512,var(--forest) 118%)}
+.hero .vis{position:absolute;inset:-8% 0 -8% 0;z-index:1;will-change:transform}
+.hero .vis img,.hero .vis video{width:100%;height:100%;object-fit:cover;object-position:62% 50%;opacity:.9}
+.hero .vis::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,14,12,.92) 0 22%,rgba(7,14,12,.4) 46%,transparent 70%),linear-gradient(0deg,rgba(7,14,12,.55),transparent 42%)}
+/* soft transition into the light body */
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16%;z-index:2;background:linear-gradient(180deg,transparent,var(--paper));pointer-events:none}
+.hero .fg{position:relative;z-index:3;max-width:840px}
+.eyebrow{font-size:11.5px;letter-spacing:.22em;font-weight:650;color:var(--mint);text-transform:uppercase;display:flex;gap:10px;align-items:center;margin-bottom:24px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--emerald)}
+.hero h1{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:460;font-size:clamp(46px,6vw,92px);line-height:1.04;letter-spacing:-.008em;margin-bottom:26px;color:var(--ivory);text-shadow:0 2px 46px rgba(7,14,12,.95)}
+.hero h1 em{font-family:var(--dispIt);font-style:italic;font-weight:430;color:var(--bone)}
+.hero .lede{font-size:clamp(17px,1.35vw,20px);color:var(--bone);max-width:54ch;margin-bottom:34px;text-shadow:0 1px 20px rgba(7,14,12,.9)}
+.ctas{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.tool-links{display:flex;align-items:center;flex-wrap:wrap;gap:0 18px;margin-top:12px;font-size:13px}
+.tool-links span{color:var(--ink-faint)}
+.tool-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--emerald-ink);text-decoration:none}
+.tool-links a:hover{text-decoration:underline}
+.btn{background:var(--emerald);color:#06110D;font-weight:650;font-size:15px;text-decoration:none;padding:15px 26px;border-radius:4px;display:inline-flex;align-items:center;min-height:48px}
+.btn:hover{background:var(--mint)}
+.ghost{font-size:14.5px;color:var(--bone);text-decoration:none;border-bottom:1px solid rgba(242,237,224,.3);padding:10px 2px;min-height:46px;display:inline-flex;align-items:center}
+.ghost:hover{color:var(--mint);border-color:var(--mint)}
+/* light academic hero variant (ivory ink-flow, motif right, headline left) */
+.hero.light{background:radial-gradient(1000px 720px at 80% 62%, rgba(31,169,124,.07), transparent 60%),linear-gradient(180deg,var(--paper),var(--paper2))}
+.hero.light .vis img{object-position:100% 50%;opacity:calc(1 - .46*var(--hp,0));filter:saturate(.5) brightness(1.06) contrast(1.02)}
+.hero.light .vis::after{background:linear-gradient(90deg,var(--paper) 0 20%,rgba(245,246,244,.5) 46%,transparent 76%)}
+.hero.light h1{color:var(--ink);text-shadow:none}
+.hero.light h1 em{color:var(--emerald-ink)}
+.hero.light .lede{color:var(--ink-soft);text-shadow:none}
+.hero.light .eyebrow{color:var(--emerald-ink)}
+.hero.light .ghost{color:var(--ink-soft);border-color:var(--line)}
+.hero.light .ghost:hover{color:var(--emerald-ink);border-color:var(--emerald-ink)}
+/* hero gesture: the ink resolves into the two instruments (one screen, then the cards) */
+.resolve{position:absolute;inset:0;z-index:2;pointer-events:none}
+.seed{position:absolute;top:47%;left:74%;width:clamp(104px,12vw,158px);
+  transform:translate(-50%,-50%) translate(calc(var(--sx,0)*var(--hp,0)*1px), calc(var(--hp,0)*62px)) scale(calc(.84 + .16*var(--hp,0)));
+  opacity:calc(var(--hp,0)*1.25 - .08)}
+.seed .disc{width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:var(--paperCard);
+  border:1px solid rgba(11,106,75,.3);box-shadow:0 20px 44px -24px rgba(20,24,18,.55)}
+.seed .disc img{width:100%;height:100%;object-fit:cover;filter:saturate(.95) brightness(.99) contrast(1.14)}
+.seed-lda .disc img{object-position:80% 42%}
+.seed-delta .disc img{object-position:68% 50%}
+.seed .lbl{margin-top:11px;text-align:center;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:650;color:var(--emerald-ink);opacity:calc(var(--hp,0)*1.8 - .75)}
+.seed-lda{--sx:-138}
+.seed-delta{--sx:138}
+
+/* light bands (default) */
+.band{position:relative;width:100%}
+.band.tint{background:var(--paper2)}
+.band .inner{max-width:1240px;margin:0 auto;padding:12vh clamp(20px,5vw,64px)}
+.band h2{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:460;font-size:clamp(31px,3.3vw,50px);letter-spacing:-.004em;margin-bottom:14px;color:var(--ink)}
+.band .sub{color:var(--ink-soft);max-width:62ch;margin-bottom:46px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.card{position:relative;border:1px solid var(--line);background:var(--paperCard);overflow:hidden;display:flex;flex-direction:column;min-height:470px;text-decoration:none;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 20px 44px -30px rgba(20,24,18,.55);transition:transform .4s cubic-bezier(.22,.61,.36,1),box-shadow .4s ease}
+.card:hover{transform:translateY(-4px);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 30px 56px -30px rgba(20,24,18,.6)}
+.card .art{height:238px;overflow:hidden;position:relative;background:#fff;border-bottom:1px solid var(--line)}
+.card .art img{width:100%;height:100%;object-fit:cover;object-position:50% 0;transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+.card:hover .art img{transform:scale(1.02)}
+.card .body{padding:26px 28px 30px;display:flex;flex-direction:column;gap:11px;flex:1}
+.card .name{font-family:var(--disp);font-variation-settings:"opsz" 44;font-weight:500;font-size:27px;color:var(--ink)}
+.card .what{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--emerald-ink);font-weight:650}
+.card p{color:var(--ink-soft);font-size:15px}
+.card ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.card ul li{font-size:11.5px;letter-spacing:.04em;color:#6E6A5E;border:1px solid var(--line);border-radius:3px;padding:4px 9px}
+.card .go{margin-top:auto;padding-top:16px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--emerald-ink);font-weight:650}
+.card:hover .go{color:#094e39}
+.card .st{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+
+.vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;margin-top:36px}
+.vitem b{display:block;font-family:var(--disp);font-variation-settings:"opsz" 24;font-weight:520;font-size:19px;margin-bottom:8px;color:var(--ink)}
+.vitem p{color:var(--ink-soft);font-size:14px}
+.powered{margin-top:52px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline;color:var(--ink-soft);font-size:13px;border-top:1px solid var(--line2);padding-top:26px}
+.powered span:first-child{color:var(--ink);font-weight:650;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px}
+.powered b{color:var(--ink);font-weight:600}
+
+.paperbg{overflow:hidden}
+.paperbg .bgvid{position:absolute;inset:0;z-index:0;opacity:.5;mix-blend-mode:luminosity}
+.paperbg .bgvid video{width:100%;height:100%;object-fit:cover;object-position:50% 60%}
+.paperbg .bgvid::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--paper) 0 3%,rgba(245,246,244,.22) 45%,var(--paper) 97%)}
+.paperbg .lab{position:relative;z-index:1}
+.lab{max-width:900px;margin:0 auto;padding:13vh clamp(20px,5vw,64px);text-align:center}
+.lab h2{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:460;font-size:clamp(30px,3.2vw,46px);margin-bottom:18px;letter-spacing:-.004em;color:var(--ink)}
+.lab p{max-width:64ch;margin:0 auto 14px;color:var(--ink-soft)}
+.lab .team{margin-top:26px;font-size:14.5px;color:var(--ink-faint)}
+.lab .team b{color:var(--ink)}
+.orcid{display:inline-block;font-size:11px;font-weight:700;color:var(--emerald-ink);text-decoration:none;border:1px solid var(--line);border-radius:3px;padding:0 5px;margin-left:5px;letter-spacing:.06em;vertical-align:1px}
+.orcid:hover{border-color:var(--emerald-ink);background:rgba(31,169,124,.08)}
+.prof{color:inherit;text-decoration:none;border-bottom:1px solid var(--line);transition:color .2s,border-color .2s}
+.prof:hover{color:var(--emerald-ink);border-color:var(--emerald-ink)}
+
+.cite{max-width:900px;margin:0 auto;padding:2vh clamp(20px,5vw,64px) 13vh}
+.trustbar{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 30px;padding:24px clamp(20px,5vw,64px);border-bottom:1px solid var(--line);background:var(--paper);font-size:12.5px;letter-spacing:.03em;color:var(--ink-soft);text-align:center}
+.trustbar span{min-width:0;white-space:normal;overflow-wrap:anywhere}
+.trustbar a{color:var(--emerald-ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.trustbar a:hover{color:#094e39}
+.cite h3{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--emerald-ink);font-weight:650;margin-bottom:16px}
+.cite pre{border:1px solid var(--forest);background:var(--forest);border-radius:8px;padding:24px 26px;overflow-x:auto;color:var(--bone);font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;line-height:1.7;box-shadow:0 22px 46px -30px rgba(20,24,18,.5)}
+.cite .doi{margin-top:14px;font-size:13.5px;color:var(--ink-soft)}
+.cite .doi a{color:var(--emerald-ink);text-decoration:none;border-bottom:1px solid var(--line)}
+
+footer{background:var(--forest);color:var(--bone);padding:38px clamp(20px,4vw,56px) 54px;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;font-size:13px}
+footer p:last-child{color:#8fa098}
+
+/* scroll reveal */
+.js .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.22,.61,.36,1)}
+.reveal.in{opacity:1;transform:none}
+.grid .card:nth-child(2){transition-delay:.09s}
+.vgrid .vitem:nth-child(2){transition-delay:.06s}.vgrid .vitem:nth-child(3){transition-delay:.12s}.vgrid .vitem:nth-child(4){transition-delay:.18s}
+
+@media (max-width:860px){
+  .grid,.vgrid{grid-template-columns:1fr}
+  .vgrid{gap:20px}
+  .hd nav a[href="#about"]{display:none}
+  .wm span{display:none}
+  .resolve{display:none}
+  .hero{min-height:auto;padding-top:112px;padding-bottom:52px}
+  .hero.light .vis{-webkit-mask-image:none;mask-image:none}
+  .hero.light .vis img{object-position:100% 100%;opacity:.5}
+  .hero.light .vis::after{background:linear-gradient(180deg,var(--paper) 0 40%,rgba(245,246,244,.66) 62%,rgba(245,246,244,.25) 82%,transparent 96%)}
+}
+@media (max-width:560px){.vgrid{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .card,.card .art img{transition:none}
+  .reveal{opacity:1;transform:none;transition:none}
+  .hero .vis{inset:0}
+}
+</style>
+<link rel="stylesheet" href="/assets/accessibility.css?v=20261113d">
+<link rel="stylesheet" href="/assets/site.css?v=20261119a">
+</head>
+<body class="landing">
+<a class="skip" href="#main">İçeriğe geçin</a>
+<header class="hd" id="hd">
+  <a class="wm" href="/tr/"><b>Lemmata</b><span>Dijital filoloji</span></a>
+  <nav aria-label="Site">
+    <a class="dim" href="#instruments">Araçlar</a>
+    <a href="#about">Hakkında</a>
+    <span class="lang"><a href="/">EN</a> · <b>TR</b></span>
+  </nav>
+</header>
+
+<main id="main">
+<section class="hero light" aria-label="Lemmata · dijital filoloji laboratuvarı">
+  <div class="vis" aria-hidden="true"><img src="/assets/hero-light.jpg" alt="" fetchpriority="high" data-parallax></div>
+  <div class="resolve" aria-hidden="true">
+    <div class="seed seed-lda"><div class="disc"><img src="/assets/seed-lda.jpg" alt="" loading="lazy"></div><div class="lbl">Konu modelleme</div></div>
+    <div class="seed seed-delta"><div class="disc"><img src="/assets/seed-delta.jpg" alt="" loading="lazy"></div><div class="lbl">Stilometri</div></div>
+  </div>
+  <div class="fg">
+    <p class="eyebrow">Lemmata · Edebiyat araştırması için hesaplamalı araçlar</p>
+    <h1>Filolojinin <em>ölçümle</em> buluştuğu yer.</h1>
+    <p class="lede">Lemmata, dijital beşeri bilimler için araştırmacıların geliştirdiği araçlar sunar. Komut satırıyla değil, metinle çalışanlar için. Desteklenen analizleri tarayıcınızdan kod yazmadan çalıştırırsınız. Yöntem baştan sona görünür, sonuçlar yeniden üretilebilir, sonuçları ve kayıtları dışa aktarabilirsiniz.</p>
+    <p class="ctas"><a class="btn" href="#instruments">Araçları keşfedin</a><a class="ghost" href="#about">Laboratuvar hakkında</a></p>
+    <p class="tool-links"><span>Doğrudan araca gidin:</span><a href="https://lda.lemmata.app/">LDA'yı açın →</a><a href="https://delta.lemmata.app/">Delta'yı açın →</a></p>
+  </div>
+</section>
+
+<div class="trustbar">
+  <span>Ankara Üniversitesi araştırmacıları</span>
+  <span>Açık kaynak · MIT Lisansı</span>
+  <span>LDA dilleri: İngilizce · İtalyanca · Fransızca · Almanca · İspanyolca (Türkçe henüz desteklenmiyor)</span>
+  <span>LDA'ya atıf · <a href="https://doi.org/10.5281/zenodo.19391729">DOI 10.5281/zenodo.19391729</a></span>
+  <span>Araçların arayüzü İngilizcedir.</span>
+</div>
+
+<section class="band" id="instruments" aria-label="Araçlar">
+  <div class="inner">
+    <h2 class="reveal">İki araç, tek disiplin.</h2>
+    <p class="sub reveal">Her araç parametre tercihlerini görünür tutar ve bir sonucun ne anlama gelip gelemeyeceğini belirtir. Delta ayrıca analizden önce derlemi belgelemenizi ister. Açık kaynak, MIT lisanslı.</p>
+    <div class="grid">
+      <article class="card reveal">
+        <div class="art"><img src="/assets/card-lda.jpg" alt="Lemmata LDA genel bakış sekmesi. Ne ölçtüğünü anlatan açıklamasıyla tutarlılık değeri (C_v), Svevo'nun La coscienza di Zeno romanından 10 konu ve 144 belge" loading="lazy"></div>
+        <div class="body">
+          <span class="what">Konu modelleme</span>
+          <h3 class="name">Lemmata LDA</h3>
+          <p>Derleminizde yinelenen konuları, beşeri bilimler için kurulmuş LDA konu modellemesiyle bulun. Metinlerinizi yükleyin, ayarlarınızı seçin. Etkileşimli konu haritasını ve ısı haritasını, konu dağılımlarını ve token düzeyindeki ön işleme tablosunu inceleyin.</p>
+          <ul aria-label="Yetenekler"><li>5 dil: EN · IT · FR · DE · ES</li><li>Deterministik, yeniden üretilebilir</li><li>Dışa aktarma: CSV · PDF · ZIP · ısı haritası PNG/SVG</li><li>Varsayılan yöntem Gibbs örneklemesi</li></ul>
+          <span class="st">Yayında · lda.lemmata.app</span>
+          <div class="card-links"><a class="go" href="https://lda.lemmata.app/">Aracı açın →</a> <a class="how-link" href="/tr/lda/">Nasıl çalışır</a></div>
+        </div>
+      </article>
+      <article class="card reveal">
+        <div class="art"><img src="/assets/card-delta.jpg" alt="Delta stilometri workbench arayüzü" loading="lazy"></div>
+        <div class="body">
+          <span class="what">Stilometri</span>
+          <h3 class="name">Delta</h3>
+          <p>Metinler, gruplar ve zaman içindeki yinelenen dil örüntülerini, belirsizliği görünür tutan bir stilometri workbench'i ile karşılaştırın. Rehberli en sık geçen sözcük ayarları sunar, uzaklık matrisini birincil kanıt olarak gösterir ve sınırlılıkları açıkça belirtir.</p>
+          <ul aria-label="Yetenekler"><li>Metin · grup · zaman içinde karşılaştırma</li><li>100 · 300 · 500 · 1.000 MFW birlikte</li><li>JSON ve CSV çalışma kayıtları</li><li>Alfa: çalıştırma başına en çok 50 metin</li></ul>
+          <span class="st">Açık alfa · delta.lemmata.app</span>
+          <div class="card-links"><a class="go" href="https://delta.lemmata.app/">Workbench'i açın →</a> <a class="how-link" href="/tr/delta/">Nasıl çalışır</a></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band tint" aria-label="Lemmata nasıl çalışır">
+  <div class="inner">
+    <h2 class="reveal">Komut satırı için değil, araştırmacılar için.</h2>
+    <p class="sub reveal">Her araçta aynı ilkeler geçerlidir.</p>
+    <div class="vgrid">
+      <div class="vitem reveal"><b>Kod gerekmez</b><p>Ayarlarınızı seçin ve analizleri web tarayıcınızdan çalıştırın. Kurulum yok, betik yazmak yok. Analizin kendisi uygulamanın bulunduğu sunucuda yapılır.</p></div>
+      <div class="vitem reveal"><b>Şeffaf yöntem</b><p>Hangi tokenların tutulduğunu, hangilerinin atıldığını ya da lemmatize edildiğini, sonucu hangi parametrelerin ve sınırların biçimlendirdiğini görürsünüz.</p></div>
+      <div class="vitem reveal"><b>Deterministik</b><p>LDA'da aynı veri, ayarlar, tohum değeri (varsayılan 42), paket ve dil modeli sürümleri aynı tür işlemcide aynı sonucu verir. Ayarlarınız, başlıca paket sürümleri ve işlemci türü bir ortam raporuna yazılır, bu rapor PDF raporda ve ZIP arşivinde de yer alır.</p></div>
+      <div class="vitem reveal"><b>Sonuçları dışa aktarma</b><p>LDA sonuçlarını CSV tabloları, PDF rapor ve ZIP arşivi olarak, ısı haritasını PNG ya da SVG olarak indirebilirsiniz. Delta derlem ve analiz kayıtlarını ayrı JSON ve CSV dosyaları olarak sunar.</p></div>
+    </div>
+    <p class="powered reveal"><span>Güvenilir açık kaynak üzerine kurulu</span><b>spaCy</b> lemmatizasyon · <b>tomotopy</b> &amp; <b>scikit-learn</b> konu modelleme · <b>Gensim</b> tutarlılık · <b>R stylo</b> stilometri · <b>Streamlit</b> arayüz</p>
+  </div>
+</section>
+
+<section class="band paperbg" id="about" aria-label="Laboratuvar hakkında">
+  <div class="bgvid" aria-hidden="true"><video id="motion-3" data-src="/assets/tex-paper.mp4" muted loop playsinline preload="none"></video></div><button type="button" class="motion-toggle" aria-controls="motion-3" aria-pressed="false">Animasyonu oynat</button>
+  <div class="lab">
+    <h2 class="reveal">Bir laboratuvar, kara kutu değil.</h2>
+    <p class="reveal">Lemmata, hesaplamalı edebiyat çalışmaları için açık ve yöntem öncelikli bir laboratuvardır. Ankara Üniversitesi'nden araştırmacılar tarafından geliştiriliyor. Her araç kendi sınırını söyler. Ölçümler belgelenmiş bir derlem içindeki örüntüleri betimler, yorum araştırmacının sorumluluğunda kalır.</p>
+    <p class="team reveal">Araştırma ekibi · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/Oguz.Koran" target="_blank" rel="noopener"><b>Oğuz Koran</b></a><a class="orcid" href="https://orcid.org/0000-0001-7954-9597" aria-label="Oğuz Koran ORCID iD">iD</a></span> · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/byucesan" target="_blank" rel="noopener"><b>Barış Yücesan</b></a><a class="orcid" href="https://orcid.org/0000-0002-1776-9815" aria-label="Barış Yücesan ORCID iD">iD</a></span> · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/hcangir" target="_blank" rel="noopener"><b>Hakan Cangır</b></a><a class="orcid" href="https://orcid.org/0000-0003-2589-2466" aria-label="Hakan Cangır ORCID iD">iD</a></span></p>
+    <p class="team reveal" id="contact">İletişim · <a href="mailto:koran@ankara.edu.tr">koran@ankara.edu.tr</a> · Sorun bildirimi · <a href="https://github.com/oguzkoran-max/lemmata/issues">LDA</a> · <a href="https://github.com/oguzkoran-max/delta.lemmata.app/issues">Delta</a></p>
+  </div>
+</section>
+
+<section class="band tint cite-band" aria-label="Atıf">
+  <div class="cite">
+    <h3 class="reveal">Lemmata LDA'ya atıf</h3>
+    <pre class="reveal" tabindex="0">@software{koran_lemmata_2026,
+  author = {Koran, O&#287;uz and Yücesan, Bar&#305;&#351; and Cang&#305;r, Hakan},
+  title  = {Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities},
+  year   = {2026},
+  doi    = {10.5281/zenodo.19391729},
+  url    = {https://lda.lemmata.app}
+}</pre>
+    <p class="doi reveal">DOI · <a href="https://doi.org/10.5281/zenodo.19391729">10.5281/zenodo.19391729</a></p>
+    <p class="doi reveal">Delta kullanıyorsanız atıf bilgisi <a href="/tr/delta/#cite">Delta sayfasında</a>.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <p>Lemmata · Dijital filoloji laboratuvarı · Ankara Üniversitesi araştırmacıları</p>
+  <p>Açık kaynak · MIT Lisansı · ölçümler hüküm değildir</p>
+<p class="source-code">Kaynak kod: <a href="https://github.com/oguzkoran-max/lemmata">LDA</a> · <a href="https://github.com/oguzkoran-max/delta.lemmata.app">Delta</a></p>
+<p class="tool-trust">Analizler her aracın çalıştığı sunucuda yapılır · Son güncelleme 22 Kasım 2026 · <a href="https://github.com/oguzkoran-max/lemmata/blob/main/CHANGELOG.md">LDA değişiklik günlüğü</a></p>
+</footer>
+
+<script>
+(function(){
+  var rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hd = document.getElementById('hd');
+  var hero = document.querySelector('.hero');
+  function headerState(){
+    var h = 24; /* G06 (F06): the bar turns solid as soon as the page scrolls, so it never runs over the hero text */
+    if ((window.pageYOffset || 0) > h) hd.classList.add('solid'); else hd.classList.remove('solid');
+  }
+  var els = document.querySelectorAll('.reveal');
+  if (rm) { els.forEach(function(e){ e.classList.add('in'); }); document.documentElement.style.setProperty('--hp','1'); }
+  else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
+    els.forEach(function(e){ io.observe(e); });
+  }
+  var v = document.querySelector('[data-parallax]');
+  var tick = false;
+  function paint(){ tick = false; var y = window.pageYOffset || 0;
+    if (v && !rm) v.style.transform = 'translateY(' + (y * 0.12).toFixed(1) + 'px)';
+    if (hero && !rm) {
+      var span = hero.offsetHeight * 0.34;
+      var hp = span > 0 ? Math.min(1, Math.max(0, y / span)) : 0;
+      document.documentElement.style.setProperty('--hp', hp.toFixed(3));
+    }
+    headerState(); }
+  addEventListener('scroll', function(){ if(!tick){ tick = true; requestAnimationFrame(paint); } }, { passive: true });
+  headerState();
+
+  var conn = navigator.connection || {};
+  /* phones and narrow tablets (<=860px) fetch no video until the play button is pressed */
+  var narrow = matchMedia('(max-width:860px)').matches;
+  if (!rm && !conn.saveData && !narrow) {
+    /* faint paper-texture background video in the About section, plays in view */
+    var bg = document.querySelector('.paperbg .bgvid video');
+    if (bg) {
+      var bio = new IntersectionObserver(function(en){
+        en.forEach(function(e){
+          if (e.isIntersecting && bg.dataset.userPaused !== "true"){ if(!bg.src){ bg.src = bg.dataset.src; } var pr=bg.play(); if(pr&&pr.catch)pr.catch(function(){}); }
+          else { bg.pause(); }
+        });
+      }, { threshold: 0.15 });
+      bio.observe(document.querySelector('.paperbg'));
+    }
+  }
+})();
+</script>
+<script src="/assets/accessibility.js?v=20261113f" defer></script>
+</body>
+</html>

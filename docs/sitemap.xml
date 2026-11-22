@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<url><loc>https://lemmata.app/</loc><lastmod>2026-11-22</lastmod>
+<xhtml:link rel="alternate" hreflang="en" href="https://lemmata.app/"/>
+<xhtml:link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/"/>
+<xhtml:link rel="alternate" hreflang="x-default" href="https://lemmata.app/"/>
+</url>
+<url><loc>https://lemmata.app/tr/</loc><lastmod>2026-11-22</lastmod>
+<xhtml:link rel="alternate" hreflang="en" href="https://lemmata.app/"/>
+<xhtml:link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/"/>
+<xhtml:link rel="alternate" hreflang="x-default" href="https://lemmata.app/"/>
+</url>
+<url><loc>https://lemmata.app/lda/</loc><lastmod>2026-11-22</lastmod>
+<xhtml:link rel="alternate" hreflang="en" href="https://lemmata.app/lda/"/>
+<xhtml:link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/lda/"/>
+<xhtml:link rel="alternate" hreflang="x-default" href="https://lemmata.app/lda/"/>
+</url>
+<url><loc>https://lemmata.app/tr/lda/</loc><lastmod>2026-11-22</lastmod>
+<xhtml:link rel="alternate" hreflang="en" href="https://lemmata.app/lda/"/>
+<xhtml:link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/lda/"/>
+<xhtml:link rel="alternate" hreflang="x-default" href="https://lemmata.app/lda/"/>
+</url>
+<url><loc>https://lemmata.app/delta/</loc><lastmod>2026-11-22</lastmod>
+<xhtml:link rel="alternate" hreflang="en" href="https://lemmata.app/delta/"/>
+<xhtml:link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/delta/"/>
+<xhtml:link rel="alternate" hreflang="x-default" href="https://lemmata.app/delta/"/>
+</url>
+<url><loc>https://lemmata.app/tr/delta/</loc><lastmod>2026-11-22</lastmod>
+<xhtml:link rel="alternate" hreflang="en" href="https://lemmata.app/delta/"/>
+<xhtml:link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/delta/"/>
+<xhtml:link rel="alternate" hreflang="x-default" href="https://lemmata.app/delta/"/>
+</url>
+</urlset>

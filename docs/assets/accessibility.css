@@ -1,0 +1,29 @@
+@font-face{font-family:"Newsreader";src:url("/assets/fonts/Newsreader-Variable.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"NewsreaderIt";src:url("/assets/fonts/Newsreader-Italic-Variable.woff2") format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+@font-face{font-family:"InterVar";src:url("/assets/fonts/InterVariable.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
+.intro-sections :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+body.landing :focus-visible{outline-color:var(--ink)}
+body.landing footer :focus-visible{outline-color:var(--bone)}
+.cine .blk:focus-within{opacity:1!important;visibility:visible!important;pointer-events:auto!important;z-index:20}
+.cine .blk.is-off:focus-within{background:var(--void)}
+.cine .blk:focus-within a{pointer-events:auto!important}
+.cine .blk:focus-within .inner{transform:none!important}
+.intro-sections{background:var(--paper);color:var(--ink)}
+.intro-sections img{height:auto}
+.card .how-link{display:inline-block;margin-top:10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--ink-faint,#6E6B60);text-decoration:none}
+.card .how-link:hover{color:var(--emerald-ink)}
+.motion-toggle{position:absolute;right:12px;bottom:12px;z-index:25;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;margin:0;padding:0;border:0;border-radius:50%;background:rgba(10,14,12,.5);color:#fff;cursor:pointer;opacity:.55;transition:opacity .2s ease;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.motion-toggle:hover,.motion-toggle:focus-visible{opacity:1}
+.motion-toggle svg{width:12px;height:12px;fill:currentColor;display:block}
+.paperbg{position:relative}
+.pin>.motion-toggle{top:auto;right:24px;bottom:24px}
+
+.hd.over-intro{background:var(--void)}
+.hd .cine-summary{font-size:13px}
+.cine-summary[hidden],.scene-counter[hidden]{display:none}
+.scene-counter{position:absolute;right:24px;bottom:24px;z-index:25;padding:5px 10px;border-radius:4px;background:rgba(7,14,12,.55);color:var(--bone);font-size:12px;opacity:.7;pointer-events:none}
+.card .go{text-decoration:none}
+html:not(.js) .motion-toggle{display:none}
+.motion-toggle[hidden]{display:none}
+.pin>.motion-toggle{opacity:clamp(0,calc((0.125 - var(--p))*11),1)}

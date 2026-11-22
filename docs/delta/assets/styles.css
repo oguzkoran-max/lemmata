@@ -1,0 +1,348 @@
+/* P017 · The Living Corpus — hybrid A+B (monolith protagonist + typographic x-ray)
+   One reversible scroll state machine drives everything through envelope vars:
+   --p (global 0..1) and derived --settle --sep --col --mat --dial --fold.
+   Modes: "cine" (desktop + JS + no reduced-motion): single pinned chapter;
+   "stacked" (mobile, no-JS, reduced-motion): per-act composed statics. */
+
+@font-face{font-family:"Fraunces";src:url("/assets/fonts/Newsreader-Variable.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"FrauncesIt";src:url("/assets/fonts/Newsreader-Italic-Variable.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap}
+@font-face{font-family:"InterVar";src:url("/assets/fonts/InterVariable.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --void:#070E0C;--forest:#0C1714;--plate:#0A1310;
+  --ivory:#F5F1E6;--bone:#D8D2BE;--muted:#A2B1A8;
+  --emerald:#1FA97C;--mint:#5DCAA5;--copper:#C57B4A;--coral:#D8683C;
+  --hair:rgba(242,237,224,.15);--hair2:rgba(242,237,224,.08);
+  --sans:"InterVar",ui-sans-serif,system-ui,sans-serif;
+  --disp:"Fraunces",Georgia,serif;
+  --dispIt:"FrauncesIt","Fraunces",Georgia,serif;
+  /* state machine defaults (no-JS: acts carry their own presets) */
+  --p:0;--settle:1;--sep:0;--col:0;--mat:0;--dial:0;--fold:0;
+}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--ivory);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+img,svg{max-width:100%}
+.skip{position:absolute;left:-9999px;top:0;background:var(--emerald);color:#06110D;padding:10px 18px;z-index:99;font-weight:600}
+.skip:focus{left:0}
+:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+
+/* ---------------- header ---------------- */
+.hd{position:fixed;inset:0 0 auto 0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:20px clamp(20px,4vw,56px);background:linear-gradient(180deg,rgba(7,14,12,.97) 72%,rgba(7,14,12,0))}
+.hd::before{content:"";position:absolute;left:0;top:0;height:2px;background:var(--emerald);width:calc(var(--p)*100%);transition:none}
+.wm{display:inline-flex;align-items:center;gap:12px;text-decoration:none;min-height:44px}
+.wm .mk{width:30px;height:30px;background:var(--emerald);color:#06110D;display:grid;place-items:center;font-weight:700;font-size:15px;border-radius:6px}
+.wm .tx{font-weight:650}
+.hd .cta{font-size:13.5px;font-weight:600;text-decoration:none;border:1px solid var(--hair);padding:11px 18px;border-radius:6px;display:inline-flex;align-items:center;min-height:44px;background:rgba(7,14,12,.6)}
+.hd .cta:hover{border-color:var(--mint);color:var(--mint)}
+
+/* ---------------- shared type ---------------- */
+.eyebrow{font-size:11.5px;letter-spacing:.22em;font-weight:650;color:var(--mint);text-transform:uppercase;display:flex;gap:10px;align-items:center;margin-bottom:22px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--emerald)}
+.h-mega{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:540;font-size:clamp(64px,8.6vw,148px);line-height:.94;letter-spacing:-.014em}
+.h-act{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:520;font-size:clamp(44px,4.6vw,78px);line-height:.98;letter-spacing:-.01em}
+.cine .h-mega,.cine .h-act,.cine .lede,.cine .sup{text-shadow:0 2px 46px rgba(7,14,12,.95),0 1px 12px rgba(7,14,12,.8)}
+.h-mega em,.h-act em{font-family:var(--dispIt);font-style:italic;font-variation-settings:"opsz" 72}
+/* typographic x-ray fill (B graft) */
+.xr{background:repeating-linear-gradient(180deg,
+    rgba(31,169,124,.98) 0 4px, transparent 4px 11px,
+    rgba(93,202,165,.92) 11px 14px, transparent 14px 25px,
+    rgba(242,237,224,.55) 25px 26px, transparent 26px 37px);
+  background-size:100% 210px;background-position:0 calc(var(--p)*-160px);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:1.6px rgba(242,237,224,.66)}
+/* measurement-rule under headings (B's type system) */
+.mrule{position:relative;display:block;height:14px;margin-top:18px;max-width:340px}
+.mrule::before{content:"";position:absolute;left:0;right:0;top:6px;height:1px;background:var(--emerald);opacity:.75}
+.mrule i{position:absolute;top:2px;width:1px;height:9px;background:var(--mint)}
+.mrule i:nth-child(1){left:0}.mrule i:nth-child(2){left:25%}.mrule i:nth-child(3){left:50%}.mrule i:nth-child(4){left:75%}.mrule i:nth-child(5){left:100%}
+.lede{font-size:clamp(15.5px,1.2vw,18.5px);color:var(--bone);max-width:46ch}
+.sup{font-size:clamp(14.5px,1.05vw,16.5px);color:var(--bone);max-width:52ch}
+.ctas{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--emerald);color:#06110D;font-weight:650;font-size:15px;text-decoration:none;padding:15px 26px;border-radius:4px;display:inline-flex;align-items:center;min-height:48px;letter-spacing:.01em}
+.btn:hover{background:var(--mint)}
+.ghost{font-size:14.5px;color:var(--bone);text-decoration:none;border-bottom:1px solid var(--hair);padding:10px 2px;min-height:46px;display:inline-flex;align-items:center}
+.ghost:hover{color:var(--mint);border-color:var(--mint)}
+.status{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.capnote{font-size:11.5px;color:var(--muted);letter-spacing:.06em}
+.boundary{color:var(--coral);border-left:2px solid var(--coral);padding-left:14px;font-size:15px;max-width:52ch}
+
+/* ================= CINE MODE (single pinned chapter) ================= */
+.cine{display:none}
+.scene{height:720vh;position:relative}
+.pin{position:sticky;top:0;height:100vh;overflow:hidden;background:
+  linear-gradient(180deg, rgba(242,237,224,.05), transparent 26%),
+  radial-gradient(1200px 800px at 62% 44%, rgba(31,169,124,.13), transparent 62%),
+  radial-gradient(900px 640px at 18% 12%, rgba(242,237,224,.09), transparent 60%),
+  linear-gradient(180deg,#0A1512,var(--forest) 115%)}
+/* engraved plate frame */
+.plate{position:absolute;inset:clamp(14px,2vw,28px);border:1px solid var(--hair2);pointer-events:none;z-index:6}
+.plate i{position:absolute;width:14px;height:14px;border-color:var(--hair);border-style:solid}
+.plate i:nth-child(1){top:-1px;left:-1px;border-width:1px 0 0 1px}
+.plate i:nth-child(2){top:-1px;right:-1px;border-width:1px 1px 0 0}
+.plate i:nth-child(3){bottom:-1px;left:-1px;border-width:0 0 1px 1px}
+.plate i:nth-child(4){bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.plate .ruler{position:absolute;left:24px;bottom:-1px;width:180px;height:8px;border-left:1px solid var(--hair);border-right:1px solid var(--hair)}
+.plate .ruler::before{content:"";position:absolute;inset:auto 25% 0 25%;height:5px;border-left:1px solid var(--hair2);border-right:1px solid var(--hair2)}
+
+.stagewrap{position:absolute;inset:0;z-index:1}
+.stagewrap svg{width:100%;height:100%;display:block}
+.keyvis{position:absolute;z-index:2;right:clamp(10px,2vw,40px);top:4%;width:min(44vw,720px);aspect-ratio:3/3.4;margin:0;
+  opacity:clamp(0,calc((0.125 - var(--p))*11),1);pointer-events:none;
+  -webkit-mask-image:radial-gradient(72% 74% at 55% 47%, #000 52%, transparent 76%);
+  mask-image:radial-gradient(72% 74% at 55% 47%, #000 52%, transparent 76%)}
+.keyvis img,.keyvis video{width:100%;height:100%;display:block;object-fit:cover;object-position:60% 52%}
+.keyvis::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(80% 80% at 55% 45%, transparent 40%, rgba(10,21,18,.55) 78%);
+  mix-blend-mode:multiply}
+/* schematic twin waits under the master, takes over as it fades */
+.stagewrap svg{opacity:calc(.14 + min(var(--p)*9,1)*.86)}
+
+/* copy blocks: trapezoid visibility windows over --p (all remain in DOM for AT) */
+.blk{position:absolute;z-index:8;pointer-events:none}
+.blk a{pointer-events:auto}
+.cine .blk:focus-within{opacity:1}
+.b1{opacity:clamp(0,calc((0.155 - var(--p))*14),1);left:clamp(24px,4.5vw,72px);top:16.5%;max-width:min(56vw,860px)}
+.b1 .inner{transform:translateY(calc(var(--p)*-6vh))}
+.b2{opacity:clamp(0,calc(min((var(--p) - 0.165)*12,(0.35 - var(--p))*12)),1);left:clamp(24px,4.5vw,72px);top:26%;max-width:520px}
+.b3{opacity:clamp(0,calc(min((var(--p) - 0.36)*12,(0.56 - var(--p))*12)),1);left:0;right:0;top:max(9%,96px);text-align:center}
+.b3 .sup{margin:14px auto 0}
+.b3 .mrule{margin:16px auto 0}
+.b4{opacity:clamp(0,calc(min((var(--p) - 0.555)*12,(0.725 - var(--p))*12)),1);right:clamp(24px,4vw,64px);top:11%;max-width:420px;text-align:left}
+.b5{opacity:clamp(0,calc(min((var(--p) - 0.735)*12,(0.868 - var(--p))*12)),1);left:0;right:0;bottom:7%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.b6{opacity:clamp(0,calc((var(--p) - 0.875)*12),1);left:0;right:0;top:max(8%,96px);text-align:center;padding-bottom:40px;background:linear-gradient(180deg,rgba(7,14,12,.94) 55%,rgba(7,14,12,.5) 80%,transparent)}
+.blk .h-act{margin-bottom:14px}
+.b2 .sup{margin-bottom:0}
+
+/* Act II label rail (RIGHTS is the designed climax) */
+.rail2{position:absolute;z-index:7;right:clamp(20px,3.4vw,52px);top:12%;bottom:12%;width:0;list-style:none}
+.rail2 li{position:absolute;right:0;white-space:nowrap;display:flex;flex-direction:row-reverse;align-items:center;gap:12px;font-size:12.5px;font-weight:650;letter-spacing:.18em;color:var(--bone);
+  opacity:clamp(0,min(calc((var(--p) - var(--t))*10),calc((0.355 - var(--p))*12)),1);
+  transform:translateX(calc((1 - clamp(0,calc((var(--p) - var(--t))*10),1))*16px))}
+.rail2 li::before{content:"";width:44px;height:1px;background:var(--hair)}
+.rail2 .rights{color:var(--copper);font-family:var(--dispIt);font-style:italic;font-size:clamp(24px,2.3vw,34px);font-weight:520;letter-spacing:0;text-transform:none}
+.rail2 .rights::before{width:74px;background:var(--copper);height:2px}
+.rail2 .rights small{display:block;font-family:var(--sans);font-style:normal;font-size:12px;letter-spacing:.05em;color:var(--copper);opacity:.9;margin-top:6px;white-space:normal;max-width:300px;text-align:right}
+
+/* Act III lens labels under columns */
+.lenses{position:absolute;z-index:7;left:0;right:0;bottom:21%;display:flex;pointer-events:none;
+  opacity:clamp(0,calc(min((var(--p) - 0.41)*10,(0.57 - var(--p))*12)),1)}
+.lenses > div{position:absolute;transform:translateX(-50%);text-align:center}
+.lenses .n{font-size:clamp(22px,2.2vw,32px);font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.lenses .u{font-size:10.5px;letter-spacing:.22em;color:var(--muted);margin-top:4px}
+.lenses .t{width:1px;height:16px;background:var(--emerald);margin:10px auto 0}
+.l100{left:23.6%}.l300{left:47.2%}.l500{left:70.8%}.l1000{left:90.3%}
+
+/* Act IV secondary renderings labels */
+.secondary{position:absolute;z-index:7;right:clamp(20px,3.2vw,48px);bottom:5%;width:250px;
+  opacity:clamp(0,calc(min((var(--p) - 0.575)*10,(0.725 - var(--p))*12)),1)}
+.secondary p{font-size:11.5px;letter-spacing:.08em;color:var(--muted);margin-bottom:44px}
+.secondary p b{display:block;color:var(--bone);font-size:12px;letter-spacing:.14em;font-weight:650;margin-bottom:4px}
+.matlabel{position:absolute;z-index:7;left:clamp(24px,4vw,64px);bottom:12%;max-width:300px;
+  opacity:clamp(0,calc(min((var(--p) - 0.575)*10,(0.725 - var(--p))*12)),1)}
+.matlabel b{display:block;font-size:12px;letter-spacing:.14em;font-weight:650;color:var(--bone);margin-bottom:4px}
+.matlabel p{font-size:11.5px;letter-spacing:.06em;color:var(--muted)}
+
+/* Act V dial */
+.dial{position:absolute;z-index:7;left:50%;top:13.5%;transform:translateX(-50%);width:min(560px,44vw);
+  opacity:clamp(0,calc(min((var(--p) - 0.73)*10,(0.872 - var(--p))*12)),1)}
+.dial .track{position:relative;height:2px;background:var(--hair);margin-top:34px}
+.dial .stop{position:absolute;top:-5px;width:2px;height:12px;background:var(--bone);opacity:.75}
+.dial .stop:nth-child(1){left:0}.dial .stop:nth-child(2){left:33.33%}.dial .stop:nth-child(3){left:66.66%}.dial .stop:nth-child(4){left:100%}
+.dial .ind{position:absolute;top:-11px;left:calc(var(--dial)*100%);width:3px;height:24px;background:var(--mint);box-shadow:0 0 16px rgba(93,202,165,.9)}
+.dial .nums{display:flex;justify-content:space-between;margin-top:12px;font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:650;color:var(--ivory)}
+.dial .nums span{width:44px;text-align:center;margin:0 -22px}
+
+/* stage caption */
+.stagecap{position:absolute;z-index:7;left:clamp(24px,4vw,64px);bottom:4.2%;opacity:.85}
+
+/* scroll cue */
+.cue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:9;display:flex;flex-direction:column;align-items:center;gap:10px;font-size:10.5px;letter-spacing:.26em;color:var(--muted);text-transform:uppercase;opacity:clamp(0,calc((0.1 - var(--p))*12),1)}
+.cue::before{content:"";width:1px;height:44px;background:linear-gradient(180deg,transparent,var(--mint))}
+
+/* ---------------- protagonist strata (shared by cine + stacked) ---------------- */
+.st{transform:
+  translate(calc(var(--jx)*(1 - var(--settle))*1px), calc(var(--jy)*(1 - var(--settle))*1px))
+  translateY(calc(var(--sep)*var(--d)*1px))
+  translate(calc(var(--col)*var(--cx)*1px), calc(var(--col)*var(--cy)*1px))
+  translate(calc(var(--mat)*var(--mx)*1px), calc(var(--mat)*var(--my)*1px))
+  rotate(calc(var(--jr)*(1 - var(--settle))*1deg))
+  scaleX(calc(1 - var(--col)*.55 - var(--mat)*.48 + var(--col)*var(--mat)*.55))
+  scaleY(calc(1 - var(--mat)*.5 - var(--fold)*.14));
+  transform-box:fill-box;transform-origin:center;
+  opacity:clamp(0,calc(1 - var(--mat)*1.15 - var(--fold)*.1),1)}
+.stx{opacity:clamp(0,calc(1 - var(--mat)*.7 - var(--col)*.4),1)}
+.st .lift{opacity:calc(var(--col)*.14)} /* content survives a bit longer than the slab base */
+.mono-rim{opacity:calc(.6 - var(--mat)*.45)}
+/* matrix group grows out of the strata sweep */
+.mgrid{opacity:clamp(0,calc(var(--mat)*1.35*(1 - var(--fold)*.78)),1);transform:translate(calc((1 - var(--mat))*40px),0) scale(calc(.94 + var(--mat)*.06 - var(--fold)*.16));transform-box:fill-box;transform-origin:center}
+.mdots g{transition:none}
+.md0{opacity:clamp(0,calc(var(--mat)*(1 - var(--dial)*3)),1)}
+.md1{opacity:clamp(0,calc(var(--mat)*min((var(--dial) - .12)*6,(0.45 - var(--dial))*6)),1)}
+.md2{opacity:clamp(0,calc(var(--mat)*min((var(--dial) - .45)*6,(0.78 - var(--dial))*6)),1)}
+.md3{opacity:clamp(0,calc(var(--mat)*(var(--dial) - .78)*6),1)}
+.minis{opacity:calc(var(--mat)*(1 - var(--fold)*.85));transform:translateX(calc((1 - var(--mat))*30px))}
+/* record fold (Act VI) */
+.record{opacity:clamp(0,calc(var(--fold)*1.4),1)}
+.record .frame{stroke-dasharray:1;stroke-dashoffset:calc(1 - var(--fold));transition:none}
+.record .row{opacity:clamp(0,calc((var(--fold) - var(--rt))*5),1);transform:translateX(calc((1 - clamp(0,calc((var(--fold) - var(--rt))*5),1))*10px))}
+.record .seal{opacity:clamp(0,calc((var(--fold) - .82)*7),1)}
+/* hero motif return */
+.motif{opacity:clamp(0,calc((var(--fold) - .7)*4),1)}
+
+/* ================= STACKED MODE (mobile / no-JS / reduced-motion) ================= */
+.stacked{display:block}
+.sact{position:relative;min-height:100svh;padding:96px clamp(20px,5vw,56px) 64px;overflow:hidden;border-bottom:1px solid var(--hair2);display:flex;flex-direction:column}
+.sact .art{position:absolute;inset:0;z-index:1;opacity:1}
+.sact .art svg{width:100%;height:100%}
+.sact::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(7,14,12,.84) 0 14%,rgba(7,14,12,.2) 30%,transparent 46% 58%,rgba(7,14,12,.24) 74%,rgba(7,14,12,.86) 92%)}
+.sact .fg{position:relative;z-index:3;max-width:640px}
+.sact .h-act{margin-bottom:14px}
+.sact .sup{margin-top:6px}
+.s1 .h-mega{font-size:clamp(56px,13.8vw,120px);margin:10px 0 20px}
+.s1 .ctas{margin:26px 0 18px}
+.s1 .art{top:40%;left:-4%;right:-4%;bottom:-2%;opacity:1;
+  -webkit-mask-image:radial-gradient(85% 80% at 58% 45%, #000 50%, transparent 82%);
+  mask-image:radial-gradient(85% 80% at 58% 45%, #000 50%, transparent 82%)}
+.s1 .art img{width:100%;height:100%;object-fit:cover;object-position:66% 40%}
+.s2 .art{top:-2%;left:22%;right:-24%;bottom:0}
+.s2 .fg{max-width:520px}
+.s3 .art{top:26%;left:-6%;right:-6%;bottom:-6%}
+.s3 .fg{text-align:center;margin:0 auto}
+.s3 .mrule{margin:16px auto 0}
+.s4 .art{top:14%;left:-10%;right:-4%;bottom:-8%}
+.s4 .fg{margin-left:auto;max-width:440px;text-align:left}
+.s5 .art{top:20%;left:-6%;right:-6%;bottom:-4%;opacity:.85}
+.s5 .fg{text-align:center;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
+.s6 .art{top:30%;left:6%;right:-10%;bottom:-2%}
+.s6 .fg{text-align:center;margin:0 auto}
+.sact .rails{list-style:none;margin-top:26px;max-width:440px}
+.sact .rails li{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--hair2);font-size:12px;font-weight:650;letter-spacing:.16em}
+.sact .rails .v{font-weight:400;letter-spacing:.03em;color:var(--muted)}
+.sact .rails .rights,.sact .rails .rights .v{color:var(--copper)}
+.sact .lensrow{display:flex;justify-content:space-between;max-width:460px;margin:26px auto 0}
+.sact .lensrow div{text-align:center}
+.sact .lensrow .n{font-size:24px;font-weight:650;font-variant-numeric:tabular-nums}
+.sact .lensrow .u{font-size:10px;letter-spacing:.2em;color:var(--muted);margin-top:2px}
+.sact .capnote{position:static;margin-top:16px;z-index:3}
+.s1 .capnote{position:absolute;left:clamp(20px,5vw,56px);bottom:16px;margin:0}
+
+/* ================= after the chapter (both modes) ================= */
+.after{position:relative;background:linear-gradient(180deg,var(--void),var(--forest) 160%)}
+.methods{max-width:860px;margin:0 auto;padding:max(12vh,128px) clamp(20px,5vw,56px) 6vh}
+.methods h2{font-family:var(--disp);font-variation-settings:"opsz" 60;font-weight:520;font-size:clamp(30px,3vw,44px);margin-bottom:18px;letter-spacing:-.008em}
+.methods details{border:1px solid var(--hair2);border-radius:8px;margin-top:14px;background:rgba(12,23,20,.5)}
+.methods summary{cursor:pointer;padding:18px 20px;font-weight:600;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.methods summary::after{content:"+";font-family:var(--disp);font-size:22px;color:var(--mint)}
+.methods details[open] summary::after{content:"−"}
+.methods .dbody{padding:0 20px 20px;color:var(--bone);font-size:15px;max-width:66ch}
+.paths{max-width:1100px;margin:0 auto;padding:4vh clamp(20px,5vw,56px) 8vh}
+.paths h2{font-family:var(--disp);font-variation-settings:"opsz" 60;font-weight:520;font-size:clamp(30px,3vw,44px);margin-bottom:26px;letter-spacing:-.008em;text-align:center}
+.paths ul{list-style:none;border-top:1px solid var(--hair)}
+.paths li{display:grid;grid-template-columns:minmax(180px,1fr) 2fr auto;gap:18px;align-items:baseline;padding:22px 4px;border-bottom:1px solid var(--hair)}
+.paths li b{font-family:var(--disp);font-variation-settings:"opsz" 96;font-weight:520;font-size:clamp(20px,2vw,27px);letter-spacing:-.005em}
+.paths li p{color:var(--muted);font-size:14.5px}
+.paths li .go{font-size:12px;letter-spacing:.18em;color:var(--mint);text-transform:uppercase;white-space:nowrap}
+@media (max-width:640px){.paths li{grid-template-columns:1fr;gap:6px}.paths li .go{display:none}}
+.finale{text-align:center;padding:8vh clamp(20px,5vw,56px) 12vh}
+.finale .residue{width:110px;margin:0 auto 26px;display:grid;gap:6px;justify-items:center}
+.finale .residue i{display:block;height:6px;background:var(--ivory);opacity:.4;width:84px}
+.finale .residue i:nth-child(2){background:var(--emerald);opacity:.7;width:58px}
+.finale .residue i:nth-child(3){opacity:.22;width:72px}
+.finale .residue svg{margin-top:6px}
+.finale .h-act{margin-bottom:16px}
+.finale .ctas{justify-content:center;margin:26px 0 18px}
+footer{padding:40px clamp(20px,4vw,56px) 56px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+footer .bd{max-width:64ch}
+
+/* ================= mode switching ================= */
+@media (min-width:961px) and (prefers-reduced-motion:no-preference){
+  .js .cine{display:block}
+  .js .stacked{display:none}
+}
+/* stacked fine-tuning on small screens */
+@media (max-width:640px){
+  .sact{padding-top:84px}
+  .s1 .art{top:52%}
+  .paths ul{grid-template-columns:1fr}
+  .h-act{font-size:clamp(34px,9.4vw,54px)}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .hd::before{display:none}
+}
+/* print: keep it readable */
+@media print{
+  body{background:#fff;color:#111}
+  .hd,.cine,.cue{display:none}
+  .stacked{display:block}
+  .sact .art{display:none}
+  .sact{min-height:auto;border-color:#ddd}
+}
+
+/* ================= 20 Nov 2026 · technical audit fixes (Hakem B report, applied by uzman C) ================= */
+/* B04: stacked mode (<=960px, reduced motion, no JS): the text column carries its own soft dark backing,
+   so lines that run over the light stone and book images keep 4.5:1 whatever the language or width */
+.sact .fg::before{content:"";position:absolute;z-index:-1;inset:-36px -28px -60px;background:rgba(7,14,12,.9);border-radius:24px;filter:blur(16px);pointer-events:none}
+/* B05: Act II rights label and its sentence: own dark plate (they cross the "it is was that he" slab),
+   and a short full-opacity hold inside the same window (.23 to .355) instead of peaking at 68% */
+.rail2 .rights{padding:10px 14px;border-radius:6px;background:rgba(7,14,12,.92);box-shadow:0 0 22px 10px rgba(7,14,12,.7);
+  opacity:clamp(0,min(calc((var(--p) - var(--t))*25),calc((0.355 - var(--p))*16)),1)}
+.rail2 .rights small{opacity:1}
+/* B11 side effect: with the act III copy moved below the bar (top:max(9%,96px)), its paragraph reaches the top slab on short
+   laptop screens (1280x720 measured 4.3:1); the copy gets the same top band act VI already has */
+.b3{padding-bottom:40px;background:linear-gradient(180deg,rgba(7,14,12,.94) 55%,rgba(7,14,12,.5) 80%,transparent)}
+/* B12: Act V copy sits on a dark band (as Act VI does at the top), so the headline does not run through the
+   matrix and MDS boxes and the baseline ruler does not cut the "Do not conclude" line */
+.b5{padding-top:56px;background:linear-gradient(0deg,rgba(7,14,12,.94) 62%,rgba(7,14,12,.55) 84%,transparent);
+  /* same window (.735 to .868), steeper ramps: the act now holds at full opacity from .785 to .818 instead of peaking at 80% */
+  opacity:clamp(0,calc(min((var(--p) - 0.735)*20,(0.868 - var(--p))*20)),1)}
+
+/* ================= 21 Nov 2026 · approved content changes (uzman E) ================= */
+/* D05: the alpha limits sentence sits under the status line of the opening (cinematic b1 and stacked s1) */
+.alpha-note{margin-top:10px;max-width:52ch;font-size:13.5px;line-height:1.5;color:var(--bone)}
+.cine .alpha-note{text-shadow:0 2px 46px rgba(7,14,12,.95),0 1px 12px rgba(7,14,12,.8)}
+
+/* ================= 21 Nov 2026 · Fable audit task list (06-fable-denetim.md), applied by Opus ================= */
+/* G02 (F01): the opening headline grows with the height as well as the width, and its column may be wider,
+   so EN keeps two lines at every size and the alpha sentence stays above the bottom caption rail */
+.cine .b1{max-width:min(56vw,1040px)}
+.cine .b1 .h-mega{font-size:clamp(64px,min(8.6vw,14vh),148px)}
+/* G03 (F02) a: one viewBox unit of the stage SVG (1440x1000, xMidYMid slice) on screen */
+:root{--u:max(calc(100vw/1440),calc(100vh/1000))}
+/* G03 b: the act IV copy stays right of the matrix (x 960) and above the heatmap box (y 450) */
+.cine .b4{top:max(8%,92px);max-width:min(440px,calc(50vw - 240*var(--u) - clamp(24px,4vw,64px) - 28px))}
+.cine .b4 .h-act{font-size:clamp(30px,min(3.3vw,5.2vh),56px)}
+.cine .b4 .sup{margin-top:10px;font-size:clamp(13.5px,min(1.05vw,1.85vh),16px)}
+/* G03 c (Fable's 08 decision "E"): the MDS box sits 42 units lower, so the HEATMAP caption fits between the two boxes
+   at every size; the MDS caption sits left of its own box, under the matrix, right-aligned (its right edge 24 units
+   inside the box's left edge, a margin for scrollbars that take up width) */
+.minis>g:nth-child(2){transform:translateY(42px)}
+.cine .secondary{inset:0;width:auto}
+.cine .secondary p{position:absolute;margin:0!important;width:250px}
+.cine .secondary p:first-child{left:min(calc(50vw + 320*var(--u)),calc(100vw - 250px - clamp(20px,3.2vw,48px)));top:calc(50vh + 54*var(--u) + 8px)}
+.cine .secondary p:last-child{left:calc(50vw + 296*var(--u) - 250px);top:calc(50vh + 214*var(--u));text-align:right}
+/* G04 (F03): the act VI paragraph runs in three lines, and the record card sits 30 units lower
+   (this CSS transform replaces the SVG attribute translate(0 34) on .record) */
+.cine .b6 .sup{max-width:78ch}
+.record{transform:translate(0,64px)}
+/* G10 (F10): the dark band behind the act III and act VI copy starts at the top of the stage, under the bar,
+   instead of with a hard edge at 96px; the headline keeps its place (padding = the old top: 9% / 8% of the 100vh stage)
+   and the band below it is the same gradient over the same area as before */
+.b3{top:0;padding-top:max(9vh,96px);
+  background:linear-gradient(rgba(7,14,12,.94),rgba(7,14,12,.94)) 0 0/100% max(9vh,96px) no-repeat,
+    linear-gradient(180deg,rgba(7,14,12,.94) 55%,rgba(7,14,12,.5) 80%,transparent) 0 max(9vh,96px)/100% calc(100% - max(9vh,96px)) no-repeat}
+.b6{top:0;padding-top:max(8vh,96px);
+  background:linear-gradient(rgba(7,14,12,.94),rgba(7,14,12,.94)) 0 0/100% max(8vh,96px) no-repeat,
+    linear-gradient(180deg,rgba(7,14,12,.94) 55%,rgba(7,14,12,.5) 80%,transparent) 0 max(8vh,96px)/100% calc(100% - max(8vh,96px)) no-repeat}
+/* G14b (F12): the frame's bottom line runs below the "Conceptual visualisation" caption, not through it */
+.plate{bottom:10px}
+/* G15 (F11, Fable's 08 decision): on phones each principle is as tall as its copy; its image is a fixed 236px band at the bottom
+   (anchored in px, not in % of the section), so the picture stays under the copy, not behind it */
+@media (max-width:640px){
+  .sact:not(.s1){min-height:0;padding-bottom:236px}
+  .sact:not(.s1) .art{top:auto;left:0;right:0;bottom:0;height:236px}
+  .sact:not(.s1) .art img{width:100%;height:100%;object-fit:cover}
+  .sact:not(.s1)::after{top:auto;height:236px;background:linear-gradient(180deg,rgba(7,14,12,1) 0,rgba(7,14,12,.12) 38%,rgba(7,14,12,.12) 72%,rgba(7,14,12,.72) 100%)}
+}

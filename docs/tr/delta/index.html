@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="delta-workbench-url" content="https://delta.lemmata.app/">
+<meta name="description" content="Delta nasıl çalışır: belirsizliği görünür tutan bir stilometri workbench'i. Tek derlem, dört en sık geçen sözcük ayarı, birincil kanıt olarak uzaklık matrisi ve saklamaya yönelik bir araştırma kaydı.">
+<title>Delta nasıl çalışır · Yaşayan Derlem</title>
+<link rel="canonical" href="https://lemmata.app/tr/delta/">
+<link rel="alternate" hreflang="en" href="https://lemmata.app/delta/">
+<link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/delta/">
+<link rel="alternate" hreflang="x-default" href="https://lemmata.app/delta/">
+<meta name="theme-color" content="#070E0C">
+<link rel="icon" href="/delta/assets/favicon-32x32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231FA97C'/%3E%3Ctext x='16' y='24' font-size='21' text-anchor='middle' fill='%2306110D' font-family='Georgia,serif'%3E%CE%94%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/delta/assets/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Lemmata">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:title" content="Delta nasıl çalışır · Yaşayan Derlem">
+<meta property="og:description" content="Her metin bir iz bırakır. Belirsizliği görünür tutan bir stilometri workbench'i: birincil kanıt uzaklık matrisidir ve uzaklık ölçer, karar vermez.">
+<meta property="og:url" content="https://lemmata.app/tr/delta/">
+<meta property="og:image" content="https://lemmata.app/delta/assets/og-delta.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Delta nasıl çalışır: kırık beyaz kağıt üzerinde ölçüm çizgileriyle birleşen iki mürekkep sütunu">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Delta nasıl çalışır · Yaşayan Derlem">
+<meta name="twitter:description" content="Her metin bir iz bırakır. Belirsizliği görünür tutan bir stilometri workbench'i: birincil kanıt uzaklık matrisidir ve uzaklık ölçer, karar vermez.">
+<meta name="twitter:image" content="https://lemmata.app/delta/assets/og-delta.jpg">
+<link rel="preload" href="/delta/assets/keyvis-hero.jpg" as="image">
+<link rel="preload" href="/assets/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/delta/assets/styles.css">
+<link rel="stylesheet" href="/delta/assets/intro.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Delta (Lemmata stylometry workbench)","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","url":"https://delta.lemmata.app/","description":"Delta nasıl çalışır: belirsizliği görünür tutan bir stilometri workbench'i. Tek derlem, dört en sık geçen sözcük ayarı, birincil kanıt olarak uzaklık matrisi ve saklamaya yönelik bir araştırma kaydı.","license":"https://opensource.org/licenses/MIT","author":[{"@type":"Person","name":"Oğuz Koran","@id":"https://orcid.org/0000-0001-7954-9597","sameAs":"https://orcid.org/0000-0001-7954-9597"},{"@type":"Person","name":"Barış Yücesan","@id":"https://orcid.org/0000-0002-1776-9815","sameAs":"https://orcid.org/0000-0002-1776-9815"}],"isPartOf":{"@type":"WebSite","name":"Lemmata","url":"https://lemmata.app/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"mainEntityOfPage":"https://lemmata.app/tr/delta/"}
+</script>
+<link rel="stylesheet" href="/assets/accessibility.css?v=20261113d">
+<link rel="stylesheet" href="/assets/site.css?v=20261119a">
+</head>
+<body>
+<a class="skip" href="#main">İçeriğe geçin</a>
+<header class="hd intro-aware">
+  <a class="wm" href="/tr/"><span class="mk" aria-hidden="true">Δ</span><span class="tx">Delta</span><span class="sub">Stilometri</span></a>
+  <a class="ghost cine-summary" href="#summary" hidden>Özete geçin</a>
+  <span class="lang"><a href="/delta/">EN</a> · <b>TR</b></span>
+  <a class="cta" href="https://delta.lemmata.app/" data-workbench>Workbench'i açın</a>
+</header>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#F2EDE0" stroke-opacity=".3" stroke-width="1"/>
+    </pattern>
+    <pattern id="ticksP" width="16" height="24" patternUnits="userSpaceOnUse">
+      <line x1="8" y1="5" x2="8" y2="19" stroke="#F2EDE0" stroke-opacity=".66" stroke-width="1"/>
+    </pattern>
+    <pattern id="gridP" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" fill="none" stroke="#1FA97C" stroke-opacity=".55" stroke-width=".7"/>
+    </pattern>
+    <filter id="tooth" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.94  0 0 0 0 0.92  0 0 0 0 0.85  0 0 0 0.05 0"/>
+    </filter>
+    <clipPath id="cg2"><rect x="700" y="196" width="480" height="116"/></clipPath>
+    <clipPath id="cg4"><rect x="700" y="392" width="480" height="84"/></clipPath>
+    <clipPath id="cg6"><rect x="700" y="564" width="480" height="96"/></clipPath>
+
+    <g id="mono">
+      
+      <g opacity=".3" stroke="#F2EDE0" stroke-width="1">
+        <line x1="640" y1="872" x2="1240" y2="872"/>
+        <line x1="700" y1="866" x2="700" y2="878"/><line x1="940" y1="866" x2="940" y2="878"/><line x1="1180" y1="866" x2="1180" y2="878"/>
+      </g>
+
+      
+      <g class="st" style="--d:-150;--jx:26;--jy:-18;--jr:-2.2;--cx:-600;--cy:278;--mx:-220;--my:206">
+        <rect x="700" y="120" width="480" height="64" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="120" width="480" height="64" class="lift" fill="#F5F1E6"/>
+        <rect x="700" y="120" width="480" height="64" fill="url(#hatch)" class="stx"/>
+        <rect x="700" y="120" width="480" height="64" filter="url(#tooth)" class="stx"/>
+        <rect x="700" y="120" width="480" height="64" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="120" width="2.5" height="64" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:-104;--jx:-30;--jy:12;--jr:1.6;--cx:-600;--cy:306;--mx:-220;--my:148">
+        <rect x="700" y="196" width="480" height="116" fill="#F5F1E6" fill-opacity=".19"/>
+        <rect x="700" y="196" width="480" height="116" class="lift" fill="#F5F1E6"/>
+        <g clip-path="url(#cg2)" class="stx" fill="#F5F1E6" font-family="Fraunces,Georgia,serif">
+          <text x="716" y="296" font-size="104" font-weight="560" opacity=".46">ve</text>
+          <text x="856" y="292" font-size="82" font-weight="430" opacity=".4" font-style="italic">bir</text>
+          <text x="1016" y="298" font-size="94" font-weight="600" opacity=".44">bu</text>
+          <text x="726" y="382" font-size="64" font-weight="500" opacity=".34">da</text>
+          <text x="824" y="382" font-size="60" opacity=".32" font-style="italic">ile</text>
+          <text x="936" y="382" font-size="62" font-weight="560" opacity=".36">için</text>
+        </g>
+        <rect x="700" y="196" width="480" height="116" fill="none" stroke="#F5F1E6" stroke-opacity=".42" stroke-width="1"/>
+        <rect x="700" y="196" width="2.5" height="116" fill="#F2EDE0" opacity=".78" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:-60;--jx:18;--jy:-10;--jr:-1.2;--cx:-280;--cy:78;--mx:-220;--my:94">
+        <rect x="700" y="324" width="480" height="56" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="324" width="480" height="56" class="lift" fill="#F5F1E6"/>
+        <rect x="712" y="330" width="456" height="44" fill="url(#ticksP)" class="stx"/>
+        <rect x="700" y="324" width="480" height="56" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="324" width="2.5" height="56" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:-22;--jx:-22;--jy:16;--jr:2;--cx:-280;--cy:126;--mx:-220;--my:56">
+        <rect x="700" y="392" width="480" height="84" fill="#F5F1E6" fill-opacity=".18"/>
+        <rect x="700" y="392" width="480" height="84" class="lift" fill="#F5F1E6"/>
+        <g clip-path="url(#cg4)" class="stx" fill="#F5F1E6" font-family="Fraunces,Georgia,serif" font-size="30">
+          <text x="726" y="430" opacity=".5">,</text><text x="768" y="444" opacity=".38">.</text>
+          <text x="806" y="426" opacity=".53">;</text><text x="850" y="448" opacity=".38">:</text>
+          <text x="888" y="432" opacity=".46">·</text><text x="930" y="444" opacity=".38">,</text>
+          <text x="968" y="428" opacity=".52">—</text><text x="1042" y="446" opacity=".38">.</text>
+          <text x="1080" y="430" opacity=".48">;</text><text x="1122" y="444" opacity=".4">,</text>
+        </g>
+        <rect x="700" y="392" width="480" height="84" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="392" width="2.5" height="84" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:18;--jx:14;--jy:-14;--jr:-1.6;--cx:80;--cy:-90;--mx:-220;--my:14">
+        <rect x="700" y="488" width="480" height="64" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="488" width="480" height="64" class="lift" fill="#F5F1E6"/>
+        <rect x="708" y="494" width="464" height="52" fill="url(#gridP)" class="stx"/>
+        <rect x="700" y="488" width="480" height="64" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="488" width="2.5" height="64" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:62;--jx:-26;--jy:10;--jr:1.2;--cx:80;--cy:-52;--mx:-220;--my:-34">
+        <rect x="700" y="564" width="480" height="96" fill="#F5F1E6" fill-opacity=".19"/>
+        <rect x="700" y="564" width="480" height="96" class="lift" fill="#F5F1E6"/>
+        <g clip-path="url(#cg6)" class="stx" fill="#F5F1E6" font-family="Fraunces,Georgia,serif">
+          <text x="718" y="634" font-size="58" font-weight="380" opacity=".42">o</text>
+          <text x="782" y="644" font-size="66" font-weight="620" opacity=".38">ki</text>
+          <text x="862" y="632" font-size="54" opacity=".44" font-style="italic">gibi</text>
+          <text x="964" y="644" font-size="58" font-weight="520" opacity=".36">ama</text>
+          <text x="1124" y="636" font-size="54" opacity=".4">de</text>
+        </g>
+        <rect x="700" y="564" width="480" height="96" fill="none" stroke="#F5F1E6" stroke-opacity=".42" stroke-width="1"/>
+        <rect x="700" y="564" width="2.5" height="96" fill="#F2EDE0" opacity=".78" class="mono-rim"/>
+      </g>
+      <g class="st" style="--d:112;--jx:20;--jy:-12;--jr:-1;--cx:360;--cy:-272;--mx:-220;--my:-80">
+        <rect x="700" y="672" width="480" height="60" fill="#F5F1E6" fill-opacity=".17"/>
+        <rect x="700" y="672" width="480" height="60" class="lift" fill="#F5F1E6"/>
+        <rect x="700" y="672" width="9" height="60" fill="#C57B4A" opacity=".92" class="stx"/>
+        <line x1="718" y1="720" x2="1162" y2="720" stroke="#C57B4A" stroke-opacity=".55" stroke-width="1" class="stx"/>
+        <rect x="700" y="672" width="480" height="60" fill="none" stroke="#C57B4A" stroke-opacity=".4" stroke-width="1"/>
+      </g>
+      <g class="st" style="--d:160;--jx:-16;--jy:18;--jr:1.8;--cx:360;--cy:-232;--mx:-220;--my:-126">
+        <rect x="700" y="744" width="480" height="96" fill="#F5F1E6" fill-opacity=".18"/>
+        <rect x="700" y="744" width="480" height="96" class="lift" fill="#F5F1E6"/>
+        <rect x="708" y="752" width="464" height="80" fill="url(#gridP)" class="stx" opacity=".8"/>
+        <rect x="708" y="752" width="464" height="80" fill="url(#ticksP)" class="stx" opacity=".5"/>
+        <rect x="700" y="744" width="480" height="96" fill="none" stroke="#F5F1E6" stroke-opacity=".5" stroke-width="1"/>
+        <rect x="700" y="744" width="2.5" height="96" fill="#F2EDE0" opacity=".92" class="mono-rim"/>
+      </g>
+
+      
+      <g opacity="calc(.55 - var(--mat)*.4)" stroke="#1FA97C" stroke-width="1">
+        <line x1="560" y1="522" x2="1320" y2="522"/>
+        <line x1="700" y1="517" x2="700" y2="527"/><line x1="855" y1="517" x2="855" y2="527"/>
+        <line x1="1010" y1="517" x2="1010" y2="527"/><line x1="1165" y1="517" x2="1165" y2="527"/>
+      </g>
+
+      
+      <g class="mgrid">
+        <rect x="480" y="340" width="480" height="352" fill="#123227" fill-opacity=".6" stroke="#5DCAA5" stroke-opacity=".95" stroke-width="2.2"/>
+        <g stroke="#F2EDE0" stroke-opacity=".35" stroke-width="1">
+          <line x1="468" y1="384" x2="480" y2="384"/><line x1="468" y1="472" x2="480" y2="472"/>
+          <line x1="468" y1="560" x2="480" y2="560"/><line x1="468" y1="648" x2="480" y2="648"/>
+          <line x1="576" y1="702" x2="576" y2="692"/><line x1="672" y1="702" x2="672" y2="692"/>
+          <line x1="768" y1="702" x2="768" y2="692"/><line x1="864" y1="702" x2="864" y2="692"/>
+        </g>
+        <g stroke="#1FA97C" stroke-opacity=".5" stroke-width=".7">
+          <path d="M480 384H960M480 428H960M480 472H960M480 516H960M480 560H960M480 604H960M480 648H960"/>
+          <path d="M528 340V692M576 340V692M624 340V692M672 340V692M720 340V692M768 340V692M816 340V692M864 340V692M912 340V692"/>
+        </g>
+        <g class="mdots" fill="#5DCAA5">
+          <g class="md0">
+            <circle cx="552" cy="362" r="5" opacity=".9"/><circle cx="648" cy="406" r="5" opacity=".5"/>
+            <circle cx="744" cy="450" r="5" opacity=".75"/><circle cx="840" cy="384" r="5" opacity=".4"/>
+            <circle cx="600" cy="494" r="5" opacity=".65"/><circle cx="696" cy="538" r="5" opacity=".85"/>
+            <circle cx="888" cy="582" r="5" opacity=".55"/><circle cx="552" cy="626" r="5" opacity=".7"/>
+            <circle cx="792" cy="670" r="5" opacity=".45"/><circle cx="936" cy="450" r="5" opacity=".6"/>
+          </g>
+          <g class="md1">
+            <circle cx="600" cy="362" r="5" opacity=".85"/><circle cx="696" cy="384" r="5" opacity=".5"/>
+            <circle cx="552" cy="450" r="5" opacity=".7"/><circle cx="888" cy="406" r="5" opacity=".45"/>
+            <circle cx="648" cy="538" r="5" opacity=".8"/><circle cx="744" cy="582" r="5" opacity=".5"/>
+            <circle cx="840" cy="516" r="5" opacity=".65"/><circle cx="936" cy="626" r="5" opacity=".75"/>
+            <circle cx="576" cy="670" r="5" opacity=".4"/><circle cx="816" cy="362" r="5" opacity=".55"/>
+          </g>
+          <g class="md2">
+            <circle cx="648" cy="384" r="5" opacity=".9"/><circle cx="744" cy="362" r="5" opacity=".45"/>
+            <circle cx="576" cy="516" r="5" opacity=".75"/><circle cx="864" cy="450" r="5" opacity=".6"/>
+            <circle cx="696" cy="604" r="5" opacity=".5"/><circle cx="792" cy="538" r="5" opacity=".8"/>
+            <circle cx="912" cy="516" r="5" opacity=".4"/><circle cx="600" cy="648" r="5" opacity=".7"/>
+            <circle cx="888" cy="648" r="5" opacity=".6"/><circle cx="528" cy="406" r="5" opacity=".5"/>
+          </g>
+          <g class="md3">
+            <circle cx="576" cy="406" r="5" opacity=".8"/><circle cx="672" cy="450" r="5" opacity=".5"/>
+            <circle cx="768" cy="406" r="5" opacity=".7"/><circle cx="912" cy="384" r="5" opacity=".55"/>
+            <circle cx="624" cy="560" r="5" opacity=".9"/><circle cx="720" cy="516" r="5" opacity=".4"/>
+            <circle cx="864" cy="604" r="5" opacity=".65"/><circle cx="552" cy="582" r="5" opacity=".5"/>
+            <circle cx="816" cy="670" r="5" opacity=".75"/><circle cx="936" cy="538" r="5" opacity=".6"/>
+          </g>
+        </g>
+      </g>
+
+      
+      <g class="minis">
+        <g>
+          <rect x="1040" y="450" width="290" height="104" fill="none" stroke="#F2EDE0" stroke-opacity=".3" stroke-width="1"/>
+          <g>
+            <rect x="1048" y="458" width="66" height="20" fill="#1FA97C" opacity=".85"/><rect x="1118" y="458" width="66" height="20" fill="#1FA97C" opacity=".55"/><rect x="1188" y="458" width="66" height="20" fill="#1FA97C" opacity=".3"/><rect x="1258" y="458" width="64" height="20" fill="#F2EDE0" opacity=".14"/>
+            <rect x="1048" y="482" width="66" height="20" fill="#1FA97C" opacity=".5"/><rect x="1118" y="482" width="66" height="20" fill="#1FA97C" opacity=".75"/><rect x="1188" y="482" width="66" height="20" fill="#F2EDE0" opacity=".12"/><rect x="1258" y="482" width="64" height="20" fill="#1FA97C" opacity=".4"/>
+            <rect x="1048" y="506" width="66" height="20" fill="#1FA97C" opacity=".3"/><rect x="1118" y="506" width="66" height="20" fill="#F2EDE0" opacity=".12"/><rect x="1188" y="506" width="66" height="20" fill="#1FA97C" opacity=".65"/><rect x="1258" y="506" width="64" height="20" fill="#1FA97C" opacity=".5"/>
+            <rect x="1048" y="530" width="66" height="16" fill="#F2EDE0" opacity=".1"/><rect x="1118" y="530" width="66" height="16" fill="#1FA97C" opacity=".45"/><rect x="1188" y="530" width="66" height="16" fill="#1FA97C" opacity=".35"/><rect x="1258" y="530" width="64" height="16" fill="#1FA97C" opacity=".8"/>
+          </g>
+        </g>
+        <g>
+          <rect x="1040" y="610" width="290" height="150" fill="none" stroke="#F2EDE0" stroke-opacity=".3" stroke-width="1"/>
+          <g fill="#5DCAA5">
+            <circle cx="1092" cy="650" r="3.4" opacity=".85"/><circle cx="1118" cy="666" r="3.4" opacity=".7"/>
+            <circle cx="1104" cy="690" r="3.4" opacity=".8"/><circle cx="1210" cy="642" r="3.4" opacity=".6"/>
+            <circle cx="1238" cy="660" r="3.4" opacity=".7"/><circle cx="1286" cy="718" r="3.4" opacity=".55"/>
+            <circle cx="1176" cy="726" r="3.4" opacity=".65"/><circle cx="1150" cy="702" r="3.4" opacity=".75"/>
+          </g>
+        </g>
+      </g>
+
+      
+      <g class="record" transform="translate(0 34)">
+        <rect class="frame" x="520" y="300" width="400" height="420" rx="4" fill="#0C1714" fill-opacity=".88" stroke="#F2EDE0" stroke-opacity=".85" stroke-width="1.6" pathLength="1"/>
+        <g font-family="InterVar,ui-sans-serif,sans-serif" font-size="13" font-weight="650" letter-spacing="1.6" fill="#F2EDE0">
+          <g class="row" style="--rt:.06"><text x="548" y="348" opacity=".85">ÇALIŞMA REFERANSI</text><line x1="548" y1="360" x2="892" y2="360" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="348" x2="892" y2="348" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.16"><text x="548" y="400" opacity=".85">DERLEM BELGELERİ</text><line x1="548" y1="412" x2="892" y2="412" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="400" x2="892" y2="400" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.26"><text x="548" y="452" opacity=".85">PARAMETRELER · 100–1.000 MFW</text><line x1="548" y1="464" x2="892" y2="464" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="452" x2="892" y2="452" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.36"><text x="548" y="504" opacity=".85">MATRİS ÇIKTISI</text><line x1="548" y1="516" x2="892" y2="516" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="504" x2="892" y2="504" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.46"><text x="548" y="556" fill="#C57B4A" opacity=".95">HAKLAR ÖZETİ</text><line x1="548" y1="568" x2="892" y2="568" stroke="#C57B4A" stroke-opacity=".6"/><line x1="878" y1="556" x2="892" y2="556" stroke="#C57B4A" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.56"><text x="548" y="608" fill="#D8683C" opacity=".95">YORUM SINIRI</text><line x1="548" y1="620" x2="892" y2="620" stroke="#D8683C" stroke-opacity=".55"/><line x1="878" y1="608" x2="892" y2="608" stroke="#D8683C" stroke-opacity=".9"/></g>
+          <g class="row" style="--rt:.66"><text x="548" y="660" opacity=".85">DIŞA AKTARMA KAYDI</text><line x1="548" y1="672" x2="892" y2="672" stroke="#F2EDE0" stroke-opacity=".35"/><line x1="878" y1="660" x2="892" y2="660" stroke="#5DCAA5" stroke-opacity=".9"/></g>
+        </g>
+        <g class="seal" stroke="#1FA97C" stroke-width="2" fill="none">
+          <circle cx="864" cy="694" r="15" stroke-opacity=".9"/>
+          <path d="M856 694 l6 7 12 -13"/>
+          <line x1="520" y1="736" x2="920" y2="736" stroke-opacity=".85"/>
+        </g>
+      </g>
+
+      
+      <g class="motif">
+        <g transform="translate(408 318)">
+          <text x="0" y="64" font-family="Fraunces,Georgia,serif" font-size="78" font-weight="560" fill="#F2EDE0" opacity=".4">e</text>
+          <rect x="2" y="82" width="76" height="7" fill="#F2EDE0" opacity=".4"/>
+          <rect x="2" y="96" width="54" height="7" fill="#1FA97C" opacity=".65"/>
+          <rect x="2" y="110" width="66" height="7" fill="#F2EDE0" opacity=".25"/>
+        </g>
+        <g transform="translate(950 620)" stroke="#5DCAA5" stroke-opacity=".6" stroke-width="1">
+          <line x1="0" y1="0" x2="0" y2="16"/><line x1="10" y1="-4" x2="10" y2="20"/><line x1="20" y1="2" x2="20" y2="14"/>
+        </g>
+      </g>
+    </g>
+  </defs>
+</svg>
+
+<main id="main">
+
+
+<section class="cine" aria-label="Delta nasıl çalışır · sinematik bölüm">
+  <div class="scene" data-scene>
+    <div class="pin">
+      <span class="scene-counter" aria-hidden="true" hidden></span>
+      <div class="plate" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="ruler"></span></div>
+      <div class="stagewrap" aria-hidden="true">
+        <svg viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice" role="presentation" focusable="false"><use href="#mono"/></svg>
+      </div>
+      <figure class="keyvis" aria-hidden="true">
+        <video id="motion-1" data-src="/delta/assets/keyvis-hero.mp4" poster="/delta/assets/keyvis-hero.jpg" muted loop playsinline preload="none" width="1600" height="893"></video>
+      </figure><button type="button" class="motion-toggle" aria-controls="motion-1" aria-pressed="false">Animasyonu oynat</button>
+
+      
+      <div class="blk b1">
+        <div class="inner">
+          <p class="eyebrow">Delta · Lemmata'nın stilometri workbench'i</p>
+          <h1 class="h-mega">Her metin bir&nbsp;<em class="xr">iz</em> bırakır.</h1>
+          <p class="lede" style="margin:26px 0 30px">Edebiyat ve dijital beşeri bilimler araştırması için, belirsizliği görünür tutan bir stilometri workbench'i. Derlem tercihleri, parametreler ve sınırlılıklar görünür kalır.</p>
+          <p class="ctas"><a class="btn" href="https://delta.lemmata.app/" data-workbench>Workbench'i açın</a><a class="ghost" href="#methods">Yöntem notunu okuyun</a><a class="ghost" href="#summary">Özete geçin</a></p>
+          <p class="status" style="margin-top:22px">Açık alfa · Deneysel</p>
+          <p class="alpha-note">Küçük derlemlerle sınandı. Bir çalıştırma en çok 50 metin alır, aynı anda yalnız birkaç derlem açık olabilir ve büyük derlemlerde analiz başarısız olabilir.</p>
+        </div>
+      </div>
+
+      
+      <div class="blk b2">
+        <h2 class="h-act">Bir derlem, zaten bir savdır.</h2>
+        <p class="sup">Tür, tarih, basım, hedef okur, kaynak, haklar ve OCR, bir karşılaştırmanın ne anlama gelebileceğini biçimlendirir. Delta, analizden önce metinleri belgelemenizi ister.</p>
+      </div>
+      <ul class="rail2" aria-hidden="true">
+        <li style="--t:.19;top:13%">TÜR</li>
+        <li style="--t:.21;top:27%">TARİH</li>
+        <li style="--t:.23;top:39%">BASIM</li>
+        <li style="--t:.25;top:52%">HEDEF OKUR</li>
+        <li style="--t:.27;top:65%">KAYNAK</li>
+        <li class="rights" style="--t:.23;top:76%">Haklar: bilinmiyor<small>Kaydedilir. Metin analize alınmaz ve kamuya açık dağıtıma uygun sayılmaz.</small></li>
+        <li style="--t:.30;top:92%">OCR</li>
+      </ul>
+
+      
+      <div class="blk b3">
+        <h2 class="h-act">Tek bir ayar <em class="xr">kanıt değildir.</em></h2>
+        <p class="sup">Rehberli karşılaştırmalar 100, 300, 500 ve 1.000 en sık geçen sözcük ayarını birlikte çalıştırır. 500 MFW önceden belirlenmiş bir görüntüleme referansı olarak ilk açılır, en iyi ya da optimal ayar olduğu için değil.</p>
+        <span class="mrule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+      <div class="lenses" aria-hidden="true">
+        <div class="l100"><div class="n">100</div><div class="u">MFW</div><div class="t"></div></div>
+        <div class="l300"><div class="n">300</div><div class="u">MFW</div><div class="t"></div></div>
+        <div class="l500"><div class="n">500</div><div class="u">MFW</div><div class="t"></div></div>
+        <div class="l1000"><div class="n">1.000</div><div class="u">MFW</div><div class="t"></div></div>
+      </div>
+
+      
+      <div class="blk b4">
+        <h2 class="h-act">Uzaklık ölçer, karar vermez.</h2>
+        <p class="sup">Daha yakın olmak, bu derlem ve bu ayar içinde ölçülen örüntülerin daha benzer olması demektir. Birincil kanıt sayısal uzaklık matrisidir. Isı haritası ve MDS izdüşümü aynı matrisin görselleştirmeleridir.</p>
+      </div>
+      <div class="matlabel" aria-hidden="true"><b>UZAKLIK MATRİSİ</b><p>Birincil kanıt · sayılar workbench içindeki hücrelerde</p></div>
+      <div class="secondary" aria-hidden="true">
+        <p style="margin-bottom:64px"><b>ISI HARİTASI</b>Aynı matrisin görselleştirmesi · renk ölçeği seçime özgü</p>
+        <p><b>MDS İZDÜŞÜMÜ</b>Destekleyici görünüm · eksenlerin edebi anlamı yoktur, görünen kümelenmeler izdüşüm yapıntısı olabilir</p>
+      </div>
+
+      
+      <div class="blk b5">
+        <h2 class="h-act">Aynı derlem, <em class="xr">başka ayarla başka görünür.</em></h2>
+        <p class="sup" style="margin:0 auto">İkna edici bir görüntü bile derlem bileşimine, parametrelere ve izdüşüme duyarlı olabilir. Delta dört karşılaştırmayı ve her derlem uyarısını yan yana gösterir. Hiçbir ayarı en iyi sonuç olarak sunmaz ve güven puanı vermez.</p>
+        <p class="boundary" style="text-align:left">Daha yakın olmak aynı yazar, etki, niyet ya da özgünlük anlamına gelmez.</p>
+      </div>
+      <div class="dial" aria-hidden="true">
+        <div class="track"><span class="stop"></span><span class="stop"></span><span class="stop"></span><span class="stop"></span><span class="ind"></span></div>
+        <div class="nums"><span>100</span><span>300</span><span>500</span><span>1.000</span></div>
+      </div>
+
+      
+      <div class="blk b6">
+        <h2 class="h-act">Yalnız grafiği değil, sayıları da saklayın.</h2>
+        <p class="sup" style="margin:14px auto 0">Delta'nın kayıtları JSON ve CSV dosyaları olarak indirilir. Bunlar hak kayıtlarıyla birlikte derlem envanterini, yöntem ayarlarını, sayısal sonuçları ve belirtilen yorum sınırlarını içerir. Tek bir FAIR paketi bu alfa sürümünde yok.</p>
+      </div>
+
+      <p class="stagecap capnote">Kavramsal görselleştirme · analiz sonucu değildir</p>
+      <p class="cue">Kaydırın · derlem açılıyor</p>
+    </div>
+  </div>
+</section>
+
+
+<div class="stacked">
+  <section class="sact s1" aria-label="Her metin bir iz bırakır">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-hero.jpg" alt="" loading="eager" decoding="async"></div>
+    <div class="fg">
+      <p class="eyebrow">Delta · Lemmata'nın stilometri workbench'i</p>
+      <h1 class="h-mega">Her metin bir&nbsp;<em class="xr">iz</em> bırakır.</h1>
+      <p class="lede">Edebiyat ve dijital beşeri bilimler araştırması için, belirsizliği görünür tutan bir stilometri workbench'i. Derlem tercihleri, parametreler ve sınırlılıklar görünür kalır.</p>
+      <p class="ctas"><a class="btn" href="https://delta.lemmata.app/" data-workbench>Workbench'i açın</a><a class="ghost" href="#methods">Yöntem notu</a></p>
+      <p class="status">Açık alfa · Deneysel</p>
+      <p class="alpha-note">Küçük derlemlerle sınandı. Bir çalıştırma en çok 50 metin alır, aynı anda yalnız birkaç derlem açık olabilir ve büyük derlemlerde analiz başarısız olabilir.</p>
+    </div>
+    <p class="capnote">Kavramsal görselleştirme · analiz sonucu değildir</p>
+  </section>
+
+  <section class="sact s2" aria-label="Bir derlem zaten bir savdır">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-02.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="fg">
+      <h2 class="h-act">Bir derlem, zaten bir savdır.</h2>
+      <p class="sup">Tür, tarih, basım, hedef okur, kaynak, haklar ve OCR, bir karşılaştırmanın ne anlama gelebileceğini biçimlendirir. Delta, analizden önce metinleri belgelemenizi ister.</p>
+      <ul class="rails">
+        <li><span>TÜR · TARİH · BASIM</span><span class="v">belgelendi</span></li>
+        <li><span>HEDEF OKUR · KAYNAK · OCR</span><span class="v">belgelendi</span></li>
+        <li class="rights"><span>HAKLAR</span><span class="v">bilinmiyor, kaydedilir, analize alınmaz, kamuya açık dağıtıma uygun sayılmaz</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sact s3" aria-label="Tek bir ayar kanıt değildir">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-04.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="fg">
+      <h2 class="h-act">Tek bir ayar <em class="xr">kanıt değildir.</em></h2>
+      <p class="sup">Rehberli karşılaştırmalar 100, 300, 500 ve 1.000 en sık geçen sözcük ayarını birlikte çalıştırır. 500 MFW önceden belirlenmiş bir görüntüleme referansı olarak ilk açılır, en iyi ya da optimal ayar olduğu için değil.</p>
+      <div class="lensrow" aria-hidden="true">
+        <div><div class="n">100</div><div class="u">MFW</div></div>
+        <div><div class="n">300</div><div class="u">MFW</div></div>
+        <div><div class="n">500</div><div class="u">MFW</div></div>
+        <div><div class="n">1.000</div><div class="u">MFW</div></div>
+      </div>
+      <p class="capnote" style="margin-top:14px;text-align:center">Dördü birlikte görünür kalır · hiçbiri en iyi diye işaretlenmez</p>
+    </div>
+  </section>
+
+  <section class="sact s4" aria-label="Uzaklık ölçer, karar vermez">
+    <div class="art" aria-hidden="true"><svg viewBox="450 315 540 400" style="--settle:1;--sep:0;--col:0;--mat:1;--dial:0;--fold:0" role="presentation" focusable="false"><use href="#mono"/></svg></div>
+    <div class="fg">
+      <h2 class="h-act">Uzaklık ölçer, karar vermez.</h2>
+      <p class="sup">Daha yakın olmak, bu derlem ve bu ayar içinde ölçülen örüntülerin daha benzer olması demektir. Birincil kanıt sayısal uzaklık matrisidir. Isı haritası ve MDS izdüşümü aynı matrisin görselleştirmeleridir.</p>
+      <p class="capnote" style="margin-top:12px">MDS eksenlerinin edebi bir anlamı yoktur, görünen kümelenmeler izdüşüm yapıntısı olabilir.</p>
+    </div>
+  </section>
+
+  <section class="sact s5" aria-label="Aynı derlem, başka ayarla başka görünür">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-04.jpg" alt="" loading="lazy" decoding="async" style="object-position:70% 62%"></div>
+    <div class="fg">
+      <h2 class="h-act">Aynı derlem, <em class="xr">başka ayarla başka görünür.</em></h2>
+      <p class="sup">İkna edici bir görüntü bile derlem bileşimine, parametrelere ve izdüşüme duyarlı olabilir. Delta dört karşılaştırmayı ve her derlem uyarısını yan yana gösterir. Hiçbir ayarı en iyi sonuç olarak sunmaz ve güven puanı vermez.</p>
+      <p class="boundary" style="margin:18px auto 0;text-align:left">Daha yakın olmak aynı yazar, etki, niyet ya da özgünlük anlamına gelmez.</p>
+    </div>
+  </section>
+
+  <section class="sact s6" aria-label="Yalnız grafiği değil, sayıları da saklayın">
+    <div class="art" aria-hidden="true"><img src="/delta/assets/keyvis-03.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="fg">
+      <h2 class="h-act">Yalnız grafiği değil, sayıları da saklayın.</h2>
+      <p class="sup">Delta'nın kayıtları JSON ve CSV dosyaları olarak indirilir. Bunlar hak kayıtlarıyla birlikte derlem envanterini, yöntem ayarlarını, sayısal sonuçları ve belirtilen yorum sınırlarını içerir. Tek bir FAIR paketi bu alfa sürümünde yok.</p>
+      <p class="capnote" style="margin-top:12px">Çalışma referansı · Derlem belgeleri · Parametreler · Matris çıktısı · Haklar özeti · Yorum sınırı · Dışa aktarma kaydı</p>
+    </div>
+  </section>
+</div>
+
+
+<div class="after">
+  <section class="methods" id="methods" aria-label="Yöntem notu">
+    <h2>Yöntem, yalın haliyle</h2>
+    <p>Delta, Classic Delta (Burrows) uzaklığını R stylo paketiyle hesaplar.</p>
+    <details open>
+      <summary>Karşılaştırma neyi çalıştırır</summary>
+      <div class="dbody"><p>Stilometri, dil kullanımındaki yinelenen ve ölçülebilir örüntüleri gözlemler. Sık sözcüklerin ne kadar yinelendiği bunlardan biridir. Anlamı, konuları ya da niyeti okumaz. Rehberli karşılaştırmalar 100, 300, 500 ve 1.000 en sık geçen sözcük ayarını birlikte çalıştırır. 500 MFW önceden belirlenmiş bir görüntüleme referansı olarak ilk açılır, en iyi ya da optimal ayar olduğu için değil.</p></div>
+    </details>
+    <details>
+      <summary>Uzaklık nasıl okunur</summary>
+      <div class="dbody"><p>Daha yakın olmak, bu derlem ve bu ayar içinde ölçülen örüntülerin daha benzer olması demektir. Birincil kanıt sayısal uzaklık matrisidir. Isı haritası ve MDS izdüşümü aynı matrisin görselleştirmeleridir, ısı haritasının renk ölçeği seçilen matrise özgüdür. MDS izdüşümünün eksenlerinin edebi bir anlamı yoktur, görünen kümelenmeler izdüşüm yapıntısı olabilir.</p></div>
+    </details>
+    <details>
+      <summary>Ne görünür kalır</summary>
+      <div class="dbody"><p>Bir metnin hak durumu bilinmiyorsa Delta bunu kaydeder. Metni inceleyebilirsiniz ama metin analize alınmaz ve kamuya açık dağıtıma uygun sayılmaz. Karşılaştırmanın çalışması için her metnin yükleme ve analiz izni belgelenmiş olmalıdır. Delta dört karşılaştırmayı ve her derlem uyarısını yan yana gösterir, hiçbir ayarı en iyi sonuç olarak sunmaz ve güven puanı vermez. Daha yakın olmak aynı yazar, etki, niyet ya da özgünlük anlamına gelmez.</p></div>
+    </details>
+  </section>
+
+  <section class="paths" aria-label="Araştırma yolları">
+    <h2>Üç araştırma yolu</h2>
+    <ul>
+      <li><b>Metinleri karşılaştır</b><p>Tek tek metinler arasındaki yinelenen dil örüntüleri.</p><a class="go" href="https://delta.lemmata.app/" data-workbench>Workbench içinde</a></li>
+      <li><b>Grupları karşılaştır</b><p>Belgelenmiş yazarlar, türler, dönemler ya da hedef okurlar arasındaki örüntüler.</p><a class="go" href="https://delta.lemmata.app/" data-workbench>Workbench içinde</a></li>
+      <li><b>Üslubu zaman içinde izle</b><p>Bir yazarın tarihli yapıtları sırayla.</p><a class="go" href="https://delta.lemmata.app/" data-workbench>Workbench içinde</a></li>
+    </ul>
+  </section>
+</div>
+<div class="intro-sections" id="summary">
+<section aria-label="Delta workbench" class="showcase">
+<div class="window reveal">
+<div aria-hidden="true" class="bar"><i></i><i></i><i></i><span class="url">delta.lemmata.app</span></div>
+<div class="shot"><img alt="Delta workbench: araştırma sorusunu seçme (metinleri karşılaştır, grupları karşılaştır ya da üslubu zaman içinde izle), engel ve uyarıların hazırlık özeti, amaçtan kanıta dört adımlı rehberli akış" loading="lazy" src="/delta/assets/product-delta.jpg" width="2000" height="1203"></div>
+</div>
+<p class="cap reveal">Workbench, herhangi bir analiz ayarı görünmeden <b>önce</b> derlemi belgeler. Sırasıyla amaç, derlem, parametreler, kanıt.</p>
+</section>
+<section aria-label="Delta ne karşılaştırır" class="band tint" id="compare">
+<div class="inner">
+<h2 class="reveal">Stilometrik soru sormanın üç yolu.</h2>
+<p class="sub reveal">Bu alfa sürümünde rehberli akışın sınırlı bir bölümü uçtan uca sınandı. Üç araştırma amacının bütün iş akışları henüz doğrulanmış değil.</p>
+<p class="sub reveal">Her karşılaştırma sizin derleminize görelidir. Önce soruyu seçersiniz, Delta ardından gelen tercihleri açıklar.</p>
+<p class="sub reveal">Henüz metin yüklemeye hazır değil misiniz? Workbench'i açın ve "Explore the example" düğmesini seçin. Bu, örnek için yazılmış üç kısa metnin kayıtlı bir karşılaştırmasıdır.</p>
+<div class="modes">
+<div class="mode reveal"><div class="k">Metinleri karşılaştır</div><b>Metne karşı metin</b><p>Bu derlem içinde hangi metinler daha benzer yinelenen dil örüntüleri gösteriyor ve odaktaki metin ötekilerin yanında nerede duruyor.</p></div>
+<div class="mode reveal"><div class="k">Grupları karşılaştır</div><b>Gruba karşı grup</b><p>Belgelenmiş yazarlar, türler, dönemler ya da hedef okurlar arasındaki örüntüler. Ölçüm her zaman sizin derlediğiniz derleme görelidir.</p></div>
+<div class="mode reveal"><div class="k">Üslubu zaman içinde izle</div><b>Tarih sırasındaki yapıtlar</b><p>Bir yazarın bağımsız olarak tarihlenmiş yapıtları arasında ölçülen konumun nasıl değiştiği. Tarihler derlemi sıraya koyar. Kronoloji tek başına yaşlanmayı, olgunlaşmayı, bir dönüm noktasını ya da bir nedeni kanıtlamaz.</p></div>
+</div>
+</div>
+</section>
+<section aria-label="Atıf" class="cite" id="cite">
+<p class="lab reveal">Delta'ya atıf</p>
+<h2 class="reveal">Araştırmanızda Delta mı kullanıyorsunuz?</h2>
+<p class="note reveal">Delta'nın henüz DOI'li, arşivlenmiş bir yazılım sürümü yok. Böyle bir sürüm çıkana kadar workbench'e aşağıdaki gibi atıf verin. LDA sayfasındaki DOI, Lemmata LDA'ya aittir.</p>
+<pre class="reveal" tabindex="0"><span class="k">@software</span>{koran_delta_2026,
+  author = {Koran, Oğuz and Yücesan, Barış},
+  title  = {Delta: An Uncertainty-Aware Stylometry Workbench},
+  year   = {2026},
+  url    = {https://delta.lemmata.app},
+  note   = {Public alpha}
+}</pre>
+<p class="doi reveal"><a href="https://github.com/oguzkoran-max/delta.lemmata.app">Kaynak kod</a> · <a href="#methods">Yöntem notu</a></p>
+<p class="authors reveal">Yazarlar · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/Oguz.Koran" rel="noopener" target="_blank">Oğuz Koran</a> <a aria-label="Oğuz Koran ORCID iD" class="orcid" href="https://orcid.org/0000-0001-7954-9597">iD</a></span> · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/byucesan" rel="noopener" target="_blank">Barış Yücesan</a> <a aria-label="Barış Yücesan ORCID iD" class="orcid" href="https://orcid.org/0000-0002-1776-9815">iD</a></span></p>
+</section>
+</div>
+<div class="after">
+  <section class="finale" aria-label="Workbench'i açın">
+    <div class="residue" aria-hidden="true"><i></i><i></i><i></i>
+      <svg width="34" height="34" viewBox="0 0 34 34" role="presentation" focusable="false"><circle cx="17" cy="17" r="15" fill="none" stroke="#1FA97C" stroke-width="2" stroke-opacity=".9"/><path d="M9.5 17 l6 7 12 -13" fill="none" stroke="#1FA97C" stroke-width="2"/></svg>
+    </div>
+    <h2 class="h-act">Derleminizi getirin. Tercihleri görünür tutun.</h2>
+    <p class="ctas"><a class="btn" href="https://delta.lemmata.app/" data-workbench>Workbench'i açın</a></p>
+    <p class="status">Açık alfa · Deneysel</p>
+  </section>
+</div>
+</main>
+
+<footer>
+  <p class="bd">Daha yakın olmak, bu derlem ve bu ayar içinde ölçülen örüntülerin daha benzer olması demektir. Aynı yazar, etki, niyet ya da özgünlük anlamına gelmez.</p>
+  <p>Delta · <a href="/tr/">Lemmata</a> · <a href="/tr/lda/">LDA konu modelleme</a> · <a href="/delta/" lang="en">English</a></p>
+<p class="source-code"><a href="https://github.com/oguzkoran-max/delta.lemmata.app">Kaynak kod</a></p>
+<p class="tool-trust">Analizler her aracın çalıştığı sunucuda yapılır · Son güncelleme 22 Kasım 2026</p>
+</footer>
+
+<script src="/delta/assets/narrative.js" defer></script>
+<script src="/assets/accessibility.js?v=20261113f" defer></script>
+</body>
+</html>

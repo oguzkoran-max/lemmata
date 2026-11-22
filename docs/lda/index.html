@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="lda-launch-url" content="https://lda.lemmata.app/">
+<meta name="description" content="How Lemmata's LDA works: a corpus becomes topics you name. Topics are word distributions, the number of topics is a choice, coherence is a signal not a verdict, preprocessing stays visible, and results describe this corpus.">
+<title>How Lemmata LDA works · Topics you name</title>
+<link rel="canonical" href="https://lemmata.app/lda/">
+<link rel="alternate" hreflang="en" href="https://lemmata.app/lda/">
+<link rel="alternate" hreflang="tr" href="https://lemmata.app/tr/lda/">
+<link rel="alternate" hreflang="x-default" href="https://lemmata.app/lda/">
+<meta name="theme-color" content="#070E0C">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231FA97C'/%3E%3Ctext x='16' y='24' font-size='23' text-anchor='middle' fill='%2306110D' font-family='Georgia,serif'%3E%CE%BB%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Lemmata">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="tr_TR">
+<meta property="og:title" content="How Lemmata LDA works · Topics you name">
+<meta property="og:description" content="A corpus, read by the words it repeats. A topic is a distribution over words, not a theme; the number of topics is a choice; coherence is a signal, not a verdict.">
+<meta property="og:url" content="https://lemmata.app/lda/">
+<meta property="og:image" content="https://lemmata.app/lda/assets/og-lda.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="How Lemmata LDA works: ink dissolving into clustered topic networks on off-white paper">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How Lemmata LDA works · Topics you name">
+<meta name="twitter:description" content="A corpus, read by the words it repeats. A topic is a distribution over words, not a theme; the number of topics is a choice; coherence is a signal, not a verdict.">
+<meta name="twitter:image" content="https://lemmata.app/lda/assets/og-lda.jpg">
+<link rel="preload" href="/assets/fonts/Newsreader-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"NR";src:url("/assets/fonts/Newsreader-Variable.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"NRI";src:url("/assets/fonts/Newsreader-Italic-Variable.woff2") format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+@font-face{font-family:"IV";src:url("/assets/fonts/InterVariable.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --void:#070E0C;--forest:#0C1714;--ink0:#0A1512;
+  --ivory:#F5F1E6;--bone:#CDC7B6;--dim:#8B9089;
+  --emerald:#1FA97C;--emerald-ink:#0B6A4B;--mint:#5DCAA5;--amber:#C89B4B;
+  --line:rgba(245,241,230,.14);--line2:rgba(245,241,230,.08);
+  --disp:"NR",Georgia,serif;--dispIt:"NRI","NR",Georgia,serif;--sans:"IV",ui-sans-serif,system-ui,sans-serif;
+  /* scroll envelopes (JS sets these; safe defaults for no-JS) */
+  --p:0;--settle:0;--sep:0;--kk:0;--coh:0;--sieve:0;--bound:0;
+}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--ivory);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+.skip{position:absolute;left:-9999px;top:0;background:var(--emerald);color:#06110D;padding:10px 18px;z-index:99;font-weight:600}
+.skip:focus{left:0}
+:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+
+.hd{position:fixed;inset:0 0 auto 0;z-index:40;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(20px,4vw,56px)}
+.wm{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:var(--ivory)}
+.wm .mk{width:26px;height:26px;border-radius:6px;background:var(--emerald);color:#06110D;display:grid;place-items:center;font-family:var(--disp);font-weight:600;font-size:17px}
+.wm .tx{font-family:var(--disp);font-weight:540;font-size:20px;letter-spacing:.01em}
+.wm .sub{font-family:var(--sans);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-left:2px}
+.hd .cta{background:var(--emerald);color:#06110D;font-weight:650;font-size:13.5px;text-decoration:none;padding:9px 17px;border-radius:4px}
+.hd .cta:hover{background:var(--mint)}
+
+.btn{background:var(--emerald);color:#06110D;font-weight:650;font-size:15px;text-decoration:none;padding:14px 26px;border-radius:4px;display:inline-flex;align-items:center;gap:8px;min-height:48px}
+.btn:hover{background:var(--mint)}
+.ghost{font-size:14.5px;color:var(--bone);text-decoration:none;border-bottom:1px solid rgba(245,241,230,.3);padding:9px 2px;min-height:44px;display:inline-flex;align-items:center}
+.ghost:hover{color:var(--mint);border-color:var(--mint)}
+.eyebrow{font-family:var(--sans);font-size:11.5px;letter-spacing:.2em;font-weight:650;color:var(--mint);text-transform:uppercase;display:flex;gap:10px;align-items:center;margin-bottom:22px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--emerald)}
+.status{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.h-mega{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:480;font-size:clamp(44px,6.6vw,104px);line-height:.98;letter-spacing:-.01em;color:var(--ivory)}
+.h-act{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:480;font-size:clamp(32px,4.6vw,68px);line-height:1.03;letter-spacing:-.008em;color:var(--ivory)}
+.xr{font-family:var(--dispIt);font-style:italic;color:var(--mint)}
+.lede{font-size:clamp(16px,1.3vw,19px);color:var(--bone);max-width:52ch}
+.sup{font-size:clamp(15px,1.15vw,17.5px);color:var(--bone);max-width:54ch;margin-top:16px}
+.boundary{color:var(--amber);font-size:15px;border-left:2px solid var(--amber);padding-left:14px;max-width:52ch}
+.capnote{font-size:11.5px;letter-spacing:.06em;color:var(--dim)}
+
+/* ============ CINE: single pinned cinematic chapter ============ */
+.cine{position:relative;display:none}
+.js .cine{display:block}
+.scene{position:relative;height:720vh}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden;background:
+  radial-gradient(1200px 780px at 72% 32%, rgba(31,169,124,.10), transparent 60%),
+  linear-gradient(180deg,var(--ink0),var(--void))}
+.pin::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent 46%,rgba(7,14,12,.55) 72%,rgba(7,14,12,.9))}
+.stagewrap{position:absolute;inset:0;display:grid;place-items:start center;padding-top:6svh;z-index:1}
+.stage{position:relative;width:min(1120px,92vw);height:min(660px,64svh)}
+
+/* word field protagonist */
+.field{position:absolute;inset:0;opacity:calc(.24 + .76*var(--sep))}
+.w{position:absolute;font-family:var(--disp);color:var(--bone);white-space:nowrap;
+   /* interpolate scattered (--sx,--sy) -> clustered (--cx,--cy) by --sep */
+   left:calc(var(--sx) * 1%);top:calc(var(--sy) * 1%);
+   transform:translate(calc(var(--dx,0) * var(--sep) * 1px), calc(var(--dy,0) * var(--sep) * 1px)) scale(calc(1 - .12*var(--sieve)*var(--rm,0)));
+   transition:color .5s;opacity:calc(1 - var(--rm,0)*var(--sieve)*.82);will-change:transform,opacity}
+.w.t1{--tint:#5DCAA5}.w.t2{--tint:#7FB2A0}.w.t3{--tint:#A9C08C}.w.t4{--tint:#9BD0C6}
+.w.big{font-size:34px;font-weight:560}.w.mid{font-size:26px;font-weight:480}.w.sm{font-size:20px;font-weight:420;font-style:italic;color:var(--dim)}
+.cine .field .w{color:color-mix(in oklab, var(--bone) calc((1 - var(--sep))*100%), var(--tint) calc(var(--sep)*100%))}
+/* cluster halos appear as words gather */
+.halo{position:absolute;border:1px solid rgba(31,169,124,.34);border-radius:44% 56% 52% 48%/52% 46% 54% 48%;opacity:calc(var(--sep)*.9 - var(--bound)*.5);transition:opacity .4s}
+.halo b{position:absolute;left:14px;top:-11px;font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);background:var(--forest);padding:1px 7px;border:1px solid var(--line)}
+
+/* coherence gauge (Act IV) */
+.gauge{position:absolute;left:50%;top:39%;transform:translateX(-50%);width:172px;opacity:var(--gaugeO,0);text-align:center;background:radial-gradient(120px 90px at 50% 40%, rgba(7,14,12,.85), transparent 72%)}
+.gauge svg{width:100%;overflow:visible}
+.gauge .lab{font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.gauge .val{font-family:var(--disp);font-size:26px;color:var(--mint)}
+
+/* k dial (Act III) */
+.kdial{position:absolute;left:2%;bottom:8%;display:flex;gap:10px;align-items:flex-end;opacity:var(--dialO,0)}
+.kdial .kk{width:44px;text-align:center;font-family:var(--sans);font-size:11px;color:var(--dim)}
+.kdial .kk b{display:block;font-family:var(--disp);font-size:22px;color:var(--bone)}
+.kdial .kk.on b{color:var(--mint)}
+.kdial .kk.on{border-bottom:2px solid var(--emerald);padding-bottom:4px}
+
+/* bounding frame (Act VI) */
+.frame{position:absolute;inset:-3% -2%;border:1px solid rgba(93,202,165,.5);border-radius:6px;opacity:calc(var(--bound)*.9);transition:opacity .4s}
+.frame b{position:absolute;left:16px;bottom:-11px;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mint);background:var(--forest);padding:1px 8px}
+
+/* act text blocks (cross-fade, driven by CSS windows) */
+.blk{position:absolute;z-index:3;left:0;right:0;padding:0 clamp(20px,6vw,90px)}
+.blk{pointer-events:none}
+.blk a{pointer-events:auto}
+.blk .inner{max-width:840px}
+.b1{top:50%;transform:translateY(-50%)}
+.b2,.b3,.b4,.b5,.b6{bottom:9%;max-width:none}
+.b2 .h-act,.b3 .h-act,.b4 .h-act,.b5 .h-act,.b6 .h-act{max-width:20ch}
+.ctas{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:30px}
+/* opacity trapezoids matching JS WINDOWS */
+.js .blk{opacity:0;transition:opacity .35s ease}
+.js .b1{opacity:var(--o1,1)}.js .b2{opacity:var(--o2,0)}.js .b3{opacity:var(--o3,0)}
+.js .b4{opacity:var(--o4,0)}.js .b5{opacity:var(--o5,0)}.js .b6{opacity:var(--o6,0)}
+.cue{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);opacity:calc(1 - var(--settle))}
+.stagecap{position:absolute;left:clamp(20px,6vw,90px);top:70px;z-index:3}
+
+/* ============ STACKED: mobile / no-JS / reduced-motion ============ */
+.stacked{display:block}
+.js .stacked{display:none}
+/* cine hero keyvis (Act I only) */
+.keyvis{position:absolute;inset:0;z-index:0;opacity:calc(var(--o1,1)*.55);pointer-events:none}
+.keyvis img{width:100%;height:100%;object-fit:cover;object-position:58% 50%}
+.keyvis::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,14,12,.92) 0 26%,rgba(7,14,12,.6) 58%,rgba(7,14,12,.8))}
+/* stacked art bands */
+.sact{position:relative;overflow:hidden;min-height:auto;padding:12vh clamp(20px,6vw,64px);border-bottom:1px solid var(--line2);max-width:920px;margin:0 auto}
+.sact .art{position:absolute;inset:0;z-index:0}
+.sact .art img{width:100%;height:100%;object-fit:cover;opacity:.46}
+.sact .art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,14,12,.6),rgba(7,14,12,.85))}
+.sact > *:not(.art){position:relative;z-index:1}
+.sact .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);font-weight:650;margin-bottom:14px}
+.sact .lede,.sact .sup{margin-top:16px}
+.sact .ctas{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;align-items:center}
+
+/* ============ after ============ */
+.after{background:var(--void)}
+.methods,.paths,.finale{max-width:1080px;margin:0 auto;padding:12vh clamp(20px,5vw,64px)}
+.methods h2,.paths h2{font-family:var(--disp);font-variation-settings:"opsz" 60;font-weight:480;font-size:clamp(28px,3vw,44px);margin-bottom:26px;color:var(--ivory)}
+.methods details{border-top:1px solid var(--line);padding:18px 0}
+.methods summary{cursor:pointer;font-family:var(--disp);font-size:21px;color:var(--ivory);list-style:none}
+.methods summary::-webkit-details-marker{display:none}
+.methods summary::before{content:"+ ";color:var(--mint)}
+.methods details[open] summary::before{content:"– "}
+.methods .dbody{color:var(--bone);font-size:15.5px;max-width:74ch;padding-top:12px}
+.paths ul{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.paths li{border:1px solid var(--line);border-radius:10px;padding:24px 22px;background:rgba(245,241,230,.02)}
+.paths li b{display:block;font-family:var(--disp);font-size:22px;margin-bottom:8px;color:var(--ivory)}
+.paths li p{color:var(--bone);font-size:14.5px}
+.paths li .go{margin-top:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mint)}
+.finale{text-align:center}
+.finale h2{font-family:var(--disp);font-variation-settings:"opsz" 72;font-weight:480;font-size:clamp(30px,3.6vw,56px);margin-bottom:24px;color:var(--ivory);max-width:20ch;margin-left:auto;margin-right:auto}
+.finale .ctas{justify-content:center;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.finale .status{margin-top:22px}
+footer{border-top:1px solid var(--line2);padding:40px clamp(20px,5vw,64px);color:var(--dim);font-size:13.5px;max-width:1080px;margin:0 auto}
+footer .bd{color:var(--bone);max-width:72ch;margin-bottom:10px}
+footer a{color:var(--mint);text-decoration:none}
+
+@media(max-width:560px){.wm .sub{display:none}.hd{padding:12px 18px}}
+@media(max-width:900px){
+  .cine{display:none!important}
+  .stacked{display:block!important}
+  .paths ul{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .cine{display:none!important}.stacked{display:block!important}
+}
+
+/* ===== cine layout without overlap (13 Nov 2026): act text keeps the left column,
+   the stage (words, halos, dial, gauge, frame) lives in the right column and scales with it.
+   Offsets are the original px values on a 1120x660 stage, converted with container units,
+   so every word still lands in its own halo whatever the stage size. ===== */
+.stagewrap{display:block;padding:0}
+.stage{position:absolute;left:47vw;right:4vw;width:auto;top:max(88px,calc(50svh - 380px));height:min(760px,calc(100svh - 170px));container-type:size}
+/* gathered target: the original cluster shape (start + px offset on a 1120x660 stage), re-centred on its halo
+   (--gx/--gy = the cluster's original centroid, --hx/--hy = halo centre), scaled by --k, with each word box centred on
+   its point, so whole boxes, not just their top-left corners, land inside the rounded halo */
+.stage{--k:.9}
+.w.t1{--hx:24;--hy:26;--gx:21.1;--gy:20}.w.t2{--hx:76;--hy:25;--gx:75.3;--gy:14.9}.w.t3{--hx:26;--hy:75;--gx:17.7;--gy:83.2}.w.t4{--hx:75.5;--hy:76;--gx:75.6;--gy:86.4}
+.w{line-height:1.15;transform:translate(calc(((var(--hx) + var(--k)*(var(--sx) + var(--dx,0)/11.2 - var(--gx))) - var(--sx)) * var(--sep) * 1cqw - 50% * var(--sep)), calc(((var(--hy) + var(--k)*(var(--sy) + var(--dy,0)/6.6 - var(--gy))) - var(--sy)) * var(--sep) * 1cqh - 50% * var(--sep))) scale(calc(1 - .12*var(--sieve)*var(--rm,0)))}
+.w.big{font-size:clamp(19px,3.04cqw,34px)}.w.mid{font-size:clamp(16px,2.32cqw,26px)}.w.sm{font-size:clamp(13px,1.79cqw,20px)}
+/* Act I: the hero text spans the screen, so the scattered words wait until it has faded
+   (Act I text is gone at --p .16; the field fades in over .155-.205 while the words start gathering at .15) */
+.cine .field{opacity:calc((.24 + .76*var(--sep)) * clamp(0, calc((var(--p,0) - .155) * 20), 1))}
+.b2,.b3,.b4,.b5,.b6{right:auto;width:42vw;padding-right:0}
+/* act text: sequential fades, never a cross-fade. The old act is fully gone before the next one starts;
+   driven by --p directly (no opacity transition lag). Windows: 1 out .10-.15 | 2 in .155-.20, out .30-.35 |
+   3 in .35-.40, out .50-.545 | 4 in .55-.59, out .69-.73 | 5 in .735-.78, out .85-.875 | 6 in .88-.93 */
+.js .cine .blk{transition:none}
+.js .cine .b1{opacity:clamp(0,calc((.15 - var(--p,0))*20),1)}
+.js .cine .b2{opacity:clamp(0,min(calc((var(--p,0) - .155)*22.2222),calc((.35 - var(--p,0))*20)),1)}
+.js .cine .b3{opacity:clamp(0,min(calc((var(--p,0) - .35)*20),calc((.545 - var(--p,0))*22.2222)),1)}
+.js .cine .b4{opacity:clamp(0,min(calc((var(--p,0) - .55)*25),calc((.73 - var(--p,0))*25)),1)}
+.js .cine .b5{opacity:clamp(0,min(calc((var(--p,0) - .735)*22.2222),calc((.875 - var(--p,0))*40)),1)}
+.js .cine .b6{opacity:clamp(0,calc((var(--p,0) - .88)*20),1)}
+/* Act III dial sits in the gutter between the two halo rows, not on the Topic 3 words */
+.kdial{left:50%;bottom:auto;top:50%;transform:translate(-50%,-50%);padding:6px 12px;border-radius:6px;background:radial-gradient(closest-side,rgba(7,14,12,.9),rgba(7,14,12,.6))}
+/* the bottom scrim is for the act text (left column); on the right it only softly fades, so the lower topics stay legible */
+.pin::after{-webkit-mask-image:linear-gradient(90deg,#000 0 38%,rgba(0,0,0,.3) 58%,rgba(0,0,0,.3));mask-image:linear-gradient(90deg,#000 0 38%,rgba(0,0,0,.3) 58%,rgba(0,0,0,.3))}
+.cine .halo{opacity:calc((var(--sep)*.9 - var(--bound)*.5) * clamp(0, calc((var(--p,0) - .155) * 20), 1))}
+/* ===== 21 Nov 2026 · Fable audit task list (06-fable-denetim.md), applied by Opus ===== */
+/* G08 (F08, F05): the opening headline grows with the height as well as the width and gets a wider column,
+   so it stays on two lines while its weight eases on scroll (no reflow jump) and clears the bar on short screens */
+.cine .b1 .inner{max-width:min(92vw,1000px)}
+.cine .b1 .h-mega{font-size:clamp(44px,min(6.6vw,10.6vh),104px)}
+/* G05 (F04): the right-column halos carry their label at the top right, so "Topic 2"/"Topic 4" never sit on the
+   k dial or the C_v gauge; the gauge sits in the gutter between the two halo rows and scales with the stage */
+.cine .stage .halo:nth-child(2) b,.cine .stage .halo:nth-child(4) b{left:auto;right:14px}
+.cine .gauge{top:50%;transform:translate(-50%,-50%);width:clamp(118px,24cqh,172px)}
+</style>
+<link rel="stylesheet" href="/lda/assets/intro.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Lemmata (LDA Topic Modeling)","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","url":"https://lda.lemmata.app/","description":"A multilingual, browser-based LDA topic modeling platform for the humanities.","license":"https://opensource.org/licenses/MIT","inLanguage":["en","it","fr","de","es"],"author":[{"@type":"Person","name":"Oğuz Koran","@id":"https://orcid.org/0000-0001-7954-9597","sameAs":"https://orcid.org/0000-0001-7954-9597"},{"@type":"Person","name":"Barış Yücesan","@id":"https://orcid.org/0000-0002-1776-9815","sameAs":"https://orcid.org/0000-0002-1776-9815"},{"@type":"Person","name":"Hakan Cangır","@id":"https://orcid.org/0000-0003-2589-2466","sameAs":"https://orcid.org/0000-0003-2589-2466"}],"isPartOf":{"@type":"WebSite","name":"Lemmata","url":"https://lemmata.app/"},"sameAs":["https://doi.org/10.5281/zenodo.19391729"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"mainEntityOfPage":"https://lemmata.app/lda/"}
+</script>
+<link rel="stylesheet" href="/assets/accessibility.css?v=20261113d">
+<link rel="stylesheet" href="/assets/site.css?v=20261119a">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="hd intro-aware">
+  <a class="wm" href="/"><span class="mk" aria-hidden="true">λ</span><span class="tx">Lemmata</span><span class="sub">Topic Modeling</span></a>
+  <a class="ghost cine-summary" href="#summary" hidden>Skip to the summary</a>
+  <span class="lang"><b>EN</b> · <a href="/tr/lda/">TR</a></span>
+  <a class="cta" href="https://lda.lemmata.app/" data-launch>Launch Lemmata ↗</a>
+</header>
+
+<main id="main">
+
+<section class="cine" aria-label="How Lemmata LDA works · cinematic chapter">
+  <div class="scene" data-scene>
+    <div class="pin">
+      <span class="scene-counter" aria-hidden="true" hidden></span>
+      <figure class="keyvis" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" fetchpriority="high"></figure>
+      <div class="stagewrap">
+        <div class="stage" aria-hidden="true">
+          
+          <div class="halo" style="left:4%;top:6%;width:40%;height:40%"><b>Topic 1</b></div>
+          <div class="halo" style="left:56%;top:4%;width:40%;height:42%"><b>Topic 2</b></div>
+          <div class="halo" style="left:6%;top:54%;width:40%;height:42%"><b>Topic 3</b></div>
+          <div class="halo" style="left:55%;top:56%;width:41%;height:40%"><b>Topic 4</b></div>
+          
+          <div class="field">
+            <span class="w big t1" style="--sx:30;--sy:34;--dx:-190;--dy:-96">sea</span>
+            <span class="w mid t1" style="--sx:44;--sy:20;--dx:-150;--dy:-60">moon</span>
+            <span class="w mid t1" style="--sx:22;--sy:48;--dx:-150;--dy:-118">hill</span>
+            <span class="w sm  t1" style="--sx:52;--sy:44;--dx:-250;--dy:-150;--rm:1">the</span>
+            <span class="w mid t2" style="--sx:58;--sy:30;--dx:150;--dy:-96">village</span>
+            <span class="w big t2" style="--sx:70;--sy:22;--dx:110;--dy:-70">harvest</span>
+            <span class="w mid t2" style="--sx:64;--sy:42;--dx:170;--dy:-100">field</span>
+            <span class="w sm  t2" style="--sx:48;--sy:26;--dx:210;--dy:-150;--rm:1">of</span>
+            <span class="w mid t3" style="--sx:30;--sy:60;--dx:-150;--dy:110">mother</span>
+            <span class="w big t3" style="--sx:20;--sy:74;--dx:-120;--dy:120">memory</span>
+            <span class="w mid t3" style="--sx:40;--sy:70;--dx:-190;--dy:96">childhood</span>
+            <span class="w sm  t3" style="--sx:50;--sy:58;--dx:-250;--dy:150;--rm:1">and</span>
+            <span class="w mid t4" style="--sx:62;--sy:62;--dx:150;--dy:110">war</span>
+            <span class="w big t4" style="--sx:74;--sy:74;--dx:120;--dy:120">exile</span>
+            <span class="w mid t4" style="--sx:56;--sy:76;--dx:180;--dy:96">return</span>
+            <span class="w sm  t4" style="--sx:44;--sy:64;--dx:230;--dy:150;--rm:1">that</span>
+            <span class="w mid t1" style="--sx:36;--sy:26;--dx:-140;--dy:-70">night</span>
+            <span class="w mid t3" style="--sx:26;--sy:66;--dx:-160;--dy:104">house</span>
+            <span class="w mid t2" style="--sx:66;--sy:34;--dx:150;--dy:-90">grape</span>
+            <span class="w mid t4" style="--sx:68;--sy:68;--dx:150;--dy:104">road</span>
+          </div>
+          
+          <div class="kdial"><div class="kk"><b>3</b>k</div><div class="kk on"><b>4</b>k</div><div class="kk"><b>8</b>k</div><div class="kk"><b>12</b>k</div></div>
+          
+          <div class="gauge">
+            <svg viewBox="0 0 120 70"><path d="M10 62 A52 52 0 0 1 110 62" fill="none" stroke="rgba(245,241,230,.18)" stroke-width="6"/><path d="M10 62 A52 52 0 0 1 92 20" fill="none" stroke="#1FA97C" stroke-width="6" stroke-linecap="round"/><line x1="60" y1="62" x2="88" y2="26" stroke="#5DCAA5" stroke-width="2"/></svg>
+            <div class="val">C_v 0.52</div><div class="lab">Coherence · a signal</div>
+          </div>
+          
+          <div class="frame"><b>This corpus · these settings</b></div>
+        </div>
+      </div>
+
+      <p class="stagecap capnote">Conceptual visualisation · not an analysis result</p>
+
+      
+      <div class="blk b1"><div class="inner">
+        <p class="eyebrow">Lemmata · LDA Topic Modeling · v0.3.0</p>
+        <h1 class="h-mega">A corpus, read by the words it&nbsp;<em class="xr">repeats.</em></h1>
+        <p class="lede" style="margin:24px 0 6px">Topic modeling (LDA) groups the words that recur together across a body of text. Lemmata keeps every choice and limit in view, so the topics you read are the topics you can defend.</p>
+        <p class="ctas"><a class="btn" href="https://lda.lemmata.app/" data-launch>Launch Lemmata <span aria-hidden="true">↗</span></a><a class="ghost" href="#methods">Read the method note</a><a class="ghost" href="#summary">Skip to the summary</a></p>
+        <p class="status" style="margin-top:20px">Open source</p>
+      </div></div>
+
+      
+      <div class="blk b2"><h2 class="h-act">A topic is a distribution over words, <em class="xr">not a theme.</em></h2>
+        <p class="sup">LDA gathers words that tend to co-occur. Reading a topic as a theme is your interpretation, made explicit and open to revision, not a fact the model discovered.</p></div>
+
+      
+      <div class="blk b3"><h2 class="h-act">The number of topics is a choice, <em class="xr">not a discovery.</em></h2>
+        <p class="sup">You set the number of topics; the model does not find a true count. Compare several values rather than trusting one, and report the setting you chose.</p></div>
+
+      
+      <div class="blk b4"><h2 class="h-act">Coherence is a signal, <em class="xr">not a verdict.</em></h2>
+        <p class="sup">Coherence (C_v) measures how often a topic's words co-occur, not whether a topic is meaningful for your question. Read it as a prompt to inspect the topics qualitatively.</p></div>
+
+      
+      <div class="blk b5"><h2 class="h-act">Preprocessing shapes what you see.</h2>
+        <p class="sup">Which tokens are kept, removed, or lemmatized changes the topics. Lemmata shows each token's part of speech, its lemma, and whether it was kept, so you can inspect the preprocessing choices behind a result.</p></div>
+
+      
+      <div class="blk b6"><h2 class="h-act">Topics describe this corpus, <em class="xr">not language in general.</em></h2>
+        <p class="sup">Results hold for the documented corpus under these settings. They are a description to interpret, not a claim about authors, periods, or meaning beyond the texts you analysed.</p></div>
+
+      <p class="cue">Scroll · the topics emerge</p>
+    </div>
+  </div>
+</section>
+
+
+<div class="stacked">
+  <section class="sact" aria-label="A corpus, read by the words it repeats">
+    <div class="art" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" loading="lazy" style="object-position:50% 45%"></div>
+    <p class="eyebrow">Lemmata · LDA Topic Modeling · v0.3.0</p>
+    <h1 class="h-mega">A corpus, read by the words it <em class="xr">repeats.</em></h1>
+    <p class="lede">Topic modeling (LDA) groups the words that recur together across a body of text. Lemmata keeps every choice and limit in view, so the topics you read are the topics you can defend.</p>
+    <p class="ctas"><a class="btn" href="https://lda.lemmata.app/" data-launch>Launch Lemmata ↗</a><a class="ghost" href="#methods">Method note</a></p>
+    <p class="status" style="margin-top:18px">Open source</p>
+  </section>
+  <section class="sact"><div class="art" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" loading="lazy" style="object-position:18% 40%"></div><div class="k">Principle 01</div><h2 class="h-act">A topic is a distribution over words, <em class="xr">not a theme.</em></h2><p class="sup">LDA gathers words that tend to co-occur. Reading a topic as a theme is your interpretation, made explicit and open to revision, not a fact the model discovered.</p></section>
+  <section class="sact"><div class="art" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" loading="lazy" style="object-position:72% 55%"></div><div class="k">Principle 02</div><h2 class="h-act">The number of topics is a choice, <em class="xr">not a discovery.</em></h2><p class="sup">You set the number of topics; the model does not find a true count. Compare several values rather than trusting one, and report the setting you chose.</p></section>
+  <section class="sact"><div class="art" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" loading="lazy" style="object-position:40% 70%"></div><div class="k">Principle 03</div><h2 class="h-act">Coherence is a signal, <em class="xr">not a verdict.</em></h2><p class="sup">Coherence (C_v) measures how often a topic's words co-occur, not whether a topic is meaningful for your question. Read it as a prompt to inspect the topics qualitatively.</p></section>
+  <section class="sact"><div class="art" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" loading="lazy" style="object-position:85% 35%"></div><div class="k">Principle 04</div><h2 class="h-act">Preprocessing shapes what you see.</h2><p class="sup">Which tokens are kept, removed, or lemmatized changes the topics. Lemmata shows each token's part of speech, its lemma, and whether it was kept, so you can inspect the preprocessing choices behind a result.</p></section>
+  <section class="sact"><div class="art" aria-hidden="true"><img src="/lda/assets/keyvis-lda.jpg" alt="" loading="lazy" style="object-position:30% 60%"></div><div class="k">Principle 05</div><h2 class="h-act">Topics describe this corpus, <em class="xr">not language in general.</em></h2><p class="sup">Results hold for the documented corpus under these settings. They are a description to interpret, not a claim about authors, periods, or meaning beyond the texts you analysed.</p></section>
+</div>
+
+
+<div class="after">
+  <section class="methods" id="methods" aria-label="Method note">
+    <h2>The method, in plain terms</h2>
+    <details open><summary>What LDA does</summary><div class="dbody"><p>Latent Dirichlet Allocation treats each document as a mixture of topics and each topic as a distribution over words. It surfaces sets of words that recur together; it does not read meaning, and it does not know which grouping matters for your question.</p></div></details>
+    <details><summary>Choosing the number of topics</summary><div class="dbody"><p>The number of topics is a parameter you set. There is no single correct value; different counts foreground different structure. Compare several, inspect the words, and report the setting you used, along with the random seed and preprocessing.</p></div></details>
+    <details><summary>What stays visible</summary><div class="dbody"><p>Lemmata shows a token-level preprocessing table (tokens kept, removed, lemmatized), reports coherence as a signal rather than a verdict, and fixes the random seed for reproducibility. Results describe the documented corpus under the chosen settings, not language in general.</p></div></details>
+  </section>
+
+  <section class="paths" aria-label="What you can do">
+    <h2>Three ways to read a corpus</h2>
+    <ul>
+      <li><b>Topics across a corpus</b><p>Surface the recurring topics in a body of texts and interpret them yourself.</p><a class="go" href="https://lda.lemmata.app/" data-launch>In the app</a></li>
+      <li><b>Follow topics across documents</b><p>See how topic weights change across the order of your documents, with file boundaries marked.</p><a class="go" href="https://lda.lemmata.app/" data-launch>In the app</a></li>
+      <li><b>Export your results</b><p>Tables, metrics, the preprocessing summary and the environment report in one archive, with a separate PDF report.</p><a class="go" href="https://lda.lemmata.app/" data-launch>In the app</a></li>
+    </ul>
+  </section>
+</div>
+<div class="intro-sections" id="summary">
+<section aria-label="The Lemmata instrument" class="showcase">
+<div class="window reveal">
+<div aria-hidden="true" class="bar"><i></i><i></i><i></i><span class="url">lda.lemmata.app</span></div>
+<div class="shot"><img alt="The Lemmata interface: a corpus upload panel with a sidebar of sliders for language, chunk size, the option to split every file into parts, number of topics, words per topic, and a part-of-speech filter" loading="lazy" src="/lda/assets/product-lda.jpg" width="2000" height="1389"></div>
+</div>
+<p class="cap reveal">The actual instrument. <b>Settings, not scripts</b>: every parameter visible and recorded in the environment report.</p>
+</section>
+<section aria-label="Features" class="band tint" id="features">
+<div class="inner">
+<h2 class="reveal">Built for researchers who work with texts, not terminals.</h2>
+<p class="sub reveal">Rigorous topic modeling for literary scholars, historians, and digital humanists, with the method kept in full view.</p>
+<div class="fgrid">
+<div class="feat reveal"><div class="ic">◧</div><b>No code required</b><p>Upload your corpus, choose your settings, and run LDA from your web browser with nothing to install. The analysis runs on the server that hosts the app. Rigorous analysis without writing a single line of code.</p></div>
+<div class="feat reveal"><div class="ic">◔</div><b>Transparent preprocessing</b><p>A token-level table shows which tokens were kept or removed and which lemma each one received. Preprocessing stays visible.</p></div>
+<div class="feat reveal"><div class="ic">✦</div><b>Five languages</b><p>Built-in support for English, Italian, French, German, and Spanish, with spaCy language models and per-language stopword lists. If your texts look more like another supported language than the one you chose, a warning appears above the results. Results have been checked against a published study for Italian only.</p></div>
+<div class="feat reveal"><div class="ic">◈</div><b>Deterministic</b><p>With the same data, settings, random seed (42 by default), package and language-model versions, and processor type, every run gives identical results, so a result you cite is a result you can reproduce. Your settings, the main package versions and the processor type are recorded in an environment report, which the PDF report and the ZIP archive also contain.</p></div>
+<div class="feat reveal"><div class="ic">▤</div><b>Export your results</b><p>CSV tables, a PDF report, a ZIP archive with the tables, metrics and environment report, and the heatmap as PNG or SVG.</p></div>
+<div class="feat reveal"><div class="ic">◇</div><b>Coherence, in context</b><p>Coherence (C_v) is reported alongside the topics, framed as a signal to review qualitatively, never as a verdict.</p></div>
+<div class="feat reveal"><div class="ic">◍</div><b>Gibbs sampling by default</b><p>Gibbs sampling, the method of MALLET, is the default, with MALLET's main default settings. The faster variational method, the only one before v0.3.0, can still be chosen. Other changes in v0.3.0 also affect results, so to reproduce an earlier result exactly, use the release that produced it. Earlier releases are archived on Zenodo.</p></div>
+<div class="feat reveal"><div class="ic">◎</div><b>Stability and topic counts</b><p>"Check topic stability" fits the same model 9 more times with the seeds that follow yours and shows, for each topic, in how many of the 10 runs (yours included) a topic sharing at least 5 of its top 9 words appears (Agrawal, Fu and Menzies 2018). "Compare numbers of topics" plots coherence (C_v) for 2 to 15 topics and leaves the choice to you.</p></div>
+</div>
+</div>
+</section>
+<section aria-label="How it works" class="band" id="how">
+<div class="inner">
+<h2 class="reveal">Three steps from corpus to insight.</h2>
+<p class="sub reveal">Defaults get you started fast. You can change the analysis settings in the interface, and your choices are recorded in the environment report.</p>
+<div class="steps">
+<div class="step reveal"><div class="n">STEP 1</div><b>Upload</b><p>Drag and drop your text files (TXT, PDF, DOCX, ODT, EPUB) or paste text directly. With several long files, each file is split into parts of about the chunk size by default. Untick "Split every file into parts" to keep one document per file. Your data is processed in session and not stored permanently. To try it first, use the three Svevo novels in the <a href="https://github.com/oguzkoran-max/lemmata/tree/main/examples">examples folder</a> of the source code (Italian, public domain).</p></div>
+<div class="step reveal"><div class="n">STEP 2</div><b>Configure</b><p>Choose the language, number of topics, chunk size, part-of-speech filters, and stopwords. Sensible defaults are ready the moment you land.</p></div>
+<div class="step reveal"><div class="n">STEP 3</div><b>Analyse</b><p>Explore the interactive topic map, topic charts and heatmap, together with topic distributions and word clouds. Download the tables and records as one ZIP archive, and the report as a PDF.</p></div>
+</div>
+</div>
+</section>
+<div class="powered reveal">
+<span>Built on trusted open source</span>
+<b>spaCy</b> lemmatization · <b>tomotopy</b> (Gibbs sampling) &amp; <b>scikit-learn</b> (variational) LDA · <b>Gensim</b> coherence (C_v) · <b>Streamlit</b> interface
+</div>
+<section aria-label="Citation" class="cite" id="cite">
+<p class="lab reveal">Cite Lemmata</p>
+<h2 class="reveal">Using Lemmata in your research?</h2>
+<pre class="reveal" tabindex="0"><span class="k">@software</span>{koran_lemmata_2026,
+  author = {Koran, Oğuz and Yücesan, Barış and Cangır, Hakan},
+  title  = {Lemmata: A Multilingual LDA Topic Modeling Platform for Digital Humanities},
+  year   = {2026},
+  doi    = {10.5281/zenodo.19391729},
+  url    = {https://lda.lemmata.app}
+}</pre>
+<p class="doi reveal">DOI · <a href="https://doi.org/10.5281/zenodo.19391729">10.5281/zenodo.19391729</a> · <a href="https://github.com/oguzkoran-max/lemmata">Source code</a></p>
+<p class="authors reveal">Authors · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/Oguz.Koran" rel="noopener" target="_blank">Oğuz Koran</a> <a aria-label="Oğuz Koran ORCID iD" class="orcid" href="https://orcid.org/0000-0001-7954-9597">iD</a></span> · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/byucesan" rel="noopener" target="_blank">Barış Yücesan</a> <a aria-label="Barış Yücesan ORCID iD" class="orcid" href="https://orcid.org/0000-0002-1776-9815">iD</a></span> · <span class="who"><a class="prof" href="https://avesis.ankara.edu.tr/hcangir" rel="noopener" target="_blank">Hakan Cangır</a> <a aria-label="Hakan Cangır ORCID iD" class="orcid" href="https://orcid.org/0000-0003-2589-2466">iD</a></span></p>
+</section>
+</div>
+<div class="after">
+  <section class="finale" aria-label="Launch Lemmata">
+    <h2 class="h-act">Bring your corpus. Name the topics yourself.</h2>
+    <p class="ctas"><a class="btn" href="https://lda.lemmata.app/" data-launch>Launch Lemmata <span aria-hidden="true">↗</span></a><a class="ghost" href="/">Back to Lemmata</a></p>
+    <p class="status">Open source · MIT</p>
+  </section>
+</div>
+</main>
+
+<footer>
+  <p class="bd">A topic is a distribution over words, not a theme. Coherence is a signal, not a verdict. Results describe the documented corpus under the chosen settings, not language in general.</p>
+  <p>Lemmata · Topic Modeling · <a href="/">Lemmata lab</a> · <a href="/delta/">How Delta works</a> · <a href="/tr/lda/" lang="tr">Türkçe</a></p>
+<p class="source-code"><a href="https://github.com/oguzkoran-max/lemmata">Source code</a></p>
+<p class="tool-trust">Analyses run on the server that hosts each tool · Last updated 22 November 2026 · <a href="https://github.com/oguzkoran-max/lemmata/blob/main/CHANGELOG.md">LDA changelog</a></p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var de=document.documentElement; de.classList.add("js");
+  var meta=document.querySelector('meta[name="lda-launch-url"]');
+  if(meta&&meta.content){var L=document.querySelectorAll('a[data-launch]');for(var i=0;i<L.length;i++)L[i].setAttribute('href',meta.content);}
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var scene=document.querySelector('[data-scene]'); if(!scene) return;
+  function clamp(v){return v<0?0:v>1?1:v;}
+  function env(p,a,b){return clamp((p-a)/(b-a));}
+  var heads=document.querySelectorAll('.cine .h-mega, .cine .h-act');
+  var WIN=[[0,0.15],[0.155,0.35],[0.35,0.545],[0.55,0.73],[0.735,0.875],[0.88,2]];
+  var blkNodes=document.querySelectorAll('.cine .blk'), blks=[];
+  for(var b=0;b<blkNodes.length;b++) blks.push({el:blkNodes[b],links:blkNodes[b].querySelectorAll('a'),win:WIN[b]||[0,2]});
+  var summaryLink=document.querySelector(".cine-summary");
+  var sceneCounter=document.querySelector(".scene-counter");
+  var ticking=false;
+  function paint(){
+    ticking=false;
+    var r=scene.getBoundingClientRect(); var span=r.height-window.innerHeight;
+    var visible=span>0&&r.bottom>0&&r.top<window.innerHeight&&getComputedStyle(scene.parentElement).display!=="none";
+    summaryLink.hidden=!visible;
+    sceneCounter.hidden=!visible;
+    if(span<=0) return;
+    var p=clamp(-r.top/span);
+    var act=0;
+    for(var a=1;a<blks.length;a++) if(p>=blks[a].win[0]) act=a;
+    sceneCounter.textContent=(act+1)+' / '+blks.length;
+    var s=de.style;
+    s.setProperty('--p',p.toFixed(4));
+    s.setProperty('--settle',env(p,0,0.13).toFixed(4));
+    s.setProperty('--sep',(env(p,0.15,0.30)).toFixed(4));      /* words gather into topics */
+    s.setProperty('--kk',(env(p,0.35,0.5)-env(p,0.5,0.56)).toFixed(4));
+    s.setProperty('--coh',env(p,0.54,0.62).toFixed(4));
+    s.setProperty('--sieve',(env(p,0.73,0.82)).toFixed(4));    /* preprocessing removes stopwords */
+    s.setProperty('--bound',env(p,0.88,0.96).toFixed(4));      /* frame draws */
+    s.setProperty('--o1',(1-env(p,.10,.16)).toFixed(4));
+    s.setProperty('--o2',(env(p,.15,.20)-env(p,.30,.35)).toFixed(4));
+    s.setProperty('--o3',(env(p,.35,.40)-env(p,.50,.55)).toFixed(4));
+    s.setProperty('--o4',(env(p,.54,.59)-env(p,.69,.74)).toFixed(4));
+    s.setProperty('--o5',(env(p,.73,.78)-env(p,.85,.89)).toFixed(4));
+    s.setProperty('--o6',(env(p,.88,.93)).toFixed(4));
+    s.setProperty('--dialO',(env(p,.35,.40)-env(p,.52,.57)).toFixed(4));
+    s.setProperty('--gaugeO',(env(p,.55,.60)-env(p,.70,.76)).toFixed(4));
+    var w=(520-p*70).toFixed(0);
+    for(var h=0;h<heads.length;h++) heads[h].style.fontVariationSettings='"opsz" 72,"wght" '+w;
+    for(var k=0;k<blks.length;k++){
+      var inW=p>=blks[k].win[0]&&p<=blks[k].win[1];
+      blks[k].el.classList.toggle('is-off',!inW);
+      for(var l=0;l<blks[k].links.length;l++){blks[k].links[l].style.pointerEvents=inW?'auto':'none';}
+    }
+  }
+  function onScroll(){ if(!ticking){ticking=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',onScroll,{passive:true});
+  addEventListener('resize',onScroll,{passive:true});
+  paint();
+})();
+</script>
+<script src="/assets/accessibility.js?v=20261113f" defer></script>
+</body>
+</html>
