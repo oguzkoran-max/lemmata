@@ -678,13 +678,13 @@ def create_coherence_sweep_chart(
         zorder=2,
     )
 
-    # Best k.
+    # Highest C_v. Not called "best" (P046 decision, P062).
     best_idx = int(np.argmax(coherence_scores))
     best_k = k_values[best_idx]
     best_score = coherence_scores[best_idx]
     ax.plot(best_k, best_score, "o", color=COLOR_PRIMARY, markersize=12, zorder=3)
     ax.annotate(
-        f"Best: k={best_k}",
+        f"Highest C_v: k={best_k}",
         xy=(best_k, best_score),
         xytext=(8, 12),
         textcoords="offset points",

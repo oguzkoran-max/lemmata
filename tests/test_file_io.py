@@ -303,3 +303,14 @@ class TestGetEnvironmentInfo:
         params = {"seed": 42, "language": "it"}
         info = get_environment_info(params)
         assert info["parameters"] == params
+
+    def test_records_processor_and_numeric_packages(self):
+        # P062: Gibbs results depend on the processor type, so the report
+        # records it with numpy, scipy and tomotopy's instruction set.
+        import platform
+
+        info = get_environment_info({"seed": 42})
+        assert info["machine"] == platform.machine()
+        assert info["numpy_version"] != "not installed"
+        assert info["scipy_version"] != "not installed"
+        assert info["tomotopy_isa"] not in ("", "not available")

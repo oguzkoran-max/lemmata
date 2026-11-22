@@ -106,16 +106,19 @@ Lemmata follows a modular design with strict separation of concerns. The UI laye
 
 ```
 lemmata/
-├── app.py              # Streamlit UI only
-├── config.py           # Constants, language configs, slider ranges
-├── preprocessing.py    # spaCy NLP pipeline, POS filtering, lemmatization, trace
-├── modelling.py        # LDA (tomotopy Gibbs, scikit-learn variational), coherence (Gensim)
-├── visualisation.py    # Charts, wordclouds, pyLDAvis (zero st.* calls)
-├── file_io.py          # File readers, ZIP/PDF export, environment report
-├── requirements.txt    # Dependencies (spaCy language models pinned to 3.8.0)
-├── ARCHITECTURE.md     # 200 design decisions
-├── prompts/            # Development prompt logs
-└── tests/              # Pytest test suite
+├── src/lemmata/
+│   ├── app.py              # Streamlit UI only
+│   ├── config.py           # Constants, language configs, slider ranges
+│   ├── preprocessing.py    # spaCy NLP pipeline, POS filtering, lemmatization, trace
+│   ├── modelling.py        # LDA (tomotopy Gibbs, scikit-learn variational), coherence (Gensim)
+│   ├── visualisation.py    # Charts, wordclouds, pyLDAvis (zero st.* calls)
+│   └── file_io.py          # File readers, ZIP/PDF export, environment report
+├── tests/                  # Pytest test suite
+├── examples/               # Sample texts (Italo Svevo's three novels)
+├── prompts/                # Development prompt logs
+├── requirements.txt        # Dependencies (spaCy language models pinned to 3.8.0)
+├── pyproject.toml          # Package metadata (Python 3.11+)
+└── ARCHITECTURE.md         # 200 design decisions
 ```
 
 **Design decisions:**
@@ -144,7 +147,7 @@ What is documented, and its limits:
 
 2. **Expert input.** A corpus linguist advised on spaCy and the default part-of-speech filter before development. Most other technical decisions were proposed by the language model and accepted by the developer.
 
-3. **Automated testing.** The test suite (212 tests in v0.3.0) checks determinism and module behaviour. It did not catch two errors found later by a validation study, both fixed in v0.3.0 (see [CHANGELOG](CHANGELOG.md)).
+3. **Automated testing.** The test suite (218 tests in v0.3.0) checks determinism and module behaviour. It did not catch two errors found later by a validation study, both fixed in v0.3.0 (see [CHANGELOG](CHANGELOG.md)).
 
 An article on the development process is in preparation.
 

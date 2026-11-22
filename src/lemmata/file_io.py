@@ -704,16 +704,31 @@ def get_environment_info(params: dict[str, Any]) -> dict[str, Any]:
         "lemmata_version": APP_VERSION,
         "python_version": sys.version,
         "platform": platform.platform(),
+        # Processor type (P062). Gibbs results with the same data, settings,
+        # seed and package versions differed between arm64 and x86_64.
+        "machine": platform.machine(),
     }
 
     # Package versions — best effort.
-    for pkg in ("scikit-learn", "tomotopy", "spacy", "gensim", "pdfplumber", "reportlab"):
+    for pkg in (
+        "scikit-learn", "tomotopy", "spacy", "gensim", "numpy", "scipy",
+        "pdfplumber", "reportlab",
+    ):
         try:
             from importlib.metadata import version
 
             info[f"{pkg}_version"] = version(pkg)
         except Exception:
             info[f"{pkg}_version"] = "not installed"
+
+    # Instruction set tomotopy chose at import (e.g. avx512, avx2, sse2,
+    # arm64), recorded for the same reason as "machine" (P062).
+    try:
+        import tomotopy
+
+        info["tomotopy_isa"] = str(tomotopy.isa)
+    except Exception:
+        info["tomotopy_isa"] = "not available"
 
     # The spaCy language model used for the selected language (P059).
     model = SUPPORTED_LANGUAGES.get(str(params.get("language", "")))

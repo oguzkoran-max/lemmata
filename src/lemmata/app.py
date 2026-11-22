@@ -776,15 +776,16 @@ def _run_analysis_inner(
             )
             return {}
 
-        # Clamp n_topics to doc count (decision 164).
-        n_topics = min(params["n_topics"], len(processed_texts) // 2)
-        if n_topics < NUM_TOPICS_MIN:
-            n_topics = NUM_TOPICS_MIN
-        if n_topics != params["n_topics"]:
+        # Clamp n_topics to doc count (decision 164). The clamped value goes
+        # into the params that the results and every export carry (P062).
+        clamped = apply_topic_limit(params, len(processed_texts))
+        if clamped["n_topics"] != params["n_topics"]:
             st.warning(
-                f"Topic count adjusted to {n_topics} (corpus has only "
+                f"Topic count adjusted to {clamped['n_topics']} (corpus has only "
                 f"{len(processed_texts)} documents)."
             )
+        params = clamped
+        n_topics = params["n_topics"]
 
         # Step 4: Run LDA.
         st.write("Fitting LDA model...")
@@ -1045,8 +1046,9 @@ def _tab_overview(results: dict[str, Any], topic_labels: list[str]) -> None:
             "to try, but it does not pick the best one: automated coherence "
             "does not reliably agree with human judgements of topics (Hoyle et "
             "al. 2021; Chang et al. 2009), and there is little guidance on an "
-            "optimal number of topics (Gim\u00e9nez Celano 2026). Run the analysis "
-            "with the numbers you want to compare and read their topics."
+            "optimal number of topics (Gim\u00e9nez Celano and Gillings 2026). "
+            "Run the analysis with the numbers you want to compare and read "
+            "their topics."
         )
         if st.button("Run Coherence Sweep", type="primary"):
             progress_bar = st.progress(0, text="Starting sweep...")
@@ -1567,6 +1569,20 @@ def estimate_n_documents(
 def calc_topic_max(n_docs: int) -> int:
     """Max sensible topic count for *n_docs* documents (decision 164)."""
     return max(NUM_TOPICS_MIN, n_docs // 2)
+
+
+def apply_topic_limit(params: dict[str, Any], n_docs: int) -> dict[str, Any]:
+    """Return *params* with ``n_topics`` limited to *n_docs* (decision 164).
+
+    When the count is lowered, a new dict is returned that keeps the user's
+    value as ``n_topics_requested``, so the ZIP name, the JSON files and the
+    PDF report all show the number the model was fitted with (P062).
+    Otherwise *params* is returned unchanged.
+    """
+    n_topics = min(params["n_topics"], calc_topic_max(n_docs))
+    if n_topics == params["n_topics"]:
+        return params
+    return {**params, "n_topics": n_topics, "n_topics_requested": params["n_topics"]}
 
 
 def find_content_duplicates(texts: list[dict[str, str]]) -> list[str]:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from lemmata.app import (
+    apply_topic_limit,
     calc_topic_max,
     check_chunk_imbalance,
     check_imbalanced_corpus,
@@ -33,6 +34,50 @@ class TestCalcTopicMax:
 
     def test_100_docs_gives_50(self):
         assert calc_topic_max(100) == 50
+
+
+class TestApplyTopicLimit:
+    """The fitted topic count reaches the exports (decision 164, P062)."""
+
+    PARAMS = {"language": "it", "n_topics": 10, "n_words": 5, "seed": 42}
+
+    def test_within_limit_returns_params_unchanged(self):
+        assert apply_topic_limit(self.PARAMS, 40) is self.PARAMS
+
+    def test_over_limit_records_fitted_and_requested(self):
+        out = apply_topic_limit(self.PARAMS, 4)
+        assert out["n_topics"] == 2
+        assert out["n_topics_requested"] == 10
+        assert self.PARAMS["n_topics"] == 10  # input not mutated
+
+    def test_exports_carry_the_fitted_count(self):
+        import json
+        import zipfile
+        from io import BytesIO
+
+        import numpy as np
+
+        from lemmata.file_io import export_zip, get_zip_filename
+
+        params = apply_topic_limit(self.PARAMS, 4)
+        results = {
+            "topics": [
+                {"topic_id": i, "words": ["a", "b"], "weights": [0.6, 0.4]}
+                for i in range(2)
+            ],
+            "doc_topic_matrix": np.array([[0.9, 0.1]] * 4),
+            "doc_labels": [f"d{i}" for i in range(4)],
+            "preprocessing_trace": {"per_document": []},
+            "model_info": {"n_topics": 2},
+            "coherence": {"c_v": 0.5, "per_topic": [0.5, 0.5]},
+        }
+        data = export_zip(results, params)
+        with zipfile.ZipFile(BytesIO(data)) as zf:
+            analysis = json.loads(zf.read("analysis_results.json"))
+            env = json.loads(zf.read("environment.json"))
+        assert analysis["parameters"]["n_topics"] == 2
+        assert env["parameters"]["n_topics"] == 2
+        assert "_2topics_" in get_zip_filename(params["language"], params["n_topics"])
 
 
 class TestEstimateNDocuments:

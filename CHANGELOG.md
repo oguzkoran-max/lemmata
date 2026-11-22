@@ -11,6 +11,9 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
 *Decameron*) with Lemmata v0.2.0 and with MALLET. See prompt log P045.
 
 ### Added
+- The environment report (PDF, ZIP, environment.json) records the
+  processor type, the instruction set tomotopy uses (e.g. avx2, arm64)
+  and the numpy and scipy versions (P062).
 - The environment report (PDF, ZIP, environment.json) records the spaCy
   language model and its version (P059).
 - "Split every file into parts" in the sidebar (P052). With several
@@ -56,6 +59,11 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   figures are in `metrics.json`.
 
 ### Changed
+- Python 3.11 or later is required; `pyproject.toml` said 3.10, but
+  streamlit 1.66 (P057) needs 3.11. CI now runs the tests on Python
+  3.11, 3.12 and 3.13 (P062).
+- The coherence sweep chart labels its highest point "Highest C_v: k=…"
+  instead of "Best: k=…", as the text below the chart already did (P062).
 - README, CITATION.cff and "How to cite" give Zenodo's concept DOI
   (10.5281/zenodo.19391729), which resolves to the latest version,
   instead of the DOI of v0.1.0, and https://lda.lemmata.app, where the
@@ -100,6 +108,11 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   (by prevalence).
 
 ### Fixed
+- When the topic count was lowered to fit a small corpus, the ZIP file
+  name, `analysis_results.json`, `environment.json` and the PDF's
+  parameter table still gave the requested count. They now give the
+  count the model was fitted with, and the requested one as
+  `n_topics_requested` (P062).
 - The file uploader allowed 100 MB per file while the app's limit is
   50 MB; both now say 50 MB (P059).
 - No language mismatch was reported after a successful run: the early

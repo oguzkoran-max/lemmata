@@ -226,6 +226,13 @@ class TestCreateCoherenceSweepChart:
         )
         assert isinstance(fig, Figure)
 
+    def test_marks_highest_cv_without_calling_it_best(self):
+        # P046 decision: the sweep names no best number of topics (P062).
+        fig = create_coherence_sweep_chart([2, 3, 4], [0.4, 0.5, 0.35])
+        labels = [t.get_text() for t in fig.axes[0].texts]
+        assert "Highest C_v: k=3" in labels
+        assert not any("Best" in t for t in labels)
+
 
 # ── create_topic_map (P045) ───────────────────────────────────────────────────
 

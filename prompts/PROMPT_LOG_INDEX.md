@@ -61,5 +61,6 @@
 | P059 | Record the spaCy model version; one upload limit | 21 Nov 2026 | 213 |
 | P060 | README, LICENSE and CHANGELOG brought in line with v0.3.0 | 21 Nov 2026 | 213 |
 | P061 | One contact address | 21 Nov 2026 | 213 |
+| P062 | Pre-release fixes from the external review | 22 Nov 2026 | 218 |
 
 P043 and P044 (4 July 2026) have commits but no prompt log files.
