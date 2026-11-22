@@ -132,8 +132,8 @@ lemmata/
 
 - **Fixed random state:** seed 42 by default, editable in Advanced settings. Gibbs sampling runs on one worker so that the seed fixes the result.
 - **Batch learning (variational method):** learning_method='batch' eliminates document-order effects.
-- **Environment report:** Every analysis exports Python version, package versions, and all parameters.
-- **Same data, parameters, seed and package versions give the same result;** the test suite checks this.
+- **Environment report:** Every analysis exports Python version, package versions, processor type, and all parameters.
+- **Same data, parameters, seed, package versions and processor type give the same result;** the test suite checks this.
 
 ---
 

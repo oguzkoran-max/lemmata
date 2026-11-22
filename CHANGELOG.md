@@ -59,6 +59,12 @@ Changes follow a validation study that reproduced Cooper et al. (2021,
   figures are in `metrics.json`.
 
 ### Changed
+- The reproducibility statement (README, CITATION.cff, the website and the
+  seed's help text) adds the processor type: the same data, settings,
+  seed and package versions gave C_v 0.4757 on arm64 and 0.4875 on an
+  x86_64 server with AVX-512, because Gibbs sampling results depend on
+  the processor (P063). CITATION.cff no longer uses the term "vibe
+  coding", which the README dropped earlier (P063).
 - Python 3.11 or later is required; `pyproject.toml` said 3.10, but
   streamlit 1.66 (P057) needs 3.11. CI now runs the tests on Python
   3.11, 3.12 and 3.13 (P062).

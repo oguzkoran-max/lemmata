@@ -31,10 +31,10 @@ abstract: >-
   It supports Italian, English, German, French, and Spanish through
   spaCy NLP pipelines. Topics are inferred by Gibbs sampling with
   MALLET's main default settings or by variational Bayes, Lemmata's
-  only method before v0.3.0. The same data, settings, seed (default 42)
-  and package versions give the same results. The platform was developed
-  entirely through vibe coding — LLM-assisted software development
-  using natural language prompts — and serves as both a practical
+  only method before v0.3.0. The same data, settings, seed (default 42),
+  package versions and processor type give the same results. The code
+  was written by an LLM coding assistant (Claude Code) from
+  natural-language prompts, and the platform serves as both a practical
   research tool and a methodological case study for AI-assisted
   Digital Humanities workflows.
 keywords:
@@ -43,7 +43,6 @@ keywords:
   - digital humanities
   - multilingual NLP
   - computational literary studies
-  - vibe coding
   - LLM-assisted development
 license: MIT
 version: 0.1.0

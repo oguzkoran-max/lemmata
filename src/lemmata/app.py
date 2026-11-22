@@ -374,7 +374,8 @@ def _render_sidebar() -> dict[str, Any]:
                 min_value=0,
                 step=1,
                 help="Fixes the random starting point, so the same texts and "
-                     "settings give the same result; record it with your "
+                     "settings give the same result on the same type of "
+                     "processor; record it with your "
                      "results (Sandve et al. 2013). Another seed can give "
                      "somewhat different topics (Giménez Celano and Gillings "
                      "2026); use 'Check topic stability' to see how much your "
