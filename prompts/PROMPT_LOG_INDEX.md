@@ -66,5 +66,6 @@
 | P064 | Release v0.3.0 | 22 Nov 2026 | 218 |
 | P065 | The new lemmata.app website | 22 Nov 2026 | 218 |
 | P066 | Contact address and interface-language note on the tool pages | 23 Nov 2026 | not run (HTML only) |
+| P067 | Privacy sentence on the Delta pages | 23 Nov 2026 | not run (HTML only) |
 
 P043 and P044 (4 July 2026) have commits but no prompt log files.
