@@ -11,7 +11,7 @@ Thank you for your interest in contributing to Lemmata. This project is an acade
 
 ## Development notes
 
-- Lemmata is developed through vibe coding (LLM-assisted development). If you contribute code, please include clear comments explaining your changes so the development log remains transparent.
+- Lemmata was built with LLM assistance (Claude, Claude Code); see "How it was built" in the README. If you contribute code, please include clear comments explaining your changes so the development log remains transparent.
 - All NLP and preprocessing decisions should be linguistically motivated. If you propose a change to tokenization, POS filtering, or stopword handling, please include a brief justification.
 - The UI layer (app.py) must remain free of business logic. Processing, modeling, and visualization belong in their respective modules.
 

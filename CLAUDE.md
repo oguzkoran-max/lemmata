@@ -1,7 +1,7 @@
 # CLAUDE.md — Lemmata Project Configuration
 
 ## Identity
-Lemmata is a browser-based, multilingual LDA topic modeling platform for humanities researchers. Developed entirely through vibe coding. DSH article in preparation.
+Lemmata is a browser-based, multilingual LDA topic modeling platform for humanities researchers. Code written by Claude Code from the developer's prompts (see README, How it was built). DSH article in preparation.
 
 ## Authors
 - Oğuz Koran — PI, all prompts, testing (Ankara University YDYO, Italian)
@@ -16,9 +16,10 @@ Lemmata is a browser-based, multilingual LDA topic modeling platform for humanit
 - app.py = Streamlit UI only, ZERO business logic
 - visualisation.py = ZERO st.* calls, returns figures/data only
 
-### Technical (Hakan-approved)
-- LDA: scikit-learn LatentDirichletAllocation (NOT Gensim)
-- random_state=42, learning_method='batch' — deterministic
+### Technical (initial planning decisions; spaCy and default POS filter on corpus-linguist advice)
+- LDA (default since v0.3.0): collapsed Gibbs sampling via tomotopy, as in MALLET (NOT Gensim)
+- LDA (alternative): scikit-learn LatentDirichletAllocation, learning_method='batch', the only method before v0.3.0
+- random_state=42 for both methods — deterministic
 - Coherence: Gensim CoherenceModel C_v (evaluation only)
 - NLP: spaCy sm models (it, en, de, fr, es)
 - Default POS: NOUN, PROPN, ADJ
